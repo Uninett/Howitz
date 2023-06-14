@@ -10,6 +10,8 @@ Welcome to Howitz's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   endpoints-components
+
 
 Indices and tables
 ==================
