@@ -1,4 +1,5 @@
 !*.svg
+docs/build
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
