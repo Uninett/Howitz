@@ -1,0 +1,25 @@
+{% block content %}
+
+<td class="px-6 py-4 border border-slate-700">{{ index }}</td>
+<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white border border-slate-700">{{ case.opstate }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ case.admstate }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ case.age }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ case.downtime }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ case.router }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ case.port }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ case.description }}</td>
+<td
+class="px-6 py-4 border border-slate-700"
+>
+<svg
+     id="svg-icon-{{ case.id }}"
+     hx-on="click: htmx.toggleClass(htmx.find('#svg-icon-{{ case.id }}'), 'rotate-180')"
+     class="w-6 h-6 shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+
+    <path fill-rule="evenodd"
+          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+          clip-rule="evenodd"></path>
+</svg>
+</td>
+
+{% endblock content %}

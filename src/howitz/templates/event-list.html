@@ -1,0 +1,36 @@
+{% block content %}
+
+
+{% if case_list|length>0 %}
+
+{% for case in case_list %}
+<tr
+        class="bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+        id="accordion-collapse-row-{{ case.id }}"
+>
+    {% with index=loop.index, case=case %}
+    {% include "event.html" %}
+    {% endwith %}
+
+</tr>
+<tr
+        id="replaceMe-{{ case.id }}"
+        hx-get="/details/{{ case.id }}"
+        hx-trigger="click from:#svg-icon-{{ case.id }}"
+        hx-target="#replaceMe-{{ case.id }}"
+        hx-swap="outerHTML"
+        hx-indicator="#indicator-{{ case.id }}"
+        hidden
+>
+    <td colspan="100">
+            <p id="indicator-{{ case.id }}" class="my-htmx-indicator">LOADING...</p>
+    </td>
+
+
+</tr>
+
+{% endfor %}
+
+{% endif %}
+
+{% endblock content %}

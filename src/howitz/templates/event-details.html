@@ -1,0 +1,55 @@
+
+{% block content %}
+
+<tr
+        class="bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+        hx-get="/details/{{ id }}"
+        hx-trigger="click from:#svg-icon-{{ id }}"
+        hx-target="#replaceMe-{{ id }}"
+        hx-swap="outerHTML"
+        hx-indicator="#indicator-{{ id }}"
+>
+    <td colspan="100">
+
+        <p id="indicator-{{ id }}" class="my-htmx-indicator">LOADING...</p>
+
+        <div
+                id="accordion-collapse-body-{{ id }}"
+                aria-labelledby="accordion-collapse-row-{{ id }}"
+                class="p-5 border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
+
+
+            <a href="#"
+               class="block max-w-md p-4 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+                <h5 class="mb-2 text-2xl text-center font-bold tracking-tight text-gray-900 dark:text-white">
+                    Attributes</h5>
+
+                <ul class="max-w-xl divide-y divide-gray-200 dark:divide-gray-700">
+
+                    {% for attr_key in case_attr.keys() %}
+                    <li class="pb-6 sm:pb-6">
+                        <div class="flex space-x-6">
+                            <div class="flex-1">
+                                <p class="uppercase text-sm font-medium text-gray-900 dark:text-white">
+                                    {{ attr_key }}
+                                </p>
+                            </div>
+                            <div class="text-base font-semibold text-gray-900 dark:text-white">
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                    {{ case_attr.get(attr_key) }}
+                                </p>
+                            </div>
+                        </div>
+                    </li>
+
+                    {% endfor %}
+                </ul>
+            </a>
+        </div>
+
+    </td>
+</tr>
+
+
+{% endblock content %}
+
