@@ -1,13 +1,9 @@
-
 {% block content %}
 
 <tr
+        id="event-details-row-{{ id }}"
         class="bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-        hx-get="/details/{{ id }}"
-        hx-trigger="click from:#svg-icon-{{ id }}"
-        hx-target="#replaceMe-{{ id }}"
-        hx-swap="outerHTML"
-        hx-indicator="#indicator-{{ id }}"
+
 >
     <td colspan="100">
 
@@ -50,6 +46,9 @@
     </td>
 </tr>
 
+{% with id=id %}
+{% include "ui-collapse-row-btn.html" %}
+{% endwith %}
 
 {% endblock content %}
 

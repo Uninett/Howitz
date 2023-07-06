@@ -13,21 +13,21 @@
     {% endwith %}
 
 </tr>
-<tr
-        id="replaceMe-{{ case.id }}"
-        hx-get="/details/{{ case.id }}"
-        hx-trigger="click from:#svg-icon-{{ case.id }}"
-        hx-target="#replaceMe-{{ case.id }}"
-        hx-swap="outerHTML"
-        hx-indicator="#indicator-{{ case.id }}"
-        hidden
->
-    <td colspan="100">
-            <p id="indicator-{{ case.id }}" class="my-htmx-indicator">LOADING...</p>
-    </td>
+<!--<tr-->
+<!--        id="replaceMe-{{ case.id }}"-->
+<!--        hx-get="/details/{{ case.id }}"-->
+<!--        hx-trigger="click from:#svg-icon-{{ case.id }}"-->
+<!--        hx-target="#replaceMe-{{ case.id }}"-->
+<!--        hx-swap="outerHTML"-->
+<!--        hx-indicator="#indicator-{{ case.id }}"-->
+<!--        hidden-->
+<!--&gt;-->
+<!--    <td colspan="100">-->
+<!--            <p id="indicator-{{ case.id }}" class="my-htmx-indicator">LOADING...</p>-->
+<!--    </td>-->
 
 
-</tr>
+<!--</tr>-->
 
 {% endfor %}
 

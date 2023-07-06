@@ -8,12 +8,24 @@
 <td class="px-6 py-4 border border-slate-700">{{ case.router }}</td>
 <td class="px-6 py-4 border border-slate-700">{{ case.port }}</td>
 <td class="px-6 py-4 border border-slate-700">{{ case.description }}</td>
+
+<!--{% with id=case.id %}-->
+<!--{% include "ui-expand-row-btn.html" %}-->
+<!--{% endwith %}-->
+
 <td
+id="toggle-row-btn-{{ case.id }}"
 class="px-6 py-4 border border-slate-700"
+hx-get="/show_details/{{ case.id }}"
+hx-trigger="click from:#svg-icon-{{ case.id }}"
+hx-indicator="#indicator-{{ case.id }}"
+hx-target="#accordion-collapse-row-{{ case.id }}"
+hx-swap="afterend"
+hx-select="#event-details-row-{{ case.id }}"
+hx-select-oob="#toggle-row-btn-{{ case.id }}"
 >
 <svg
      id="svg-icon-{{ case.id }}"
-     hx-on="click: htmx.toggleClass(htmx.find('#svg-icon-{{ case.id }}'), 'rotate-180')"
      class="w-6 h-6 shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
 
     <path fill-rule="evenodd"

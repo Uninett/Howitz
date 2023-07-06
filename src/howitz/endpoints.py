@@ -199,9 +199,14 @@ def events_list():
     return render_template('event-list.html', case_list=table_cases, datetime=datetime, curitz=curitz, cli=cli)
 
 
-@app.route('/details/<i>')
+@app.route('/show_details/<i>', methods=["GET"])
 def read_details(i):
 
     case_attr = get_event_attributes(i)
 
     return render_template('event-details.html', id=i, case_attr=case_attr)
+
+@app.route('/hide_details/<i>', methods=["GET"])
+def hide_details(i):
+
+    return render_template('hide-event-details.html', id=i)
