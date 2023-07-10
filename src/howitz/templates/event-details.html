@@ -15,32 +15,81 @@
                 class="p-5 border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
 
 
-            <a href="#"
-               class="block max-w-md p-4 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-                <h5 class="mb-2 text-2xl text-center font-bold tracking-tight text-gray-900 dark:text-white">
-                    Attributes</h5>
+            <div
+                    class="flex gap-4 grow-0 justify-stretch"
+            >
 
-                <ul class="max-w-xl divide-y divide-gray-200 dark:divide-gray-700">
+                <div class="flex flex-col basis-2/5">
+                    {% with case_attr=case_attr %}
+                    {% include "ui-event-attributes.html" %}
+                    {% endwith %}
+                </div>
 
-                    {% for attr_key in case_attr.keys() %}
-                    <li class="pb-6 sm:pb-6">
-                        <div class="flex space-x-6">
-                            <div class="flex-1">
-                                <p class="uppercase text-sm font-medium text-gray-900 dark:text-white">
-                                    {{ attr_key }}
-                                </p>
-                            </div>
-                            <div class="text-base font-semibold text-gray-900 dark:text-white">
-                                <p class="text-sm font-medium text-gray-900 dark:text-white">
-                                    {{ case_attr.get(attr_key) }}
-                                </p>
-                            </div>
-                        </div>
-                    </li>
+                <div class="flex flex-col basis-3/5">
+                    {% with event_logs=event_logs %}
+                    {% include "ui-event-messages.html" %}
+                    {% endwith %}
+                </div>
 
-                    {% endfor %}
-                </ul>
-            </a>
+            </div>
+
+
+
+<!--                <div class="flex w-screen">-->
+<!--                    <div class="p-4">-->
+<!--                        <div class="block bg-white overflow-hidden border-2">-->
+<!--                            <div class="p-4">-->
+<!--                                <h2 class="mt-2 mb-2 font-bold text-2xl font-Headingg">-->
+<!--                                    Card Name-->
+<!--                                </h2>-->
+<!--                                <div class="mb-4 flex flex-wrap">-->
+<!--                                    <span class="mr-2">Link 1</span>-->
+<!--                                    <span>Link 2</span>-->
+<!--                                </div>-->
+
+<!--                                <p class="text-md">Some Description</p>-->
+<!--                            </div>-->
+<!--                            <div class="p-4 flex flex-wrap">-->
+<!--                                <p class="px-1 py-2 tracking-wide text-xs mr-2 mb-2">Tag #1</p>-->
+<!--                                <p class="px-1 py-2 tracking-wide text-xs mr-2 mb-2">Tag #2</p>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    <div class="p-4 basis-0 grow overflow-y-auto">-->
+<!--                        <div class="block bg-white border-2">-->
+<!--                            <div class="p-4">-->
+<!--                                <h2 class="mt-2 mb-2 font-bold text-2xl font-Headingg">-->
+<!--                                    Card Name-->
+<!--                                </h2>-->
+<!--                                <div class="mb-4 flex flex-wrap">-->
+<!--                                    <span class="mr-2">Link 1</span>-->
+<!--                                    <span>Link 2</span>-->
+<!--                                </div>-->
+
+<!--                                <p class="break-all text-md">Some Description Lorem ipsum dolor sit amet, consectetur-->
+<!--                                    adipiscing elit. Maecenas vel enim lectus.Some Description Lorem ipsum dolor sit amet, consectetur-->
+<!--                                    adipiscing elit. Maecenas vel enim lectus.Some Description Lorem ipsum dolor sit amet, consectetur-->
+<!--                                    adipiscing elit. Maecenas vel enim lectus.Some Description Lorem ipsum dolor sit amet, consectetur-->
+<!--                                    adipiscing elit. Maecenas vel enim lectus.Some Description Lorem ipsum dolor sit amet, consectetur-->
+<!--                                    adipiscing elit. Maecenas vel enim lectus.Some Description Lorem ipsum dolor sit amet, consectetur-->
+<!--                                    adipiscing elit. Maecenas vel enim lectus.Some Description Lorem ipsum dolor sit amet, consectetur-->
+<!--                                    adipiscing elit. Maecenas vel enim lectus.Some Description Lorem ipsum dolor sit amet, consectetur-->
+<!--                                    adipiscing elit. Maecenas vel enim lectus.Some Description Lorem ipsum dolor sit amet, consectetur-->
+<!--                                    adipiscing elit. Maecenas vel enim lectus.Some Description Lorem ipsum dolor sit amet, consectetur-->
+<!--                                    adipiscing elit. Maecenas vel enim lectus.Some Description Lorem ipsum dolor sit amet, consectetur-->
+<!--                                    adipiscing elit. Maecenas vel enim lectus.</p>-->
+<!--                            </div>-->
+<!--                            <div class="p-4 flex flex-wrap items-center">-->
+<!--                                <p class="px-1 py-2 tracking-wide text-xs mr-2 mb-2">Tag #1</p>-->
+<!--                                <p class="px-1 py-2 tracking-wide text-xs mr-2 mb-2">Tag #2</p>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+
+
+
         </div>
 
     </td>

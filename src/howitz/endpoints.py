@@ -169,6 +169,22 @@ def get_event_attributes(id):
 
     return case_attr
 
+
+def get_event_details(id):
+    config = Engine.get_config()
+    engine = Engine(config)
+    engine.connect()
+
+    case_attr = engine.session.get_attributes(int(id))
+    event_logs = engine.session.get_log(int(id))
+    event_history = engine.session.get_history(int(id))
+    print('CASE ATTR', case_attr)
+    print('EVENT LOGS', event_logs)
+    print('EVENT HISTORY', event_history)
+
+    return case_attr, event_logs, event_history
+
+
 @app.route('/')
 @app.route('/hello-world')
 def index():
@@ -202,9 +218,11 @@ def events_list():
 @app.route('/show_details/<i>', methods=["GET"])
 def read_details(i):
 
-    case_attr = get_event_attributes(i)
+    case_attr, event_logs, event_history = get_event_details(i)
 
-    return render_template('event-details.html', id=i, case_attr=case_attr)
+    return render_template('event-details.html', id=i, case_attr=case_attr, event_logs=event_logs,
+                           event_history=event_history)
+
 
 @app.route('/hide_details/<i>', methods=["GET"])
 def hide_details(i):
