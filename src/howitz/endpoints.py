@@ -182,7 +182,23 @@ def get_event_details(id):
     print('EVENT LOGS', event_logs)
     print('EVENT HISTORY', event_history)
 
-    return case_attr, event_logs, event_history
+    event_msgs = []
+    for log in event_logs:
+        msg = {'date': log['date'], 'msg': log['header'], 'user': ''}
+        event_msgs.append(msg)
+
+    for history in event_history:
+        msg = {'date': history['date'], 'user': history['user']}
+        if history['log']:
+            msg['msg'] = ' '.join(history['log'])
+        else:
+            msg['msg'] = history['header']
+
+        event_msgs.append(msg)
+
+    print('EVENT MSGS', event_msgs)
+
+    return case_attr, event_logs, event_history, event_msgs
 
 
 @app.route('/')
@@ -218,13 +234,27 @@ def events_list():
 @app.route('/show_details/<i>', methods=["GET"])
 def read_details(i):
 
-    case_attr, event_logs, event_history = get_event_details(i)
+    case_attr, event_logs, event_history, event_msgs = get_event_details(i)
 
     return render_template('event-details.html', id=i, case_attr=case_attr, event_logs=event_logs,
-                           event_history=event_history)
+                           event_history=event_history, event_msgs=event_msgs)
 
 
 @app.route('/hide_details/<i>', methods=["GET"])
 def hide_details(i):
 
     return render_template('hide-event-details.html', id=i)
+
+
+@app.route('/event/<i>/update_status', methods=["GET"])
+def update_event_status(i):
+
+    return render_template('ui-update-event-status-form.html', id=i)
+
+
+@app.route('/event/<i>/update_status/cancel', methods=["GET"])
+def cancel_update_event_status(i):
+
+    return render_template('ui-generic-hidden.html', id=i)
+
+
