@@ -29,36 +29,9 @@
 
             {% endif %}
 
+            {% include "ui-hidden-li.html" %}
+
         </ol>
 
-
-        <!--        <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">-->
-
-        <!--            {% if event_msgs|length>0 %}-->
-
-        <!--            {% for msg in event_msgs %}-->
-
-        <!--            <li class="py-2 sm:py-3">-->
-        <!--                <div class="flex items-center justify-between">-->
-        <!--                    <div class="flex-1 basis-1/4">-->
-        <!--                        <p class="text-sm font-medium text-gray-900 truncate dark:text-white">-->
-        <!--                            {{ msg.date }}-->
-        <!--                        </p>-->
-        <!--                        {% if msg.user %}-->
-        <!--                        <p class="text-sm text-gray-500 truncate dark:text-gray-400">-->
-        <!--                            {{ msg.user }}-->
-        <!--                        </p>-->
-        <!--                        {% endif %}-->
-        <!--                    </div>-->
-        <!--                    <div class="basis-3/4 justify-self-end items-center text-end text-base font-semibold text-gray-900 dark:text-white">-->
-        <!--                        {{ msg.msg }}-->
-        <!--                    </div>-->
-        <!--                </div>-->
-        <!--            </li>-->
-
-        <!--            {% endfor %}-->
-
-        <!--            {% endif %}-->
-        <!--        </ul>-->
     </div>
 </div>
