@@ -1,0 +1,25 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %} Events {% endblock %}
+
+{% block extensions %} class-tools, multi-swap, disable-element, loading-states, response-targets {% endblock %}
+
+
+{% block content %}
+
+
+<h1>HTMx Zino 2.0 Events List</h1>
+<main class="relative overflow-x-auto shadow-md sm:rounded-lg">
+
+    <table
+            hx-get="/events_table"
+            hx-swap="outer"
+            hx-trigger="load"
+    >
+    </table>
+
+</main>
+
+{% endblock content %}
+
+
