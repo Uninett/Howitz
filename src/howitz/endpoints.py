@@ -98,7 +98,8 @@ def get_current_cases():
     cases_sorted = {k: cases[k] for k in sorted(cases,
                                             key=lambda k: (
                                                 # 0 if cases[k].get("state") == caseState.IGNORED else 1,
-                                                cases[k].history[-1]['date'],
+                                                # cases[k].history[-1]['date'],
+                                                cases[k]._attrs["updated"],
                                             ), reverse=True)}
 
     # cases_sorted = sorted(cases,
