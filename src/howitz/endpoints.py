@@ -10,6 +10,7 @@ import curitz
 from zinolib.ritz import ritz, notifier, parse_tcl_config, caseState
 from curitz import cli
 
+
 app = Flask(__name__)
 LOG = logging.getLogger(__name__)
 
@@ -84,38 +85,30 @@ class Engine:
                 continue
             self.cases[case.id] = case
 
+    def get_event_attributes(self, id):
+        pass
+
+
+config = Engine.get_config()
+engine = Engine(config)
+print('Connecting..', engine)
+engine.connect()
+print('Connected')
+
 
 def get_current_cases():
-    config = Engine.get_config()
-    engine = Engine(config)
-    print('Connecting..', engine)
-    engine.connect()
-    print('Connected')
     engine.load_current_cases()
     cases = engine.cases
-    print("CASES ITEMS", cases)
+    # print("CASES ITEMS", cases)
 
     cases_sorted = {k: cases[k] for k in sorted(cases,
-                                            key=lambda k: (
-                                                # 0 if cases[k].get("state") == caseState.IGNORED else 1,
-                                                # cases[k].history[-1]['date'],
-                                                cases[k]._attrs["updated"],
-                                            ), reverse=True)}
+                                                key=lambda k: (
+                                                    0 if cases[k].get("state") == caseState.IGNORED else 1,
+                                                    # cases[k].history[-1]['date'],
+                                                    cases[k]._attrs["updated"],
+                                                ), reverse=True)}
 
-    # cases_sorted = sorted(cases,
-    #                       key=lambda k: (
-    #                           0 if cases[k].get("state") == caseState.IGNORED else 1,
-    #                           cases[k].history[-1]['date'],
-    #                       ))
-
-
-    # cases_sorted = dict(sorted(cases,
-    #                     key=lambda k: (
-    #                         0 if cases[k].get("state") == caseState.IGNORED else 1,
-    #                         cases[k]._attrs["updated"],
-    #                     ),))
-
-    print("CASES SORTED", cases_sorted)
+    # print("CASES SORTED", cases_sorted)
 
     # for key, value in cases.items():
     #     print(f'Event {key}: {value.keys()}')
@@ -184,9 +177,9 @@ def create_case(case):
 
 
 def get_event_attributes(id):
-    config = Engine.get_config()
-    engine = Engine(config)
-    engine.connect()
+    # config = Engine.get_config()
+    # engine = Engine(config)
+    # engine.connect()
 
     case_attr = engine.session.get_attributes(int(id))
     print('CASE ATTR', case_attr)
@@ -195,16 +188,16 @@ def get_event_attributes(id):
 
 
 def get_event_details(id):
-    config = Engine.get_config()
-    engine = Engine(config)
-    engine.connect()
+    # config = Engine.get_config()
+    # engine = Engine(config)
+    # engine.connect()
 
     case_attr = engine.session.get_attributes(int(id))
     event_logs = engine.session.get_log(int(id))
     event_history = engine.session.get_history(int(id))
-    print('CASE ATTR', case_attr)
-    print('EVENT LOGS', event_logs)
-    print('EVENT HISTORY', event_history)
+    # print('CASE ATTR', case_attr)
+    # print('EVENT LOGS', event_logs)
+    # print('EVENT HISTORY', event_history)
 
     event_msgs = []
     for log in event_logs:
@@ -220,7 +213,7 @@ def get_event_details(id):
 
         event_msgs.append(msg)
 
-    print('EVENT MSGS', event_msgs)
+    # print('EVENT MSGS', event_msgs)
 
     return case_attr, event_logs, event_history, event_msgs
 
@@ -280,9 +273,9 @@ def update_event_status(i):
         print('EVENT_STATE', event_state_val)
         print('EVENT_HISTORY', event_history_val)
 
-        config = Engine.get_config()
-        engine = Engine(config)
-        engine.connect()
+        # config = Engine.get_config()
+        # engine = Engine(config)
+        # engine.connect()
 
         if not event_current_state == event_state_val:
             set_state_res = engine.session.set_state(case_id, event_state_val)

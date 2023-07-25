@@ -2,6 +2,5 @@ sphinx
 flask
 curitz
 jinja2
-WTForms
 zinolib
 flask_assets
