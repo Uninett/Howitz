@@ -20,12 +20,12 @@
                 <select id="event-state"
                         name="event-state"
                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                    <option value="open">Open</option>
-                    <option value="working">Working</option>
-                    <option value="waiting">Waiting</option>
-                    <option value="confirm-wait">Confirm</option>
-                    <option value="ignored">Ignored</option>
-                    <option value="closed">Closed</option>
+                    <option value="open" {% if current_state=='open' %}selected{% endif %}>Open</option>
+                    <option value="working" {% if current_state=='working' %}selected{% endif %}>Working</option>
+                    <option value="waiting" {% if current_state=='waiting' %}selected{% endif %}>Waiting</option>
+                    <option value="confirm-wait" {% if current_state=='confirm-wait' %}selected{% endif %}>Confirm</option>
+                    <option value="ignored" {% if current_state=='ignored' %}selected{% endif %}>Ignored</option>
+                    <option value="closed" {% if current_state=='closed' %}selected{% endif %}>Closed</option>
                 </select>
             </div>
 

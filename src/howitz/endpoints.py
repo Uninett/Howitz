@@ -10,7 +10,6 @@ import curitz
 from zinolib.ritz import ritz, notifier, parse_tcl_config, caseState
 from curitz import cli
 
-
 app = Flask(__name__)
 LOG = logging.getLogger(__name__)
 
@@ -262,11 +261,12 @@ def hide_details(i):
 
 @app.route('/event/<i>/update_status', methods=['GET', 'POST'])
 def update_event_status(i):
+    case_id = int(i)
+    case_attr_current = get_event_details(i)[0]
+    event_current_state = case_attr_current['state'].value
+    print('STATE ENUM', event_current_state)
+
     if request.method == 'POST':
-        case_id = int(i)
-        case_attr_current = get_event_details(i)[0]
-        event_current_state = case_attr_current['state'].value
-        print('STATE ENUM', event_current_state)
 
         event_state_val = request.form['event-state']
         event_history_val = request.form['event-history']
@@ -291,7 +291,8 @@ def update_event_status(i):
                                event_history=event_history, event_msgs=event_msgs)
 
     elif request.method == 'GET':
-        return render_template('ui-update-event-status-form.html', id=i)
+        print("CURRENT STATE", event_current_state)
+        return render_template('ui-update-event-status-form.html', id=i, current_state=event_current_state)
 
     # # res = make_response(render_template('ui-update-event-status-form.html', id=i))
     # # res.headers['HX-Reswap'] = f'none show:#ol-event-{i}:bottom'
