@@ -9,6 +9,7 @@ import curitz
 
 from zinolib.ritz import ritz, notifier, parse_tcl_config, caseState
 from curitz import cli
+from zinolib.zino1 import Zino1EventEngine
 
 app = Flask(__name__)
 LOG = logging.getLogger(__name__)
@@ -88,16 +89,35 @@ class Engine:
         pass
 
 
-config = Engine.get_config()
-engine = Engine(config)
-print('Connecting..', engine)
-engine.connect()
-print('Connected')
+# config = Engine.get_config()
+# engine = Engine(config)
+# print('Connecting..', engine)
+# engine.connect()
+# print('Connected')
+
+engine = {}
+
+
+from zinolib.ritz import ritz, parse_tcl_config
+conf = parse_tcl_config("~/.ritz.tcl")['default']
+session = ritz(
+        conf['Server'],
+        username=conf['User'],
+        password=conf['Secret'],
+        timeout=30,
+    )
+session.connect()
+
+event_engine = Zino1EventEngine(session)
+
+event_engine.get_events()
+
+print("EVENTS FROM EVENTENGINE", event_engine.events.get(77049))
 
 
 def get_current_cases():
-    engine.load_current_cases()
-    cases = engine.cases
+    # engine.load_current_cases()
+    cases = event_engine.events
     # print("CASES ITEMS", cases)
 
     cases_sorted = {k: cases[k] for k in sorted(cases,
@@ -121,7 +141,7 @@ def get_current_cases():
 
     # print('Table cases', table_cases)
 
-    return table_cases, cases_sorted, engine
+    return table_cases, cases_sorted
 
 
 def create_case(case):
@@ -175,15 +195,15 @@ def create_case(case):
     return common
 
 
-def get_event_attributes(id):
-    # config = Engine.get_config()
-    # engine = Engine(config)
-    # engine.connect()
-
-    case_attr = engine.session.get_attributes(int(id))
-    print('CASE ATTR', case_attr)
-
-    return case_attr
+# def get_event_attributes(id):
+#     # config = Engine.get_config()
+#     # engine = Engine(config)
+#     # engine.connect()
+#
+#     case_attr = engine.session.get_attributes(int(id))
+#     print('CASE ATTR', case_attr)
+#
+#     return case_attr
 
 
 def get_event_details(id):
