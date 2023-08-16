@@ -4,12 +4,12 @@ from flask_assets import Bundle, Environment
 from itertools import product
 import logging
 from pathlib import Path
-import datetime
+from datetime import datetime, timezone
 import curitz
 
 from zinolib.ritz import ritz, notifier, parse_tcl_config, caseState
 from curitz import cli
-from zinolib.zino1 import Zino1EventEngine
+from zinolib.zino1 import Zino1EventEngine, EventAdapter, HistoryAdapter
 
 app = Flask(__name__)
 LOG = logging.getLogger(__name__)
@@ -20,73 +20,73 @@ css = Bundle("main.css", output="dist/main.css")
 assets.register("css", css)
 css.build()
 
+#
+# class Obj:
+#     pass
 
-class Obj:
-    pass
-
-
-class Engine:
-
-    @classmethod
-    def _get_filename(cls):
-        locations = ['.', '~/.local', '~']
-        filenames = ['.ritz.tcl', 'ritz.tcl']
-        filename = None
-        paths = [Path(f'{p}/{f}') for f, p in product(locations, filenames)]
-        for filename in paths:
-            if filename.exists():
-                break
-        if filename is None:
-            error = 'Config file not found, looked for {}'.format(', '.join(paths))
-            raise ValueError(error)
-        return filename
-
-    @classmethod
-    def get_config(cls):
-        filename = cls._get_filename()
-        conf = parse_tcl_config(filename)
-        obj = Obj()
-        for key, value in conf['default'].items():
-            setattr(obj, key, value)
-        obj.autoremove = True
-        return obj
-
-    def __init__(self, config, server=None, username=None, password=None, timeout=30):
-        self.config = config
-        self.timeout = timeout
-        self.server = server or config.Server
-        self.username = username or config.User
-        self.password = password or config.Secret
-        self.cases = {}
-        self.cases_selected = {}
-
-    def connect(self):
-        self.session = ritz(
-            self.server, username=self.username, password=self.password, timeout=30
-        )
-        self.session.connect()
-        self.notifier = notifier(self.session)
-        self.notifier.connect()
-
-    def close(self):
-        self.session.close()
-        self.notifier = None
-        del self.notifier
-        del self.session
-
-    def load_current_cases(self):
-        if not self.session:
-            raise ValueError('Not connected')
-        caselist = self.session.get_caseids()
-        for c in caselist:
-            try:
-                case = self.session.case(c)
-            except Exception as e:
-                continue
-            self.cases[case.id] = case
-
-    def get_event_attributes(self, id):
-        pass
+#
+# class Engine:
+#
+#     @classmethod
+#     def _get_filename(cls):
+#         locations = ['.', '~/.local', '~']
+#         filenames = ['.ritz.tcl', 'ritz.tcl']
+#         filename = None
+#         paths = [Path(f'{p}/{f}') for f, p in product(locations, filenames)]
+#         for filename in paths:
+#             if filename.exists():
+#                 break
+#         if filename is None:
+#             error = 'Config file not found, looked for {}'.format(', '.join(paths))
+#             raise ValueError(error)
+#         return filename
+#
+#     @classmethod
+#     def get_config(cls):
+#         filename = cls._get_filename()
+#         conf = parse_tcl_config(filename)
+#         obj = Obj()
+#         for key, value in conf['default'].items():
+#             setattr(obj, key, value)
+#         obj.autoremove = True
+#         return obj
+#
+#     def __init__(self, config, server=None, username=None, password=None, timeout=30):
+#         self.config = config
+#         self.timeout = timeout
+#         self.server = server or config.Server
+#         self.username = username or config.User
+#         self.password = password or config.Secret
+#         self.cases = {}
+#         self.cases_selected = {}
+#
+#     def connect(self):
+#         self.session = ritz(
+#             self.server, username=self.username, password=self.password, timeout=30
+#         )
+#         self.session.connect()
+#         self.notifier = notifier(self.session)
+#         self.notifier.connect()
+#
+#     def close(self):
+#         self.session.close()
+#         self.notifier = None
+#         del self.notifier
+#         del self.session
+#
+#     def load_current_cases(self):
+#         if not self.session:
+#             raise ValueError('Not connected')
+#         caselist = self.session.get_caseids()
+#         for c in caselist:
+#             try:
+#                 case = self.session.case(c)
+#             except Exception as e:
+#                 continue
+#             self.cases[case.id] = case
+#
+#     def get_event_attributes(self, id):
+#         pass
 
 
 # config = Engine.get_config()
@@ -95,37 +95,40 @@ class Engine:
 # engine.connect()
 # print('Connected')
 
-engine = {}
-
 
 from zinolib.ritz import ritz, parse_tcl_config
+
 conf = parse_tcl_config("~/.ritz.tcl")['default']
 session = ritz(
-        conf['Server'],
-        username=conf['User'],
-        password=conf['Secret'],
-        timeout=30,
-    )
+    conf['Server'],
+    username=conf['User'],
+    password=conf['Secret'],
+    timeout=30,
+)
 session.connect()
 
 event_engine = Zino1EventEngine(session)
+event_adapter = EventAdapter()
+history_adapter = HistoryAdapter()
 
-event_engine.get_events()
 
-print("EVENTS FROM EVENTENGINE", event_engine.events.get(77049))
+# print("EVENTS FROM EVENTENGINE", event_engine.events.get(77049))
 
 
 def get_current_cases():
+    event_engine.get_events()
     # engine.load_current_cases()
     cases = event_engine.events
     # print("CASES ITEMS", cases)
 
-    cases_sorted = {k: cases[k] for k in sorted(cases,
-                                                key=lambda k: (
-                                                    0 if cases[k].get("state") == caseState.IGNORED else 1,
-                                                    # cases[k].history[-1]['date'],
-                                                    cases[k]._attrs["updated"],
-                                                ), reverse=True)}
+    cases_sorted = cases
+
+    # cases_sorted = {k: cases[k] for k in sorted(cases,
+    #                                             key=lambda k: (
+    #                                                 0 if cases[k]._attrs("state") == caseState.IGNORED else 1,
+    #                                                 # cases[k].history[-1]['date'],
+    #                                                 cases[k]._attrs["updated"],
+    #                                             ), reverse=True)}
 
     # print("CASES SORTED", cases_sorted)
 
@@ -147,20 +150,23 @@ def get_current_cases():
 def create_case(case):
     common = {}
 
+    print("CASE", case.type)
+
     try:
-        age = datetime.datetime.now() - case.opened
+        age = datetime.now(timezone.utc) - case.opened
         common["id"] = case.id
         common["router"] = case.router
-        common["admstate"] = case.state.value[:7]
+        common["admstate"] = case.adm_state.value[:7]
         common["age"] = cli.strfdelta(age, "{days:2d}d {hours:02}:{minutes:02}")
         common["priority"] = case.priority
-        if "downtime" in case.keys():
+        if "downtime" in vars(case):
             common["downtime"] = cli.downtimeShortner(case.downtime)
         else:
             common["downtime"] = ""
 
         if case.type == cli.caseType.PORTSTATE:
-            common["opstate"] = "PORT %s" % case.portstate[0:5]
+            print("IS PORTSTATE")
+            common["opstate"] = "PORT %s" % case.port_state[0:5]
             common["port"] = cli.interfaceRenamer(case.port)
             common["description"] = case.get("descr", "")
         elif case.type == cli.caseType.BGP:
@@ -176,7 +182,7 @@ def create_case(case):
             except Exception:
                 port = "ix {}".format(case.bfdix)
 
-            common["opstate"] = "BFD  %s" % case.bfdstate[0:5]
+            common["opstate"] = "BFD  %s" % case.bfd_state[0:5]
             common["port"] = str(port)
             common["description"] = "{}, {}".format(
                 case.get("neigh_rdns"), case.get("lastevent")
@@ -211,9 +217,9 @@ def get_event_details(id):
     # engine = Engine(config)
     # engine.connect()
 
-    case_attr = engine.session.get_attributes(int(id))
-    event_logs = engine.session.get_log(int(id))
-    event_history = engine.session.get_history(int(id))
+    case_attr = event_adapter.get_attrlist(session, int(id))
+    event_logs = event_engine.get_log_for_id(int(id))
+    event_history = event_engine.get_history_for_id(int(id))
     # print('CASE ATTR', case_attr)
     # print('EVENT LOGS', event_logs)
     # print('EVENT HISTORY', event_history)
@@ -247,7 +253,7 @@ def index():
 @app.route('/events')
 def events_table():
     case_list = []
-    table_cases, cases, engine = get_current_cases()
+    table_cases, cases = get_current_cases()
     for case in cases.values():
         if hasattr(case, 'descr'):
             case_list.append(case)
@@ -258,7 +264,7 @@ def events_table():
 @app.route('/get_events')
 def events_list():
     case_list = []
-    table_cases, cases, engine = get_current_cases()
+    table_cases, cases = get_current_cases()
     for case in cases.values():
         if hasattr(case, 'descr'):
             case_list.append(case)
@@ -283,7 +289,7 @@ def hide_details(i):
 def update_event_status(i):
     case_id = int(i)
     case_attr_current = get_event_details(i)[0]
-    event_current_state = case_attr_current['state'].value
+    event_current_state = case_attr_current['adm_state'].value
     print('STATE ENUM', event_current_state)
 
     if request.method == 'POST':
@@ -298,11 +304,11 @@ def update_event_status(i):
         # engine.connect()
 
         if not event_current_state == event_state_val:
-            set_state_res = engine.session.set_state(case_id, event_state_val)
+            set_state_res = event_adapter.set_admin_state(session, event_engine.events.get(case_id), event_state_val)
             print("SET_STATE RES", set_state_res)
 
         if event_history_val:
-            add_history_res = engine.session.add_history(case_id, event_history_val)
+            add_history_res = history_adapter.add(session, event_history_val, event_engine.events.get(case_id))
             print("ADD_HISTORY RES", add_history_res)
 
         case_attr, event_logs, event_history, event_msgs = get_event_details(i)
