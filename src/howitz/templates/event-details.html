@@ -24,15 +24,15 @@
 
 
                 <div
-                        class="flex gap-4 grow-0 justify-stretch"
+                        class="flex grow-0 gap-5 justify-evenly"
                 >
-                    <div class="flex flex-col basis-2/5">
+                    <div class="flex flex-col basis-4/12">
                         {% with case_attr=case_attr %}
                         {% include "ui-event-attributes.html" %}
                         {% endwith %}
                     </div>
 
-                    <div class="flex flex-col basis-3/5">
+                    <div class="flex flex-col basis-8/12">
                         {% with id=id, event_msgs=event_msgs %}
                         {% include "ui-event-messages.html" %}
                         {% endwith %}
