@@ -10,6 +10,7 @@ import curitz
 from zinolib.ritz import ritz, notifier, parse_tcl_config, caseState
 from curitz import cli
 from zinolib.zino1 import Zino1EventEngine, EventAdapter, HistoryAdapter
+from zinolib.event_types import EventType, Event, EventEngine, HistoryEntry, LogEntry
 
 app = Flask(__name__)
 LOG = logging.getLogger(__name__)
@@ -121,14 +122,14 @@ def get_current_cases():
     cases = event_engine.events
     # print("CASES ITEMS", cases)
 
-    cases_sorted = cases
+    # cases_sorted = cases
 
-    # cases_sorted = {k: cases[k] for k in sorted(cases,
-    #                                             key=lambda k: (
-    #                                                 0 if cases[k]._attrs("state") == caseState.IGNORED else 1,
-    #                                                 # cases[k].history[-1]['date'],
-    #                                                 cases[k]._attrs["updated"],
-    #                                             ), reverse=True)}
+    cases_sorted = {k: cases[k] for k in sorted(cases,
+                                                key=lambda k: (
+                                                    0 if cases[k].adm_state == caseState.IGNORED else 1,
+                                                    # cases[k].history[-1]['date'],
+                                                    cases[k].updated,
+                                                ), reverse=True)}
 
     # print("CASES SORTED", cases_sorted)
 
@@ -150,7 +151,7 @@ def get_current_cases():
 def create_case(case):
     common = {}
 
-    print("CASE", case.type)
+    # print("CASE", case.type)
 
     try:
         age = datetime.now(timezone.utc) - case.opened
@@ -159,42 +160,45 @@ def create_case(case):
         common["admstate"] = case.adm_state.value[:7]
         common["age"] = cli.strfdelta(age, "{days:2d}d {hours:02}:{minutes:02}")
         common["priority"] = case.priority
-        if "downtime" in vars(case):
-            common["downtime"] = cli.downtimeShortner(case.downtime)
-        else:
-            common["downtime"] = ""
+        # if "downtime" in vars(case):
+        #     common["downtime"] = cli.downtimeShortner(case.downtime)
+        # else:
+        #     common["downtime"] = ""
 
-        if case.type == cli.caseType.PORTSTATE:
-            print("IS PORTSTATE")
+        if case.type == Event.Type.PORTSTATE:
+            # print("IS PORTSTATE")
             common["opstate"] = "PORT %s" % case.port_state[0:5]
             common["port"] = cli.interfaceRenamer(case.port)
-            common["description"] = case.get("descr", "")
-        elif case.type == cli.caseType.BGP:
-            common["opstate"] = "BGP  %s" % case.bgpos[0:5]
-            common["port"] = "AS{}".format(case.remote_as)
-            common["description"] = "%s %s" % (
-                cli.dns_reverse_resolver(str(case.remote_addr)),
-                case.get("lastevent", ""),
-            )
-        elif case.type == cli.caseType.BFD:
+            common["description"] = case.descr
+            common["downtime"] = cli.downtimeShortner(case.get_downtime())
+        elif case.type == Event.Type.BGP:
+            common["opstate"] = "BGP  %s" % case.bgp_OS[0:5]
+            common["port"] = "AS{}".format(case.remote_AS)
+            common["description"] = case.description
+            # common["description"] = "%s %s" % (
+            #     cli.dns_reverse_resolver(str(case.remote_addr)),
+            #     case.get("lastevent", ""),
+            # )
+        elif case.type == Event.Type.BFD:
             try:
-                port = case.bfdaddr
+                port = case.bfd_addr
             except Exception:
-                port = "ix {}".format(case.bfdix)
+                port = "ix {}".format(case.bfd_ix)
 
             common["opstate"] = "BFD  %s" % case.bfd_state[0:5]
             common["port"] = str(port)
-            common["description"] = "{}, {}".format(
-                case.get("neigh_rdns"), case.get("lastevent")
-            )
-        elif case.type == cli.caseType.REACHABILITY:
+            common["description"] = case.description
+            # common["description"] = "{}, {}".format(
+            #     case.get("neigh_rdns"), case.get("lastevent")
+            # )
+        elif case.type == Event.Type.REACHABILITY:
             common["opstate"] = case.reachability
             common["port"] = ""
             common["description"] = ""
-        elif case.type == cli.caseType.ALARM:
+        elif case.type == Event.Type.ALARM:
             common["opstate"] = "ALRM {}".format(case.alarm_type)
             common["port"] = ""
-            common["description"] = case.lastevent
+            common["description"] = case.description
     except Exception:
         raise
 
@@ -217,24 +221,24 @@ def get_event_details(id):
     # engine = Engine(config)
     # engine.connect()
 
-    case_attr = event_adapter.get_attrlist(session, int(id))
+    case_attr = event_adapter.attrlist_to_attrdict(event_adapter.get_attrlist(session, int(id)))
     event_logs = event_engine.get_log_for_id(int(id))
     event_history = event_engine.get_history_for_id(int(id))
-    # print('CASE ATTR', case_attr)
-    # print('EVENT LOGS', event_logs)
-    # print('EVENT HISTORY', event_history)
+    print('CASE ATTR', case_attr)
+    print('EVENT LOGS', event_logs)
+    print('EVENT HISTORY', event_history)
 
     event_msgs = []
     for log in event_logs:
-        msg = {'date': log['date'], 'msg': log['header'], 'user': ''}
+        msg = {'date': log.date, 'msg': log.log, 'user': ''}
         event_msgs.append(msg)
 
     for history in event_history:
-        msg = {'date': history['date'], 'user': history['user']}
-        if history['log']:
-            msg['msg'] = ' '.join(history['log'])
-        else:
-            msg['msg'] = history['header']
+        msg = {'date': history.date, 'user': history.user, 'msg': history.log}
+        # if history.log:
+        #     msg['msg'] = ' '.join(history['log'])
+        # else:
+        #     msg['msg'] = history['header']
 
         event_msgs.append(msg)
 
