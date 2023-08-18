@@ -1,13 +1,15 @@
-from flask import Flask, render_template, make_response, request
+from flask import Flask, render_template, request
 from flask_assets import Bundle, Environment
 
 import logging
 from datetime import datetime, timezone
-import curitz
 
+# todo remove all use of curitz when zinolib is ready
 from curitz import cli
+
 from zinolib.zino1 import Zino1EventEngine, EventAdapter, HistoryAdapter, convert_timestamp
 from zinolib.event_types import EventType, Event, EventEngine, HistoryEntry, LogEntry, AdmState
+from zinolib.ritz import ritz, parse_tcl_config
 
 app = Flask(__name__)
 LOG = logging.getLogger(__name__)
@@ -17,8 +19,6 @@ css = Bundle("main.css", output="dist/main.css")
 
 assets.register("css", css)
 css.build()
-
-from zinolib.ritz import ritz, parse_tcl_config
 
 conf = parse_tcl_config("~/.ritz.tcl")['default']
 session = ritz(
@@ -30,14 +30,11 @@ session = ritz(
 session.connect()
 
 event_engine = Zino1EventEngine(session)
-event_adapter = EventAdapter()
-history_adapter = HistoryAdapter()
 
 
 def get_current_events():
     event_engine.get_events()
     events = event_engine.events
-
     # print("EVENTS", events)
 
     events_sorted = {k: events[k] for k in sorted(events,
@@ -50,12 +47,6 @@ def get_current_events():
     for c in events_sorted.values():
         # print("EVENT", c)
         table_events.append(create_table_event(c))
-
-    # for c in events_sorted.values():
-    #     setattr(c, '_age', cli.strfdelta(datetime.now(timezone.utc) - c.opened, "{days:2d}d {hours:02}:{minutes:02}"))
-    #     setattr(c, '_downtime', cli.downtimeShortner(c.get_downtime()) if c.type == Event.Type.PORTSTATE else '')
-    #     print("EVENT", c)
-    #     table_events.append(c)
 
     # print('Table events', table_events)
 
@@ -87,12 +78,12 @@ def create_table_event(event):
 
 
 def get_event_attributes(id, res_format=dict):
-    attr_list = event_adapter.get_attrlist(session, int(id))
+    attr_list = EventAdapter.get_attrlist(session, int(id))
 
     # fixme is there a better way to do switch statements in Python?
     return {
         list: attr_list,
-        dict: event_adapter.attrlist_to_attrdict(attr_list),
+        dict: EventAdapter.attrlist_to_attrdict(attr_list),
         # dict: dict(filter(lambda i: i[1] is not None, session.clean_attributes(event_adapter.attrlist_to_attrdict(attr_list)).items())),
     }[res_format]
 
@@ -146,45 +137,32 @@ def hide_details(i):
 @app.route('/event/<i>/update_status', methods=['GET', 'POST'])
 def update_event_status(i):
     event_id = int(i)
-    event_attr_current = get_event_details(i)[0]
-    event_current_state = event_attr_current['adm_state']
-    print('STATE ENUM', event_current_state)
+    current_state = get_event_attributes(event_id)['adm_state']
 
     if request.method == 'POST':
+        new_state = request.form['event-state']
+        new_history = request.form['event-history']
+        print('NEW STATE', new_state)
+        print('NEW HISTORY', new_history)
 
-        event_state_val = request.form['event-state']
-        event_history_val = request.form['event-history']
-        print('EVENT_STATE', event_state_val)
-        print('EVENT_HISTORY', event_history_val)
-
-        # config = Engine.get_config()
-        # engine = Engine(config)
-        # engine.connect()
-
-        if not event_current_state == event_state_val:
-            set_state_res = event_adapter.set_admin_state(session, event_engine.events.get(event_id),
-                                                          AdmState(event_state_val))
+        if not current_state == new_state:
+            set_state_res = EventAdapter.set_admin_state(session, event_engine.events.get(event_id),
+                                                         AdmState(new_state))
             print("SET_STATE RES", set_state_res)
 
-        if event_history_val:
-            add_history_res = history_adapter.add(session, event_history_val, event_engine.events.get(event_id))
+        if new_history:
+            add_history_res = HistoryAdapter.add(session, new_history,
+                                                 event_engine.events.get(event_id))
             print("ADD_HISTORY RES", add_history_res)
 
         event_attr, event_logs, event_history, event_msgs = get_event_details(i)
 
-        return render_template('event-details.html', id=i, event_attr=event_attr, event_logs=event_logs,
+        return render_template('event-details.html', id=event_id, event_attr=event_attr, event_logs=event_logs,
                                event_history=event_history, event_msgs=event_msgs)
 
     elif request.method == 'GET':
-        print("CURRENT STATE", event_current_state)
-        return render_template('ui-update-event-status-form.html', id=i, current_state=event_current_state)
-
-    # # res = make_response(render_template('ui-update-event-status-form.html', id=i))
-    # # res.headers['HX-Reswap'] = f'none show:#ol-event-{i}:bottom'
-    # #
-    # # return res
-    #
-    # return render_template('ui-update-event-status-form.html', id=i)
+        print("CURRENT STATE", current_state)
+        return render_template('ui-update-event-status-form.html', id=i, current_state=current_state)
 
 
 @app.route('/event/<i>/update_status/cancel', methods=["GET"])
