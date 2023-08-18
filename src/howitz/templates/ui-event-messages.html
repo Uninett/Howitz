@@ -6,7 +6,7 @@
     </div>
     <div class="flow-root">
 
-        <ol
+        <ul
                 id="ol-event-{{ id }}"
                 class="relative border-l border-gray-200 dark:border-gray-700">
 
@@ -22,7 +22,7 @@
                     {{ msg.user }}
                 </h3>
                 <time class="text-lg font-semibold text-gray-900 dark:text-white">{{ msg.date }}</time>
-                <p class="mb-4 text-base font-normal text-gray-500 dark:text-gray-400">{{ msg.msg }}</p>
+                <p class="mb-4 text-base font-normal text-gray-500 dark:text-gray-400">{{ msg.log }}</p>
             </li>
 
 
@@ -32,7 +32,7 @@
 
             {% include "ui-hidden-li.html" %}
 
-        </ol>
+        </ul>
 
     </div>
 </div>
