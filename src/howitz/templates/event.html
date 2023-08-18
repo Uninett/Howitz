@@ -1,31 +1,32 @@
 {% block content %}
 
-<td class="px-6 py-4 border border-slate-700">{{ case.id }}</td>
-<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white border border-slate-700">{{ case.opstate }}</td>
-<td class="px-6 py-4 border border-slate-700">{{ case.admstate }}</td>
-<td class="px-6 py-4 border border-slate-700">{{ case.age }}</td>
-<td class="px-6 py-4 border border-slate-700">{{ case.downtime }}</td>
-<td class="px-6 py-4 border border-slate-700">{{ case.router }}</td>
-<td class="px-6 py-4 border border-slate-700">{{ case.port }}</td>
-<td class="px-6 py-4 border border-slate-700">{{ case.description }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ event.id }}</td>
+<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white border border-slate-700">{{ event.op_state }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ event.adm_state }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ event.age }}</td>
+<!--<td class="px-6 py-4 border border-slate-700">{{ event.get_downtime() if event.get_downtime else '' }}</td>-->
+<td class="px-6 py-4 border border-slate-700">{{ event.downtime }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ event.router }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ event.port }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ event.description }}</td>
 
-<!--{% with id=case.id %}-->
+<!--{% with id=event.id %}-->
 <!--{% include "ui-expand-row-btn.html" %}-->
 <!--{% endwith %}-->
 
 <td
-id="toggle-row-btn-{{ case.id }}"
+id="toggle-row-btn-{{ event.id }}"
 class="px-6 py-4 border border-slate-700"
-hx-get="/show_details/{{ case.id }}"
-hx-trigger="click from:#svg-icon-{{ case.id }}"
-hx-indicator="#indicator-{{ case.id }}"
-hx-target="#accordion-collapse-row-{{ case.id }}"
+hx-get="/show_details/{{ event.id }}"
+hx-trigger="click from:#svg-icon-{{ event.id }}"
+hx-indicator="#indicator-{{ event.id }}"
+hx-target="#accordion-collapse-row-{{ event.id }}"
 hx-swap="afterend"
-hx-select="#event-details-row-{{ case.id }}"
-hx-select-oob="#toggle-row-btn-{{ case.id }}"
+hx-select="#event-details-row-{{ event.id }}"
+hx-select-oob="#toggle-row-btn-{{ event.id }}"
 >
 <svg
-     id="svg-icon-{{ case.id }}"
+     id="svg-icon-{{ event.id }}"
      class="w-6 h-6 shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
 
     <path fill-rule="evenodd"
