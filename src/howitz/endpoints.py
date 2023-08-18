@@ -1,16 +1,13 @@
 from flask import Flask, render_template, make_response, request
 from flask_assets import Bundle, Environment
 
-from itertools import product
 import logging
-from pathlib import Path
 from datetime import datetime, timezone
 import curitz
 
-from zinolib.ritz import ritz, notifier, parse_tcl_config, caseState
 from curitz import cli
-from zinolib.zino1 import Zino1EventEngine, EventAdapter, HistoryAdapter
-from zinolib.event_types import EventType, Event, EventEngine, HistoryEntry, LogEntry
+from zinolib.zino1 import Zino1EventEngine, EventAdapter, HistoryAdapter, convert_timestamp
+from zinolib.event_types import EventType, Event, EventEngine, HistoryEntry, LogEntry, AdmState
 
 app = Flask(__name__)
 LOG = logging.getLogger(__name__)
@@ -20,82 +17,6 @@ css = Bundle("main.css", output="dist/main.css")
 
 assets.register("css", css)
 css.build()
-
-#
-# class Obj:
-#     pass
-
-#
-# class Engine:
-#
-#     @classmethod
-#     def _get_filename(cls):
-#         locations = ['.', '~/.local', '~']
-#         filenames = ['.ritz.tcl', 'ritz.tcl']
-#         filename = None
-#         paths = [Path(f'{p}/{f}') for f, p in product(locations, filenames)]
-#         for filename in paths:
-#             if filename.exists():
-#                 break
-#         if filename is None:
-#             error = 'Config file not found, looked for {}'.format(', '.join(paths))
-#             raise ValueError(error)
-#         return filename
-#
-#     @classmethod
-#     def get_config(cls):
-#         filename = cls._get_filename()
-#         conf = parse_tcl_config(filename)
-#         obj = Obj()
-#         for key, value in conf['default'].items():
-#             setattr(obj, key, value)
-#         obj.autoremove = True
-#         return obj
-#
-#     def __init__(self, config, server=None, username=None, password=None, timeout=30):
-#         self.config = config
-#         self.timeout = timeout
-#         self.server = server or config.Server
-#         self.username = username or config.User
-#         self.password = password or config.Secret
-#         self.cases = {}
-#         self.cases_selected = {}
-#
-#     def connect(self):
-#         self.session = ritz(
-#             self.server, username=self.username, password=self.password, timeout=30
-#         )
-#         self.session.connect()
-#         self.notifier = notifier(self.session)
-#         self.notifier.connect()
-#
-#     def close(self):
-#         self.session.close()
-#         self.notifier = None
-#         del self.notifier
-#         del self.session
-#
-#     def load_current_cases(self):
-#         if not self.session:
-#             raise ValueError('Not connected')
-#         caselist = self.session.get_caseids()
-#         for c in caselist:
-#             try:
-#                 case = self.session.case(c)
-#             except Exception as e:
-#                 continue
-#             self.cases[case.id] = case
-#
-#     def get_event_attributes(self, id):
-#         pass
-
-
-# config = Engine.get_config()
-# engine = Engine(config)
-# print('Connecting..', engine)
-# engine.connect()
-# print('Connected')
-
 
 from zinolib.ritz import ritz, parse_tcl_config
 
@@ -113,138 +34,82 @@ event_adapter = EventAdapter()
 history_adapter = HistoryAdapter()
 
 
-# print("EVENTS FROM EVENTENGINE", event_engine.events.get(77049))
-
-
-def get_current_cases():
+def get_current_events():
     event_engine.get_events()
-    # engine.load_current_cases()
-    cases = event_engine.events
-    # print("CASES ITEMS", cases)
+    events = event_engine.events
 
-    # cases_sorted = cases
+    # print("EVENTS", events)
 
-    cases_sorted = {k: cases[k] for k in sorted(cases,
-                                                key=lambda k: (
-                                                    0 if cases[k].adm_state == caseState.IGNORED else 1,
-                                                    # cases[k].history[-1]['date'],
-                                                    cases[k].updated,
-                                                ), reverse=True)}
+    events_sorted = {k: events[k] for k in sorted(events,
+                                                  key=lambda k: (
+                                                      0 if events[k].adm_state == AdmState.IGNORED else 1,
+                                                      events[k].updated,
+                                                  ), reverse=True)}
 
-    # print("CASES SORTED", cases_sorted)
+    table_events = []
+    for c in events_sorted.values():
+        # print("EVENT", c)
+        table_events.append(create_table_event(c))
 
-    # for key, value in cases.items():
-    #     print(f'Event {key}: {value.keys()}')
+    # for c in events_sorted.values():
+    #     setattr(c, '_age', cli.strfdelta(datetime.now(timezone.utc) - c.opened, "{days:2d}d {hours:02}:{minutes:02}"))
+    #     setattr(c, '_downtime', cli.downtimeShortner(c.get_downtime()) if c.type == Event.Type.PORTSTATE else '')
+    #     print("EVENT", c)
+    #     table_events.append(c)
 
-    # print('EVENTS ', len(cases))
+    # print('Table events', table_events)
 
-    table_cases = []
-    for c in cases_sorted.values():
-        # print('CASE RAW', c.history[-1])
-        table_cases.append(create_case(c))
-
-    # print('Table cases', table_cases)
-
-    return table_cases, cases_sorted
+    return table_events
 
 
-def create_case(case):
+# todo remove all use of helpers from curitz
+def create_table_event(event):
     common = {}
 
-    # print("CASE", case.type)
-
     try:
-        age = datetime.now(timezone.utc) - case.opened
-        common["id"] = case.id
-        common["router"] = case.router
-        common["admstate"] = case.adm_state.value[:7]
+        common["op_state"] = event.op_state
+        common["description"] = event.description
+        common["port"] = event.port
+
+        age = datetime.now(timezone.utc) - event.opened
         common["age"] = cli.strfdelta(age, "{days:2d}d {hours:02}:{minutes:02}")
-        common["priority"] = case.priority
-        # if "downtime" in vars(case):
-        #     common["downtime"] = cli.downtimeShortner(case.downtime)
-        # else:
-        #     common["downtime"] = ""
 
-        if case.type == Event.Type.PORTSTATE:
-            # print("IS PORTSTATE")
-            common["opstate"] = "PORT %s" % case.port_state[0:5]
-            common["port"] = cli.interfaceRenamer(case.port)
-            common["description"] = case.descr
-            common["downtime"] = cli.downtimeShortner(case.get_downtime())
-        elif case.type == Event.Type.BGP:
-            common["opstate"] = "BGP  %s" % case.bgp_OS[0:5]
-            common["port"] = "AS{}".format(case.remote_AS)
-            common["description"] = case.description
-            # common["description"] = "%s %s" % (
-            #     cli.dns_reverse_resolver(str(case.remote_addr)),
-            #     case.get("lastevent", ""),
-            # )
-        elif case.type == Event.Type.BFD:
-            try:
-                port = case.bfd_addr
-            except Exception:
-                port = "ix {}".format(case.bfd_ix)
-
-            common["opstate"] = "BFD  %s" % case.bfd_state[0:5]
-            common["port"] = str(port)
-            common["description"] = case.description
-            # common["description"] = "{}, {}".format(
-            #     case.get("neigh_rdns"), case.get("lastevent")
-            # )
-        elif case.type == Event.Type.REACHABILITY:
-            common["opstate"] = case.reachability
-            common["port"] = ""
-            common["description"] = ""
-        elif case.type == Event.Type.ALARM:
-            common["opstate"] = "ALRM {}".format(case.alarm_type)
-            common["port"] = ""
-            common["description"] = case.description
+        if event.type == Event.Type.PORTSTATE:
+            common["downtime"] = cli.downtimeShortner(event.get_downtime())
+        else:
+            common["downtime"] = ""
     except Exception:
         raise
+
+    common.update(vars(event))
 
     return common
 
 
-# def get_event_attributes(id):
-#     # config = Engine.get_config()
-#     # engine = Engine(config)
-#     # engine.connect()
-#
-#     case_attr = engine.session.get_attributes(int(id))
-#     print('CASE ATTR', case_attr)
-#
-#     return case_attr
+def get_event_attributes(id, res_format=dict):
+    attr_list = event_adapter.get_attrlist(session, int(id))
+
+    # fixme is there a better way to do switch statements in Python?
+    return {
+        list: attr_list,
+        dict: event_adapter.attrlist_to_attrdict(attr_list),
+        # dict: dict(filter(lambda i: i[1] is not None, session.clean_attributes(event_adapter.attrlist_to_attrdict(attr_list)).items())),
+    }[res_format]
 
 
 def get_event_details(id):
-    # config = Engine.get_config()
-    # engine = Engine(config)
-    # engine.connect()
-
-    case_attr = event_adapter.attrlist_to_attrdict(event_adapter.get_attrlist(session, int(id)))
+    event_attr = get_event_attributes(int(id))
     event_logs = event_engine.get_log_for_id(int(id))
     event_history = event_engine.get_history_for_id(int(id))
-    print('CASE ATTR', case_attr)
-    print('EVENT LOGS', event_logs)
-    print('EVENT HISTORY', event_history)
+    # print('EVENT ATTR', event_attr)
+    # print('EVENT LOGS', event_logs)
+    # print('EVENT HISTORY', event_history)
 
-    event_msgs = []
-    for log in event_logs:
-        msg = {'date': log.date, 'msg': log.log, 'user': ''}
-        event_msgs.append(msg)
-
-    for history in event_history:
-        msg = {'date': history.date, 'user': history.user, 'msg': history.log}
-        # if history.log:
-        #     msg['msg'] = ' '.join(history['log'])
-        # else:
-        #     msg['msg'] = history['header']
-
-        event_msgs.append(msg)
+    event_msgs = event_logs + event_history
 
     # print('EVENT MSGS', event_msgs)
 
-    return case_attr, event_logs, event_history, event_msgs
+    return event_attr, event_logs, event_history, event_msgs
 
 
 @app.route('/')
@@ -256,31 +121,20 @@ def index():
 
 @app.route('/events')
 def events_table():
-    case_list = []
-    table_cases, cases = get_current_cases()
-    for case in cases.values():
-        if hasattr(case, 'descr'):
-            case_list.append(case)
-
-    return render_template('events-table.html', case_list=table_cases, datetime=datetime, curitz=curitz, cli=cli)
+    return render_template('events-table.html')
 
 
 @app.route('/get_events')
 def events_list():
-    case_list = []
-    table_cases, cases = get_current_cases()
-    for case in cases.values():
-        if hasattr(case, 'descr'):
-            case_list.append(case)
-
-    return render_template('event-list.html', case_list=table_cases, datetime=datetime, curitz=curitz, cli=cli)
+    table_events = get_current_events()
+    return render_template('event-list.html', event_list=table_events)
 
 
 @app.route('/show_details/<i>', methods=["GET"])
 def read_details(i):
-    case_attr, event_logs, event_history, event_msgs = get_event_details(i)
+    event_attr, event_logs, event_history, event_msgs = get_event_details(i)
 
-    return render_template('event-details.html', id=i, case_attr=case_attr, event_logs=event_logs,
+    return render_template('event-details.html', id=i, event_attr=event_attr, event_logs=event_logs,
                            event_history=event_history, event_msgs=event_msgs)
 
 
@@ -291,9 +145,9 @@ def hide_details(i):
 
 @app.route('/event/<i>/update_status', methods=['GET', 'POST'])
 def update_event_status(i):
-    case_id = int(i)
-    case_attr_current = get_event_details(i)[0]
-    event_current_state = case_attr_current['adm_state'].value
+    event_id = int(i)
+    event_attr_current = get_event_details(i)[0]
+    event_current_state = event_attr_current['adm_state']
     print('STATE ENUM', event_current_state)
 
     if request.method == 'POST':
@@ -308,16 +162,17 @@ def update_event_status(i):
         # engine.connect()
 
         if not event_current_state == event_state_val:
-            set_state_res = event_adapter.set_admin_state(session, event_engine.events.get(case_id), event_state_val)
+            set_state_res = event_adapter.set_admin_state(session, event_engine.events.get(event_id),
+                                                          AdmState(event_state_val))
             print("SET_STATE RES", set_state_res)
 
         if event_history_val:
-            add_history_res = history_adapter.add(session, event_history_val, event_engine.events.get(case_id))
+            add_history_res = history_adapter.add(session, event_history_val, event_engine.events.get(event_id))
             print("ADD_HISTORY RES", add_history_res)
 
-        case_attr, event_logs, event_history, event_msgs = get_event_details(i)
+        event_attr, event_logs, event_history, event_msgs = get_event_details(i)
 
-        return render_template('event-details.html', id=i, case_attr=case_attr, event_logs=event_logs,
+        return render_template('event-details.html', id=i, event_attr=event_attr, event_logs=event_logs,
                                event_history=event_history, event_msgs=event_msgs)
 
     elif request.method == 'GET':
