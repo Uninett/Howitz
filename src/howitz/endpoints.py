@@ -111,12 +111,17 @@ def index():
 
 
 @app.route('/events')
+def events():
+    return render_template('/views/events.html')
+
+
+@app.route('/events-table.html')
 def events_table():
-    return render_template('events-table.html')
+    return render_template('/ui/components/events-table.html')
 
 
 @app.route('/get_events')
-def events_list():
+def get_events():
     table_events = get_current_events()
     return render_template('event-list.html', event_list=table_events)
 
