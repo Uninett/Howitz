@@ -1,0 +1,35 @@
+<table
+        class="border-collapse border border-slate-500 w-full text-sm text-left text-gray-600 dark:text-gray-400 table-auto"
+>
+    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300">
+    <tr
+    >
+
+        {% for n in range(9) %}
+        <th scope="col" class="h-12 border border-slate-600 px-6 py-3">
+            <div class="h-3 bg-slate-400 rounded-full"></div>
+        </th>
+        {% endfor %}
+
+
+    </tr>
+    </thead>
+    <tbody
+    >
+    {% for n in range(30) %}
+    <tr
+            class="bg-white border-b dark:bg-gray-500"
+    >
+
+        {% for n in range(9) %}
+        <td class="h-10 px-6 py-4">
+            <div class="h-2 bg-slate-700 rounded-full"></div>
+        </td>
+        {% endfor %}
+
+
+    </tr>
+    {% endfor %}
+
+    </tbody>
+</table>
