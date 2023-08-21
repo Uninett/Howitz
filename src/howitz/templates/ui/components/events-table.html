@@ -21,5 +21,8 @@
     <tbody
             id="eventlist-list"
     >
+    {% for n in range(30) %}
+    {% include "/ui/elements/table-row-skeleton.html" %}
+    {% endfor %}
     </tbody>
 </table>

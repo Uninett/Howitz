@@ -11,8 +11,14 @@ from zinolib.zino1 import Zino1EventEngine, EventAdapter, HistoryAdapter, conver
 from zinolib.event_types import EventType, Event, EventEngine, HistoryEntry, LogEntry, AdmState
 from zinolib.ritz import ritz, parse_tcl_config
 
+# todo remove
+import time
+
 app = Flask(__name__)
 LOG = logging.getLogger(__name__)
+
+with app.app_context():
+    expanded_events = []
 
 assets = Environment(app)
 css = Bundle("main.css", output="dist/main.css")
@@ -63,10 +69,16 @@ def create_table_event(event):
         common["port"] = event.port
 
         age = datetime.now(timezone.utc) - event.opened
-        common["age"] = cli.strfdelta(age, "{days:2d}d {hours:02}:{minutes:02}")
+        # common["age"] = cli.strfdelta(age, "{days:2d}d {hours:02}:{minutes:02}")
+        # common["age"] = '{day:2d}d {hours:02}:{minutes:02}'.format(age, "day", "hours", "minutes")
+        common["age"] = age
+        # common["age"] = age.strftime('{days:2d}d {hours:02}:{minutes:02}')
+
+
 
         if event.type == Event.Type.PORTSTATE:
-            common["downtime"] = cli.downtimeShortner(event.get_downtime())
+            # common["downtime"] = cli.downtimeShortner(event.get_downtime())
+            common["downtime"] = event.get_downtime()
         else:
             common["downtime"] = ""
     except Exception:
@@ -78,12 +90,15 @@ def create_table_event(event):
 
 
 def get_event_attributes(id, res_format=dict):
-    attr_list = EventAdapter.get_attrlist(session, int(id))
+    event = event_engine.create_event_from_id(int(id))
+    attr_list = [':'.join([str(i[0]), str(i[1])]) for i in event]
+    # print('EVENT', attr_list)
 
     # fixme is there a better way to do switch statements in Python?
     return {
         list: attr_list,
-        dict: EventAdapter.attrlist_to_attrdict(attr_list),
+        dict: vars(event),
+        # dict: session.clean_attributes(vars(event)),
         # dict: dict(filter(lambda i: i[1] is not None, session.clean_attributes(event_adapter.attrlist_to_attrdict(attr_list)).items())),
     }[res_format]
 
@@ -112,6 +127,7 @@ def index():
 
 @app.route('/events')
 def events():
+    # current_app["expanded_events"] = []
     return render_template('/views/events.html')
 
 
@@ -123,20 +139,31 @@ def events_table():
 @app.route('/get_events')
 def get_events():
     table_events = get_current_events()
-    return render_template('event-list.html', event_list=table_events)
+    return render_template('/ui/components/event-list.html', event_list=table_events)
 
 
-@app.route('/show_details/<i>', methods=["GET"])
-def read_details(i):
+@app.route('/events/<i>/show_details', methods=["GET"])
+def show_event_details(i):
+    with app.app_context():
+        expanded_events.append(i)
+    # print("EXPANDED EVENTS", expanded_events)
     event_attr, event_logs, event_history, event_msgs = get_event_details(i)
+    event = create_table_event(event_engine.create_event_from_id(int(i)))
 
-    return render_template('event-details.html', id=i, event_attr=event_attr, event_logs=event_logs,
+    return render_template('event-details.html', event=event, id=i, event_attr=event_attr, event_logs=event_logs,
                            event_history=event_history, event_msgs=event_msgs)
 
 
-@app.route('/hide_details/<i>', methods=["GET"])
-def hide_details(i):
+@app.route('/events/<i>/hide_details', methods=["GET"])
+def hide_event_details(i):
+    with app.app_context():
+        expanded_events.remove(i)
+    # print("EXPANDED EVENTS", expanded_events)
+
+    # event = create_table_event(event_engine.create_event_from_id(int(i)))
+
     return render_template('hide-event-details.html', id=i)
+    # return render_template('ui/components/event-row-collapsed.html', event=event, id=i)
 
 
 @app.route('/event/<i>/update_status', methods=['GET', 'POST'])
@@ -147,26 +174,27 @@ def update_event_status(i):
     if request.method == 'POST':
         new_state = request.form['event-state']
         new_history = request.form['event-history']
-        print('NEW STATE', new_state)
-        print('NEW HISTORY', new_history)
+        # print('NEW STATE', new_state)
+        # print('NEW HISTORY', new_history)
 
         if not current_state == new_state:
             set_state_res = EventAdapter.set_admin_state(session, event_engine.events.get(event_id),
                                                          AdmState(new_state))
-            print("SET_STATE RES", set_state_res)
+            # print("SET_STATE RES", set_state_res)
 
         if new_history:
             add_history_res = HistoryAdapter.add(session, new_history,
                                                  event_engine.events.get(event_id))
-            print("ADD_HISTORY RES", add_history_res)
+            # print("ADD_HISTORY RES", add_history_res)
 
-        event_attr, event_logs, event_history, event_msgs = get_event_details(i)
+        event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
+        event = create_table_event(event_engine.create_event_from_id(event_id))
 
-        return render_template('event-details.html', id=event_id, event_attr=event_attr, event_logs=event_logs,
+        return render_template('ui/components/event-row-expanded.html', event=event, id=event_id, event_attr=event_attr, event_logs=event_logs,
                                event_history=event_history, event_msgs=event_msgs)
 
     elif request.method == 'GET':
-        print("CURRENT STATE", current_state)
+        # print("CURRENT STATE", current_state)
         return render_template('ui-update-event-status-form.html', id=i, current_state=current_state)
 
 
