@@ -1,0 +1,47 @@
+<tr>
+    <td colspan="100">
+        <tbody id="event-row-collapsed-{{ event.id }}"
+    class="bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+>
+<tr
+        class="bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+        id="accordion-collapse-row-{{ event.id }}"
+>
+
+    <td class="px-6 py-4 border border-slate-700">{{ event.id }}</td>
+    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white border border-slate-700">
+        {{
+        event.op_state }}
+    </td>
+    <td class="px-6 py-4 border border-slate-700">{{ event.adm_state }}</td>
+    <td class="px-6 py-4 border border-slate-700">{{ event.age }}</td>
+    <td class="px-6 py-4 border border-slate-700">{{ event.downtime }}</td>
+    <td class="px-6 py-4 border border-slate-700">{{ event.router }}</td>
+    <td class="px-6 py-4 border border-slate-700">{{ event.port }}</td>
+    <td class="px-6 py-4 border border-slate-700">{{ event.description }}</td>
+
+
+    <td
+            id="toggle-row-btn-{{ id }}"
+            class="px-6 py-4 border border-slate-700"
+            hx-get="/events/{{ id }}/show_details"
+            hx-trigger="click from:#svg-icon-{{ id }}"
+            hx-indicator="#indicator-{{ id }}"
+            hx-target="#event-row-collapsed-{{ id }}"
+            hx-swap="outerHTML"
+    >
+        <svg
+                id="svg-icon-{{ id }}"
+                class="w-6 h-6 shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+
+            <path fill-rule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clip-rule="evenodd"></path>
+        </svg>
+    </td>
+
+</tr>
+</tbody>
+    </td>
+</tr>
+

@@ -1,5 +1,3 @@
-{% block content %}
-
 <tr
         id="event-details-row-{{ id }}"
         class="bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
@@ -7,7 +5,7 @@
 >
     <td colspan="100">
 
-        <p id="indicator-{{ id }}" class="my-htmx-indicator">LOADING...</p>
+        <p id="indicator-{{ id }}" class="htmx-indicator">LOADING...</p>
 
         <div
                 id="accordion-collapse-body-{{ id }}"
@@ -51,5 +49,4 @@
 {% include "ui-collapse-row-btn.html" %}
 {% endwith %}
 
-{% endblock content %}
 
