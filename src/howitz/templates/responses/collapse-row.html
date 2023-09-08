@@ -1,4 +1,6 @@
-{% block content %}
+{% with id=id, event=event %}
+{% include "/components/row/event-row.html" %}
+{% endwith %}
 
 <tr
         id="event-details-row-{{ id }}"
@@ -6,9 +8,3 @@
 
 >
 </tr>
-
-{% with id=id %}
-{% include "ui-expand-row-btn.html" %}
-{% endwith %}
-
-{% endblock content %}
