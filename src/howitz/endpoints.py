@@ -1,3 +1,5 @@
+from enum import StrEnum
+
 from flask import Flask, render_template, request
 from flask_assets import Bundle, Environment
 
@@ -8,7 +10,8 @@ from datetime import datetime, timezone
 from curitz import cli
 
 from zinolib.zino1 import Zino1EventEngine, EventAdapter, HistoryAdapter, convert_timestamp
-from zinolib.event_types import EventType, Event, EventEngine, HistoryEntry, LogEntry, AdmState
+from zinolib.event_types import EventType, Event, EventEngine, HistoryEntry, LogEntry, AdmState, PortState, BFDState, \
+    ReachabilityState
 from zinolib.ritz import ritz, parse_tcl_config
 
 # todo remove
@@ -38,6 +41,14 @@ session.connect()
 event_engine = Zino1EventEngine(session)
 
 
+class EventColor(StrEnum):
+    RED = "red"
+    BLUE = "cyan"
+    GREEN = "green"
+    YELLOW = "yellow"
+    DEFAULT = ""
+
+
 def get_current_events():
     event_engine.get_events()
     events = event_engine.events
@@ -64,6 +75,7 @@ def create_table_event(event):
     common = {}
 
     try:
+        common["color"] = color_code_event(event)
         common["op_state"] = event.op_state
         common["description"] = event.description
         common["port"] = event.port
@@ -85,6 +97,26 @@ def create_table_event(event):
     common.update(vars(event))
 
     return common
+
+
+# fixme implementation copied from curitz
+def color_code_event(event):
+    if event.adm_state == AdmState.IGNORED:
+        return EventColor.BLUE
+    elif event.adm_state == AdmState.CLOSED:
+        return EventColor.GREEN
+    elif ((event.type == Event.Type.PORTSTATE and event.port_state in [PortState.DOWN,
+                                                                       PortState.LOWER_LAYER_DOWN])
+          or (event.type == Event.Type.BGP and event.bgp_OS == "down")
+          or (event.type == Event.Type.BFD and event.bfd_state == BFDState.DOWN)
+          or (event.type == Event.Type.REACHABILITY and event.reachability == ReachabilityState.NORESPONSE)
+          or (event.type == Event.Type.ALARM and event.alarm_count > 0)):
+        if event.adm_state == AdmState.OPEN:
+            return EventColor.RED
+        elif event.adm_state in [AdmState.WORKING, AdmState.WAITING]:
+            return EventColor.YELLOW
+    else:
+        return EventColor.DEFAULT
 
 
 def get_event_attributes(id, res_format=dict):
