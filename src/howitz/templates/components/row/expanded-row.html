@@ -3,6 +3,9 @@
 <tr
         class="bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
         id="event-accordion-row-{{ id }}"
+        hx-get="/events/{{ id }}/collapse_row"
+        hx-trigger="dblclick"
+        hx-swap="multi:#event-accordion-row-{{ id }}:outerHTML,#event-details-row-{{ id }}:delete"
 >
     {% with event=event %}
     {% include "/components/row/data-cells.html" %}
