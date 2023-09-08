@@ -1,0 +1,10 @@
+<td class="px-6 py-4 border border-slate-700">{{ event.id }}</td>
+<td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white border border-slate-700">{{
+    event.op_state }}
+</td>
+<td class="px-6 py-4 border border-slate-700 {{ bg_color if bg_color is not none else 'bg-current' }}">{{ event.adm_state }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ event.age }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ event.downtime }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ event.router }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ event.port }}</td>
+<td class="px-6 py-4 border border-slate-700">{{ event.description }}</td>
