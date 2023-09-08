@@ -1,0 +1,9 @@
+{% if event_list|length>0 %}
+{% for event in event_list %}
+
+    {% with id=event.id, event=event %}
+    {% include "/components/row/event-row.html" %}
+    {% endwith %}
+
+{% endfor %}
+{% endif %}

@@ -139,30 +139,32 @@ def events_table():
 @app.route('/get_events')
 def get_events():
     table_events = get_current_events()
-    return render_template('/ui/components/event-list.html', event_list=table_events)
+
+    # return render_template('/ui/components/event-list.html', event_list=table_events)
+    return render_template('/components/table/event-rows.html', event_list=table_events)
 
 
-@app.route('/events/<i>/show_details', methods=["GET"])
-def show_event_details(i):
+@app.route('/events/<i>/expand_row', methods=["GET"])
+def expand_event_row(i):
     with app.app_context():
         expanded_events.append(i)
     # print("EXPANDED EVENTS", expanded_events)
+
     event_attr, event_logs, event_history, event_msgs = get_event_details(i)
     event = create_table_event(event_engine.create_event_from_id(int(i)))
 
-    return render_template('event-details.html', event=event, id=i, event_attr=event_attr, event_logs=event_logs,
+    return render_template('/components/row/expanded-row.html', event=event, id=i, event_attr=event_attr, event_logs=event_logs,
                            event_history=event_history, event_msgs=event_msgs)
 
-
-@app.route('/events/<i>/hide_details', methods=["GET"])
-def hide_event_details(i):
+@app.route('/events/<i>/collapse_row', methods=["GET"])
+def collapse_event_row(i):
     with app.app_context():
         expanded_events.remove(i)
     # print("EXPANDED EVENTS", expanded_events)
 
-    # event = create_table_event(event_engine.create_event_from_id(int(i)))
+    event = create_table_event(event_engine.create_event_from_id(int(i)))
 
-    return render_template('hide-event-details.html', id=i)
+    return render_template('/responses/collapse-row.html', event=event, id=i)
     # return render_template('ui/components/event-row-collapsed.html', event=event, id=i)
 
 
