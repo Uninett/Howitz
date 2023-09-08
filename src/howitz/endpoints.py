@@ -131,7 +131,7 @@ def events():
 
 @app.route('/events-table.html')
 def events_table():
-    return render_template('/ui/components/events-table.html')
+    return render_template('/components/table/events-table.html')
 
 
 @app.route('/get_events')
@@ -203,7 +203,7 @@ def update_event_status(i):
 
 @app.route('/event/<i>/update_status/cancel', methods=["GET"])
 def cancel_update_event_status(i):
-    return render_template('ui-hidden-li.html', id=i)
+    return render_template('/responses/hide-update-event-status-form.html', id=i)
 
 
 # TODO: replace this with some other HTMX pattern
