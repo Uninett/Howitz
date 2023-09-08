@@ -74,8 +74,6 @@ def create_table_event(event):
         common["age"] = age
         # common["age"] = age.strftime('{days:2d}d {hours:02}:{minutes:02}')
 
-
-
         if event.type == Event.Type.PORTSTATE:
             # common["downtime"] = cli.downtimeShortner(event.get_downtime())
             common["downtime"] = event.get_downtime()
@@ -153,8 +151,10 @@ def expand_event_row(i):
     event_attr, event_logs, event_history, event_msgs = get_event_details(i)
     event = create_table_event(event_engine.create_event_from_id(int(i)))
 
-    return render_template('/components/row/expanded-row.html', event=event, id=i, event_attr=event_attr, event_logs=event_logs,
+    return render_template('/components/row/expanded-row.html', event=event, id=i, event_attr=event_attr,
+                           event_logs=event_logs,
                            event_history=event_history, event_msgs=event_msgs)
+
 
 @app.route('/events/<i>/collapse_row', methods=["GET"])
 def collapse_event_row(i):
@@ -192,12 +192,13 @@ def update_event_status(i):
         event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
         event = create_table_event(event_engine.create_event_from_id(event_id))
 
-        return render_template('ui/components/event-row-expanded.html', event=event, id=event_id, event_attr=event_attr, event_logs=event_logs,
+        return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
+                               event_logs=event_logs,
                                event_history=event_history, event_msgs=event_msgs)
 
     elif request.method == 'GET':
         # print("CURRENT STATE", current_state)
-        return render_template('ui-update-event-status-form.html', id=i, current_state=current_state)
+        return render_template('/responses/get-update-event-status-form.html', id=i, current_state=current_state)
 
 
 @app.route('/event/<i>/update_status/cancel', methods=["GET"])
