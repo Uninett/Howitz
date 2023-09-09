@@ -1,15 +1,22 @@
 <td
         id="toggle-row-btn-{{ id }}"
-        class="px-6 py-4 border border-slate-700"
+        class="px-6 py-4 border border-slate-700 relative"
         hx-get="/events/{{ id }}/expand_row"
         hx-trigger="click from:#svg-icon-{{ id }}"
         hx-target="#event-accordion-row-{{ id }}"
         hx-swap="outerHTML"
+        hx-indicator="#row-{{ id }}-indicator"
 >
+
+    <span id="row-{{ id }}-indicator" class="htmx-indicator absolute flex w-6 h-6 z-10">
+        <span class="animate-ping absolute inline-flex w-full h-full rounded-full bg-{{ color if (color != '' and color is not none) else 'slate' }}-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full w-6 h-6 bg-{{ color if (color != '' and color is not none) else 'slate' }}-500"></span>
+    </span>
+
     <svg
             id="svg-icon-{{ id }}"
-            class="w-6 h-6 shrink-0" fill="{{ color if (color != '' and color is not none) else 'currentColor' }}" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-
+            class="w-6 h-6 shrink-0 z-0" fill="{{ color if (color != '' and color is not none) else 'currentColor' }}"
+            viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
         <path fill-rule="evenodd"
               d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
               clip-rule="evenodd"></path>
