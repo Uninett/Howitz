@@ -1,13 +1,22 @@
 <td
         id="toggle-row-btn-{{ id }}"
-        class="px-6 py-4 border border-slate-700"
+        class="px-6 py-4 border border-slate-700 relative"
         hx-get="/events/{{ id }}/collapse_row"
         hx-trigger="click from:#svg-icon-{{ id }}"
         hx-swap="multi:#event-accordion-row-{{ id }}:outerHTML,#event-details-row-{{ id }}:delete"
+        hx-indicator="#row-{{ id }}-indicator"
 >
+
+    <span id="row-{{ id }}-indicator" class="htmx-indicator absolute flex w-6 h-6 z-10">
+        <span class="animate-ping absolute inline-flex w-full h-full rounded-full bg-{{ color if (color != '' and color is not none) else 'slate' }}-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full w-6 h-6 bg-{{ color if (color != '' and color is not none) else 'slate' }}-500"></span>
+    </span>
+
+
     <svg
             id="svg-icon-{{ id }}"
-            class="rotate-180 w-6 h-6 shrink-0" fill="{{ color if (color != '' and color is not none) else 'currentColor' }}" viewBox="0 0 20 20"
+            class="rotate-180 w-6 h-6 shrink-0 z-0"
+            fill="{{ color if (color != '' and color is not none) else 'currentColor' }}" viewBox="0 0 20 20"
             xmlns="http://www.w3.org/2000/svg">
 
         <path fill-rule="evenodd"
