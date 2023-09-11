@@ -7,12 +7,17 @@
         hx-trigger="dblclick"
         hx-swap="multi:#event-accordion-row-{{ id }}:outerHTML,#event-details-row-{{ id }}:delete"
 >
+
+    {% with padding='px-3 py-2' %}
+
     {% with event=event %}
     {% include "/components/row/data-cells.html" %}
     {% endwith %}
 
     {% with id=id, color=event.color %}
     {% include "/components/row/collapse-btn.html" %}
+    {% endwith %}
+
     {% endwith %}
 
 </tr>
