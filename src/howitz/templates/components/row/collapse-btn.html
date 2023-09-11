@@ -7,10 +7,8 @@
         hx-indicator="#row-{{ id }}-indicator"
 >
 
-    <span id="row-{{ id }}-indicator" class="htmx-indicator absolute flex w-6 h-6 z-10">
-        <span class="animate-ping absolute inline-flex w-full h-full rounded-full bg-{{ color if (color != '' and color is not none) else 'slate' }}-400 opacity-75"></span>
-        <span class="relative inline-flex rounded-full w-6 h-6 bg-{{ color if (color != '' and color is not none) else 'slate' }}-500"></span>
-    </span>
+
+    {% include "/components/row/row-toggle-spinner.html" %}
 
 
     <svg
