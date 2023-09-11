@@ -1,0 +1,32 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %} Events {% endblock %}
+
+{% block extensions %} class-tools, multi-swap, disable-element, loading-states, response-targets {% endblock %}
+
+
+{% block content %}
+
+
+<h1>HTMx Zino 2.0 Events List</h1>
+<main class="relative overflow-x-auto shadow-md sm:rounded-lg">
+
+    <div
+            hx-get="events-table.html"
+            hx-swap="outerHTML"
+            hx-trigger="load"
+            role="status"
+            class="htmx-indicator animate-pulse"
+    >
+
+        <span class="sr-only">Loading Table...</span>
+
+        {% include "/ui/elements/table-skeleton.html" %}
+
+    </div>
+
+</main>
+
+{% endblock content %}
+
+

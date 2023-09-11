@@ -1,0 +1,14 @@
+{% if event_list|length>0 %}
+{% for event in event_list %}
+<tr
+        class="bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+        id="accordion-collapse-row-{{ event.id }}"
+>
+    {% with event=event %}
+    {% include "event.html" %}
+    {% endwith %}
+
+</tr>
+
+{% endfor %}
+{% endif %}
