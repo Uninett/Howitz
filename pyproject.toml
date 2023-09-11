@@ -1,0 +1,27 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "howitz"
+description = "blbl"
+authors = [
+    {name = "Hanne Moa", email = "hanne.moa@sikt.no"},
+    {name = "Ilona Podliashanyk", email = "ilona.podliashanyk@sikt.no"},
+]
+readme = "README.rst"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+]
+requires-python = ">=3.8"
+dynamic = ["version"]
+dependencies = [
+    "curitz",
+    "flask",
+    "flask_assets",
+    "jinja2",
+    "zinolib",
+]
+
+[project.optional-dependencies]
+docs = ["sphinx"]
