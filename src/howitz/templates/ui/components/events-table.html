@@ -1,0 +1,28 @@
+<table
+        class="border-collapse border border-slate-500 w-full text-sm text-left text-gray-600 dark:text-gray-400 table-auto"
+        hx-get="/get_events"
+        hx-swap="innerHTML"
+        hx-target="#eventlist-list"
+        hx-trigger="load"
+>
+    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-300">
+    <tr>
+        <th scope="col" class="border border-slate-600 px-6 py-3">#</th>
+        <th scope="col" class="border border-slate-600 px-6 py-3">OP-STATE</th>
+        <th scope="col" class="border border-slate-600 px-6 py-3">ADM-STATE</th>
+        <th scope="col" class="border border-slate-600 px-6 py-3">AGE</th>
+        <th scope="col" class="border border-slate-600 px-6 py-3">DOWNTIME</th>
+        <th scope="col" class="border border-slate-600 px-6 py-3">ROUTER</th>
+        <th scope="col" class="border border-slate-600 px-6 py-3">PORT</th>
+        <th scope="col" class="border border-slate-600 px-6 py-3">DESCRIPTION</th>
+        <th scope="col" class="border border-slate-600 px-6 py-3"></th>
+    </tr>
+    </thead>
+    <tbody
+            id="eventlist-list"
+    >
+    {% for n in range(30) %}
+    {% include "/ui/elements/table-row-skeleton.html" %}
+    {% endfor %}
+    </tbody>
+</table>
