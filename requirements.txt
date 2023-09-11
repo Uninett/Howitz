@@ -1,6 +1,0 @@
-sphinx
-flask
-curitz
-jinja2
-zinolib
-flask_assets

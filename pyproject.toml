@@ -6,8 +6,8 @@ build-backend = "flit_core.buildapi"
 name = "howitz"
 description = "blbl"
 authors = [
-    {name = "Hanne Moa", email = ""},
-    {name = "Ilona Podliashanyk", email = ""},
+    {name = "Hanne Moa", email = "hanne.moa@sikt.no"},
+    {name = "Ilona Podliashanyk", email = "ilona.podliashanyk@sikt.no"},
 ]
 readme = "README.rst"
 classifiers = [
@@ -16,5 +16,12 @@ classifiers = [
 requires-python = ">=3.8"
 dynamic = ["version"]
 dependencies = [
+    "curitz",
     "flask",
+    "flask_assets",
+    "jinja2",
+    "zinolib",
 ]
+
+[project.optional-dependencies]
+docs = ["sphinx"]
