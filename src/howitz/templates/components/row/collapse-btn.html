@@ -2,14 +2,12 @@
         id="toggle-row-btn-{{ id }}"
         class="px-6 py-4 border border-slate-700 relative"
         hx-get="/events/{{ id }}/collapse_row"
-        hx-trigger="click from:#svg-icon-{{ id }}"
+        hx-trigger="click"
         hx-swap="multi:#event-accordion-row-{{ id }}:outerHTML,#event-details-row-{{ id }}:delete"
         hx-indicator="#row-{{ id }}-indicator"
 >
 
-
     {% include "/components/row/row-toggle-spinner.html" %}
-
 
     <svg
             id="svg-icon-{{ id }}"
