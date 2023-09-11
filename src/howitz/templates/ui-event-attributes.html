@@ -1,105 +1,27 @@
-<!--<a href="#"-->
-<!--   class="block max-w-md p-4 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">-->
-<!--  <h5 class="mb-2 text-2xl text-center font-bold tracking-tight text-gray-900 dark:text-white">-->
-<!--    Attributes</h5>-->
-
-<!--  <ul class="max-w-xl divide-y divide-gray-200 dark:divide-gray-700">-->
-
-<!--    {% for attr_key in event_attr.keys() %}-->
-<!--    <li class="pb-6 sm:pb-6">-->
-<!--      <div class="flex space-x-6">-->
-<!--        <div class="flex-1">-->
-<!--          <p class="uppercase text-sm font-medium text-gray-900 dark:text-white">-->
-<!--            {{ attr_key }}-->
-<!--          </p>-->
-<!--        </div>-->
-<!--        <div class="text-base font-semibold text-gray-900 dark:text-white">-->
-<!--          <p class="text-sm font-medium text-gray-900 dark:text-white">-->
-<!--            {{ event_attr.get(attr_key) }}-->
-<!--          </p>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </li>-->
-
-<!--    {% endfor %}-->
-<!--  </ul>-->
-<!--</a>-->
-
-
-<div class="p-5 bg-white border border-gray-200 rounded-lg shadow sm:p-10 dark:bg-gray-800 dark:border-gray-700">
-    <div class="mb-4">
-        <h5 class="text-center text-xl font-bold leading-none text-gray-900 dark:text-white">Attributes</h5>
+<div class="p-5 bg-white border border-gray-200 rounded-2xl shadow sm:p-5 dark:bg-gray-800 dark:border-gray-700">
+    <div class="mb-3">
+        <h5 class="text-center text-lg font-bold leading-none text-gray-900 dark:text-white">Attributes</h5>
     </div>
-    <!--  <h5 class="text-center text-xl font-bold leading-none text-gray-900 dark:text-white">Attributes</h5>-->
-    <!--  <div class="flex items-center justify-between mb-4">-->
-    <!--    -->
-    <!--  </div>-->
     <div class="flow-root">
         <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
-
             {% for attr_key in event_attr.keys() %}
-            <!--      <li class="pb-6 sm:pb-6">-->
-            <!--        <div class="flex space-x-6">-->
-            <!--          <div class="flex-1">-->
-            <!--            <p class="uppercase text-sm font-medium text-gray-900 dark:text-white">-->
-            <!--              {{ attr_key }}-->
-            <!--            </p>-->
-            <!--          </div>-->
-            <!--          <div class="text-base font-semibold text-gray-900 dark:text-white">-->
-            <!--            <p class="text-sm font-medium text-gray-900 dark:text-white">-->
-            <!--              {{ event_attr.get(attr_key) }}-->
-            <!--            </p>-->
-            <!--          </div>-->
-            <!--        </div>-->
-            <!--      </li>-->
 
-                        {% if event_attr.get(attr_key) %}
-                        <li class="py-1 sm:py-2">
-                            <div class="flex items-center space-x-6">
-
-                                <div class="flex-1">
-                                    <p class="uppercase text-xs text-gray-900 dark:text-white">
-                                        {{ attr_key }}
-                                    </p>
-                                    <!--            <p class="text-sm text-gray-500 truncate dark:text-gray-400">-->
-                                    <!--              email@windster.com-->
-                                    <!--            </p>-->
-                                </div>
-                                <div class="whitespace-normal break-all inline-flex items-center text-sm font-medium text-gray-900 dark:text-white">
-                                    {{ event_attr.get(attr_key) }}
-                                    <!--            <p class="text-sm font-medium text-gray-900 dark:text-white">-->
-                                    <!--              -->
-                                    <!--            </p>-->
-                                </div>
-                            </div>
-                        </li>
-                        {% endif %}
-
-
-<!--            <li class="py-1 sm:py-2">-->
-<!--                <div class="flex items-center space-x-6">-->
-
-<!--                    <div class="flex-1">-->
-<!--                        <p class="uppercase text-xs text-gray-900 dark:text-white">-->
-<!--                            {{ attr_key }}-->
-<!--                        </p>-->
-<!--                        &lt;!&ndash;            <p class="text-sm text-gray-500 truncate dark:text-gray-400">&ndash;&gt;-->
-<!--                        &lt;!&ndash;              email@windster.com&ndash;&gt;-->
-<!--                        &lt;!&ndash;            </p>&ndash;&gt;-->
-<!--                    </div>-->
-<!--                    <div class="whitespace-normal break-all inline-flex items-center text-sm font-medium text-gray-900 dark:text-white">-->
-<!--                        {{ event_attr.get(attr_key) }}-->
-<!--                        &lt;!&ndash;            <p class="text-sm font-medium text-gray-900 dark:text-white">&ndash;&gt;-->
-<!--                        &lt;!&ndash;              &ndash;&gt;-->
-<!--                        &lt;!&ndash;            </p>&ndash;&gt;-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--            </li>-->
-
+            {% if event_attr.get(attr_key) %}
+            <li class="py-1 sm:py-1">
+                <div class="flex items-center space-x-6">
+                    <div class="flex-1">
+                        <p class="uppercase text-xs text-gray-900 dark:text-white">
+                            {{ attr_key }}
+                        </p>
+                    </div>
+                    <div class="whitespace-normal break-all inline-flex items-center text-sm font-medium text-gray-900 dark:text-white">
+                        {{ event_attr.get(attr_key) }}
+                    </div>
+                </div>
+            </li>
+            {% endif %}
 
             {% endfor %}
-
         </ul>
     </div>
 </div>
-
