@@ -1,9 +1,9 @@
-<td class="px-6 py-4 relative z-0">
+<td class="{{ padding }} text-center relative z-0">
     {{ event.id }}
     <div class="absolute inset-y-0 left-0 z-10 bg-{{ color }}-500 w-1 h-full"></div>
 </td>
 
-<td class="px-6 py-4 font-medium whitespace-nowrap border border-slate-700 text-{{ color }}-500">
+<td class="{{ padding }} text-center font-medium whitespace-nowrap border border-slate-700 text-{{ color }}-500">
     <div class="relative z-0">
         <div class="h-2 bg-{{ color }}-200 opacity-30 blur-xl">
             {{ event.op_state }}
@@ -13,7 +13,7 @@
         </div>
     </div>
 </td>
-<td class="px-6 py-4 font-medium whitespace-nowrap border border-slate-700 text-{{ color }}-500">
+<td class="{{ padding }} text-center font-medium whitespace-nowrap border border-slate-700 text-{{ color }}-500">
     <div class="relative z-0">
         <div class="h-2 bg-{{ color }}-200 opacity-30 blur-xl">
             {{ event.adm_state }}
