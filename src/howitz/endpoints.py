@@ -6,14 +6,12 @@ from flask_assets import Bundle, Environment
 import logging
 from datetime import datetime, timezone
 
-# todo remove all use of curitz when zinolib is ready
-from curitz import cli
-
-from zinolib.zino1 import Zino1EventEngine, EventAdapter, HistoryAdapter, convert_timestamp
-from zinolib.event_types import EventType, Event, EventEngine, HistoryEntry, LogEntry, AdmState, PortState, BFDState, \
-    ReachabilityState
+from zinolib.zino1 import Zino1EventEngine, EventAdapter, HistoryAdapter
+from zinolib.event_types import EventType, Event, HistoryEntry, LogEntry, AdmState, PortState, BFDState, ReachabilityState
 from zinolib.ritz import ritz, parse_tcl_config
 
+# todo remove all use of curitz when zinolib is ready
+from curitz import cli
 # todo remove
 import time
 
@@ -82,9 +80,7 @@ def create_table_event(event):
 
         age = datetime.now(timezone.utc) - event.opened
         # common["age"] = cli.strfdelta(age, "{days:2d}d {hours:02}:{minutes:02}")
-        # common["age"] = '{day:2d}d {hours:02}:{minutes:02}'.format(age, "day", "hours", "minutes")
         common["age"] = age
-        # common["age"] = age.strftime('{days:2d}d {hours:02}:{minutes:02}')
 
         if event.type == Event.Type.PORTSTATE:
             # common["downtime"] = cli.downtimeShortner(event.get_downtime())
@@ -128,8 +124,6 @@ def get_event_attributes(id, res_format=dict):
     return {
         list: attr_list,
         dict: vars(event),
-        # dict: session.clean_attributes(vars(event)),
-        # dict: dict(filter(lambda i: i[1] is not None, session.clean_attributes(event_adapter.attrlist_to_attrdict(attr_list)).items())),
     }[res_format]
 
 
@@ -170,7 +164,6 @@ def events_table():
 def get_events():
     table_events = get_current_events()
 
-    # return render_template('/ui/components/event-list.html', event_list=table_events)
     return render_template('/components/table/event-rows.html', event_list=table_events)
 
 
@@ -197,7 +190,6 @@ def collapse_event_row(i):
     event = create_table_event(event_engine.create_event_from_id(int(i)))
 
     return render_template('/responses/collapse-row.html', event=event, id=i)
-    # return render_template('ui/components/event-row-collapsed.html', event=event, id=i)
 
 
 @app.route('/event/<i>/update_status', methods=['GET', 'POST'])
