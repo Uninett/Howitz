@@ -241,4 +241,4 @@ def cancel_update_event_status(i):
 # TODO: replace this with some other HTMX pattern
 @app.route('/get_none', methods=["GET"])
 def get_none():
-    return render_template('ui-generic-hidden.html')
+    return render_template('/responses/generic-hidden.html')
