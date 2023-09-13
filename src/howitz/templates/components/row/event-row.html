@@ -8,7 +8,11 @@
 >
     {% with padding='px-3 py-2' %}
 
+    {% if is_selected %}
+    {% include "/components/row/event-checked-box.html" %}
+    {% else %}
     {% include "/components/row/event-unchecked-box.html" %}
+    {% endif %}
 
     {% with event=event %}
     {% include "/components/row/data-cells.html" %}

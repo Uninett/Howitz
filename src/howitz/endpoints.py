@@ -20,6 +20,8 @@ LOG = logging.getLogger(__name__)
 
 with app.app_context():
     expanded_events = []
+    selected_events = []
+
 
 assets = Environment(app)
 css = Bundle("main.css", output="dist/main.css")
@@ -178,7 +180,7 @@ def expand_event_row(i):
 
     return render_template('/components/row/expanded-row.html', event=event, id=i, event_attr=event_attr,
                            event_logs=event_logs,
-                           event_history=event_history, event_msgs=event_msgs)
+                           event_history=event_history, event_msgs=event_msgs, is_selected=i in selected_events)
 
 
 @app.route('/events/<i>/collapse_row', methods=["GET"])
@@ -189,7 +191,7 @@ def collapse_event_row(i):
 
     event = create_table_event(event_engine.create_event_from_id(int(i)))
 
-    return render_template('/responses/collapse-row.html', event=event, id=i)
+    return render_template('/responses/collapse-row.html', event=event, id=i, is_selected=i in selected_events)
 
 
 @app.route('/event/<i>/update_status', methods=['GET', 'POST'])
@@ -218,7 +220,7 @@ def update_event_status(i):
 
         return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                                event_logs=event_logs,
-                               event_history=event_history, event_msgs=event_msgs)
+                               event_history=event_history, event_msgs=event_msgs, is_selected=i in selected_events)
 
     elif request.method == 'GET':
         # print("CURRENT STATE", current_state)
@@ -232,11 +234,19 @@ def cancel_update_event_status(i):
 
 @app.route('/event/<i>/unselect', methods=["GET"])
 def unselect_event(i):
+    with app.app_context():
+        selected_events.remove(i)
+    print("SELECTED EVENTS", selected_events)
+
     return render_template('/components/row/event-unchecked-box.html', id=i)
 
 
 @app.route('/event/<i>/select', methods=["GET"])
 def select_event(i):
+    with app.app_context():
+        selected_events.append(i)
+    print("SELECTED EVENTS", selected_events)
+
     return render_template('/components/row/event-checked-box.html', id=i)
 
 
