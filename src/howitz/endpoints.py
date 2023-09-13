@@ -230,6 +230,16 @@ def cancel_update_event_status(i):
     return render_template('/responses/hide-update-event-status-form.html', id=i)
 
 
+@app.route('/event/<i>/unselect', methods=["GET"])
+def unselect_event(i):
+    return render_template('/components/row/event-unchecked-box.html', id=i)
+
+
+@app.route('/event/<i>/select', methods=["GET"])
+def select_event(i):
+    return render_template('/components/row/event-checked-box.html', id=i)
+
+
 # TODO: replace this with some other HTMX pattern
 @app.route('/get_none', methods=["GET"])
 def get_none():
