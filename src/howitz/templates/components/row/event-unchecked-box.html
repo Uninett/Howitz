@@ -4,7 +4,7 @@
                type="checkbox"
                class="w-4 h-4 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-offset-gray-800 focus:ring-2 bg-gray-700 border-gray-500"
                hx-get="/event/{{ id }}/select"
-               hx-trigger="click from:#select-event-{{ id }}, dblclick consume"
+               hx-trigger='click from:#select-event-{{ id }}, dblclick from:#select-event-{{ id }} consume, click[altKey] from:closest tr'
                hx-target="closest td"
                hx-swap="outerHTML"
         >
