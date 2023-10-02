@@ -79,11 +79,9 @@ def create_table_event(event):
         common["port"] = event.port
 
         age = datetime.now(timezone.utc) - event.opened
-        # common["age"] = cli.strfdelta(age, "{days:2d}d {hours:02}:{minutes:02}")
         common["age"] = age
 
         if event.type == Event.Type.PORTSTATE:
-            # common["downtime"] = cli.downtimeShortner(event.get_downtime())
             common["downtime"] = event.get_downtime()
         else:
             common["downtime"] = ""
