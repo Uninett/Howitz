@@ -1,5 +1,7 @@
 !*.svg
 docs/build
+dist/
+.webassets-cache
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
