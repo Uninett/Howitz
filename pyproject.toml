@@ -18,6 +18,7 @@ dynamic = ["version"]
 dependencies = [
     "flask",
     "flask_assets",
+    "flask-login",
     "jinja2",
     "zinolib",
 ]

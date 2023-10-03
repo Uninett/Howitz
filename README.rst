@@ -15,9 +15,9 @@ Make and activate a virtualenv, install dependencies in that virtualenv::
 On this branch you need a version of zinolib that is still a work-in-progress (hmpf's decoupling branch).
 Build it with f.e. `pyproject-build`. Make sure that zinolib dependency is reinstalled as the newly built wheel file.
 
-```
-pip install --force-reinstall zinolib-example.whl
-```
+::
+
+        pip install --force-reinstall zinolib-example.whl
 
 CD into the source and run a a local webserver::
 
@@ -26,3 +26,10 @@ CD into the source and run a a local webserver::
 
 You should now have a server running on http://127.0.0.1:9000/ (Port chosen not
 to clash with other things.)
+
+Run tests
+=========
+
+::
+
+        python -m unittest tests/*.py
