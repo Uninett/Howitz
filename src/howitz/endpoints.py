@@ -152,6 +152,18 @@ def events():
     # current_app["expanded_events"] = []
     return render_template('/views/events.html')
 
+@app.route('/login')
+def login():
+    return render_template('/views/login.html')
+
+@app.route('/sign_in_form')
+def sign_in_form():
+    return render_template('/components/login/sign-in-form.html')
+
+@app.route('/auth', methods=["POST"])
+def auth():
+    return render_template('/views/events.html')
+
 
 @app.route('/events-table.html')
 def events_table():
