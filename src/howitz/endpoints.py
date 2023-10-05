@@ -146,15 +146,19 @@ def sign_in_form():
 def auth():
     username = request.form["username"]
     password = request.form["password"]
-    token = request.form["token"]
 
-    user = User(username, password, token)
-    print("User", user)
+    user = database.get(username)  # can/should be hidden in function, pass in user/pw
+    if user.login(password):
+        print("User", user)
+        flask.flash('Logged in successfully.')
+        # set user in session
+        # redirect to /events
+    else:
+        pass
+        # raise error
+        # show login form again with error?
 
-    login_user(user)
-
-    flask.flash('Logged in successfully.')
-    return render_template('/views/events.html')
+    #return render_template('/views/events.html')
 
 
 @app.route('/events-table.html')
