@@ -19,8 +19,14 @@ class UserDB:
         self.cursor = connection.cursor()
 
     def initdb(self):
-        fields = ', '.join(User.model_fields.keys())
-        self.cursor.execute(f"CREATE TABLE IF NOT EXISTS user ({fields})")
+        field_items = []
+        for field_name in User.model_fields.keys():
+            field_string = f"{field_name} TEXT NOT NULL"
+            if field_name == 'username':
+                field_string += ' PRIMARY KEY'
+            field_items.append(field_string)
+        field_query = ', '.join(field_items)
+        self.cursor.execute(f"CREATE TABLE IF NOT EXISTS user ({field_query})")
 
     def get(self, username):
         querystring = "SELECT * from user where username=?"
