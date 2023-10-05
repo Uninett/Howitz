@@ -13,7 +13,7 @@ class UserDB:
         pass
 
     def __init__(self, database_file: str):
-        connection = sqlite3.connect(database_file)
+        connection = sqlite3.connect(database_file, check_same_thread=False)
         connection.row_factory = user_factory
         self.connection = connection
         self.cursor = connection.cursor()
