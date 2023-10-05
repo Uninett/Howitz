@@ -21,12 +21,20 @@ class User(UserMixin, BaseModel):
     def is_authenticated(self):
         return self.is_active and self._authenticated
 
-    def check_password(self, password):
+    @staticmethod
+    def encode_password(password):
         # needs much magic!
-        return self.password == password
+        return password
 
-    def login(self, password):
+    def check_password(self, password):
+        return self.password == self.encode_password(password)
+
+    def authenticate(self, password):
         if self.check_password(password):
             self._authenticated = True
             return True
         return False
+
+    def log_out(self):
+        # hide the magic attribute
+        self._authenticated = False

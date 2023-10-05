@@ -35,7 +35,8 @@ class UserDB:
 
     def add(self, user: User):
         querystring = "INSERT INTO user (username, password, token) values (?, ?, ?)"
-        params = (user.username, user.password, user.token)
+        password = user.encode_password(user.password)
+        params = (user.username, password, user.token)
         self.cursor.execute(querystring, params)
         self.connection.commit()
         return self.get(user.username)

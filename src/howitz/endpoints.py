@@ -8,7 +8,8 @@ from flask_login import login_required, login_user
 from zinolib.zino1 import EventAdapter, HistoryAdapter
 from zinolib.event_types import EventType, Event, HistoryEntry, LogEntry, AdmState, PortState, BFDState, ReachabilityState
 
-from howitz import app, session, event_engine, login_manager, User, UserDB, database
+from howitz import app, session, event_engine, login_manager
+from howitz.users.utils import authenticate_user
 
 # todo remove all use of curitz when zinolib is ready
 from curitz import cli
@@ -147,11 +148,11 @@ def auth():
     username = request.form["username"]
     password = request.form["password"]
 
-    user = database.get(username)  # can/should be hidden in function, pass in user/pw
-    if user.login(password):
+    user = authenticate_user(username, password)
+    if user.is_authenticated:
         print("User", user)
+        login_user(user)
         flask.flash('Logged in successfully.')
-        # set user in session
         # redirect to /events
     else:
         pass
