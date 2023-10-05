@@ -1,11 +1,14 @@
 from enum import StrEnum
+
+import flask
 from flask import render_template, request
 from datetime import datetime, timezone
 
+from flask_login import login_required, login_user
 from zinolib.zino1 import EventAdapter, HistoryAdapter
 from zinolib.event_types import EventType, Event, HistoryEntry, LogEntry, AdmState, PortState, BFDState, ReachabilityState
 
-from howitz import app, session, event_engine
+from howitz import app, session, event_engine, login_manager, User, UserDB, database
 
 # todo remove all use of curitz when zinolib is ready
 from curitz import cli
@@ -126,6 +129,7 @@ def index():
 
 
 @app.route('/events')
+@login_required
 def events():
     # current_app["expanded_events"] = []
     return render_template('/views/events.html')
@@ -140,6 +144,16 @@ def sign_in_form():
 
 @app.route('/auth', methods=["POST"])
 def auth():
+    username = request.form["username"]
+    password = request.form["password"]
+    token = request.form["token"]
+
+    user = User(username, password, token)
+    print("User", user)
+
+    login_user(user)
+
+    flask.flash('Logged in successfully.')
     return render_template('/views/events.html')
 
 
