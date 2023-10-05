@@ -1,42 +1,20 @@
 from enum import StrEnum
-
-from flask import Flask, render_template, request
-from flask_assets import Bundle, Environment
-
-import logging
+from flask import render_template, request
 from datetime import datetime, timezone
 
-from zinolib.zino1 import Zino1EventEngine, EventAdapter, HistoryAdapter
+from zinolib.zino1 import EventAdapter, HistoryAdapter
 from zinolib.event_types import EventType, Event, HistoryEntry, LogEntry, AdmState, PortState, BFDState, ReachabilityState
-from zinolib.ritz import ritz, parse_tcl_config
+
+from howitz import app, session, event_engine
 
 # todo remove all use of curitz when zinolib is ready
 from curitz import cli
 # todo remove
 import time
 
-app = Flask(__name__)
-LOG = logging.getLogger(__name__)
 
 with app.app_context():
     expanded_events = []
-
-assets = Environment(app)
-css = Bundle("main.css", output="dist/main.css")
-
-assets.register("css", css)
-css.build()
-
-conf = parse_tcl_config("~/.ritz.tcl")['default']
-session = ritz(
-    conf['Server'],
-    username=conf['User'],
-    password=conf['Secret'],
-    timeout=30,
-)
-session.connect()
-
-event_engine = Zino1EventEngine(session)
 
 
 class EventColor(StrEnum):
