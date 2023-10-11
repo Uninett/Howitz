@@ -218,23 +218,18 @@ def auth():
     password = request.form["password"]
 
     user = authenticate_user(username, password)
-    if user:
+    res = make_response()
+    if user:  # is authenticated
         app.logger.debug('User %s', user)
         login_user(user)
         flask.flash('Logged in successfully.')
 
         # redirect to /events
-        resp = make_response()
-        resp.headers['HX-Redirect'] = '/events'
-        return resp
-    else:
-        pass
-        # raise error
-        # show login form again with error?
-        # todo fix swap with err
-        resp = make_response()
-        resp.headers['HX-Redirect'] = '/login'
-        return resp
+        res.headers['HX-Redirect'] = '/events'
+        return res
+
+    res.headers['HX-Redirect'] = '/login'
+    return res
 
 
 @app.route('/events-table.html')
