@@ -4,6 +4,7 @@ import flask
 from flask import Flask, render_template, request, make_response
 from flask_login import LoginManager, login_required, login_user, current_user
 from flask_assets import Bundle, Environment
+from logging.config import dictConfig
 
 from enum import StrEnum
 from datetime import datetime, timezone
@@ -21,6 +22,21 @@ from curitz import cli
 # todo remove
 import time
 
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '%(levelname)-8s in %(funcName)-20s %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
 
 app = Flask(__name__)
 
@@ -57,9 +73,10 @@ event_engine = Zino1EventEngine(session)
 
 @login_manager.user_loader
 def load_user(user_id):
-    u = database.get(user_id)
-    print("USER loaded", u)
-    return u
+    user = database.get(user_id)
+    app.logger.info('User "%s" logged in', user.username)
+    app.logger.debug('User "%s"', user)
+    return user
 
 
 with app.app_context():
@@ -77,7 +94,7 @@ class EventColor(StrEnum):
 def get_current_events():
     event_engine.get_events()
     events = event_engine.events
-    # print("EVENTS", events)
+    # app.logger.debug('EVENTS %s', events)
 
     events_sorted = {k: events[k] for k in sorted(events,
                                                   key=lambda k: (
@@ -87,10 +104,10 @@ def get_current_events():
 
     table_events = []
     for c in events_sorted.values():
-        # print("EVENT", c)
+        # app.logger.debug('EVENT %s', c)
         table_events.append(create_table_event(c))
 
-    # print('Table events', table_events)
+    # app.logger.debug('Table events %s', table_events)
 
     return table_events
 
@@ -143,7 +160,7 @@ def color_code_event(event):
 def get_event_attributes(id, res_format=dict):
     event = event_engine.create_event_from_id(int(id))
     attr_list = [':'.join([str(i[0]), str(i[1])]) for i in event]
-    # print('EVENT', attr_list)
+    # app.logger.debug('EVENT %s', attr_list)
 
     # fixme is there a better way to do switch statements in Python?
     return {
@@ -156,13 +173,13 @@ def get_event_details(id):
     event_attr = get_event_attributes(int(id))
     event_logs = event_engine.get_log_for_id(int(id))
     event_history = event_engine.get_history_for_id(int(id))
-    # print('EVENT ATTR', event_attr)
-    # print('EVENT LOGS', event_logs)
-    # print('EVENT HISTORY', event_history)
+    # app.logger.debug('EVENT ATTRIBUTES %s', event_attr)
+    # app.logger.debug('EVENT LOGS %s', event_logs)
+    # app.logger.debug('EVENT HISTORY %s', event_history)
 
     event_msgs = event_logs + event_history
 
-    # print('EVENT MSGS', event_msgs)
+    # app.logger.debug('EVENT MESSAGES %s', event_msgs)
 
     return event_attr, event_logs, event_history, event_msgs
 
@@ -183,10 +200,10 @@ def events():
 
 @app.route('/login')
 def login():
-    print("current user", current_user.is_authenticated)
+    app.logger.debug('current user is authenticated %s', current_user.is_authenticated)
     if current_user.is_authenticated:
         default_url = flask.url_for('index')
-        # print("DEFAULT URL", default_url)
+        # app.logger.debug('DEFAULT URL %s', default_url)
         return flask.redirect(default_url)
     else:
         return render_template('/views/login.html')
@@ -202,7 +219,7 @@ def auth():
 
     user = authenticate_user(username, password)
     if user:
-        print("User", user)
+        app.logger.debug('User %s', user)
         login_user(user)
         flask.flash('Logged in successfully.')
 
@@ -236,7 +253,7 @@ def get_events():
 def expand_event_row(i):
     with app.app_context():
         expanded_events.append(i)
-    # print("EXPANDED EVENTS", expanded_events)
+    # app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
     event_attr, event_logs, event_history, event_msgs = get_event_details(i)
     event = create_table_event(event_engine.create_event_from_id(int(i)))
@@ -250,7 +267,7 @@ def expand_event_row(i):
 def collapse_event_row(i):
     with app.app_context():
         expanded_events.remove(i)
-    # print("EXPANDED EVENTS", expanded_events)
+    # app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
     event = create_table_event(event_engine.create_event_from_id(int(i)))
 
@@ -265,18 +282,18 @@ def update_event_status(i):
     if request.method == 'POST':
         new_state = request.form['event-state']
         new_history = request.form['event-history']
-        # print('NEW STATE', new_state)
-        # print('NEW HISTORY', new_history)
+        # app.logger.debug('NEW STATE %s', new_state)
+        # app.logger.debug('NEW HISTORY %s', new_history)
 
         if not current_state == new_state:
             set_state_res = EventAdapter.set_admin_state(session, event_engine.events.get(event_id),
                                                          AdmState(new_state))
-            # print("SET_STATE RES", set_state_res)
+            # app.logger.debug('SET_STATE RES %s', set_state_res)
 
         if new_history:
             add_history_res = HistoryAdapter.add(session, new_history,
                                                  event_engine.events.get(event_id))
-            # print("ADD_HISTORY RES", add_history_res)
+            # app.logger.debug('ADD_HISTORY RES %s', add_history_res)
 
         event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
         event = create_table_event(event_engine.create_event_from_id(event_id))
@@ -286,7 +303,7 @@ def update_event_status(i):
                                event_history=event_history, event_msgs=event_msgs)
 
     elif request.method == 'GET':
-        # print("CURRENT STATE", current_state)
+        # app.logger.debug('CURRENT STATE %s', current_state)
         return render_template('/responses/get-update-event-status-form.html', id=i, current_state=current_state)
 
 
