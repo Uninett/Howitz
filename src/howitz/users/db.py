@@ -13,7 +13,7 @@ class UserDB:
         pass
 
     def __init__(self, database_file: str):
-        connection = sqlite3.connect(database_file)
+        connection = sqlite3.connect(database_file, check_same_thread=False)
         connection.row_factory = user_factory
         self.connection = connection
         self.cursor = connection.cursor()
@@ -41,7 +41,8 @@ class UserDB:
 
     def add(self, user: User):
         querystring = "INSERT INTO user (username, password, token) values (?, ?, ?)"
-        params = (user.username, user.password, user.token)
+        password = user.encode_password(user.password)
+        params = (user.username, password, user.token)
         self.cursor.execute(querystring, params)
         self.connection.commit()
         return self.get(user.username)

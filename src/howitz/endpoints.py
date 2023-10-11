@@ -1,31 +1,47 @@
-from enum import StrEnum
+import os
 
-from flask import Flask, render_template, request
+import flask
+from flask import Flask, render_template, request, make_response
+from flask_login import LoginManager, login_required, login_user, current_user
 from flask_assets import Bundle, Environment
 
-import logging
+from enum import StrEnum
 from datetime import datetime, timezone
+from pathlib import Path
 
+from zinolib.ritz import ritz, parse_tcl_config
 from zinolib.zino1 import Zino1EventEngine, EventAdapter, HistoryAdapter
 from zinolib.event_types import EventType, Event, HistoryEntry, LogEntry, AdmState, PortState, BFDState, ReachabilityState
-from zinolib.ritz import ritz, parse_tcl_config
+
+from howitz.users.db import UserDB
+from howitz.users.utils import authenticate_user
 
 # todo remove all use of curitz when zinolib is ready
 from curitz import cli
 # todo remove
 import time
 
-app = Flask(__name__)
-LOG = logging.getLogger(__name__)
 
-with app.app_context():
-    expanded_events = []
+app = Flask(__name__)
+
+app.config.from_mapping(
+    SECRET_KEY='dev',
+    DATABASE=os.path.join(app.instance_path, 'howitz.sqlite3'),
+)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
 
 assets = Environment(app)
 css = Bundle("main.css", output="dist/main.css")
 
 assets.register("css", css)
 css.build()
+
+DB_URL = Path('howitz.sqlite3')
+database = UserDB(DB_URL)
+database.initdb()
 
 conf = parse_tcl_config("~/.ritz.tcl")['default']
 session = ritz(
@@ -37,6 +53,17 @@ session = ritz(
 session.connect()
 
 event_engine = Zino1EventEngine(session)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    u = database.get(user_id)
+    print("USER loaded", u)
+    return u
+
+
+with app.app_context():
+    expanded_events = []
 
 
 class EventColor(StrEnum):
@@ -142,19 +169,27 @@ def get_event_details(id):
 
 @app.route('/')
 @app.route('/hello-world')
+@login_required
 def index():
     exemplify_loop = list('abracadabra')
     return render_template('index.html', example_list=exemplify_loop)
 
 
 @app.route('/events')
+@login_required
 def events():
     # current_app["expanded_events"] = []
     return render_template('/views/events.html')
 
 @app.route('/login')
 def login():
-    return render_template('/views/login.html')
+    print("current user", current_user.is_authenticated)
+    if current_user.is_authenticated:
+        default_url = flask.url_for('index')
+        # print("DEFAULT URL", default_url)
+        return flask.redirect(default_url)
+    else:
+        return render_template('/views/login.html')
 
 @app.route('/sign_in_form')
 def sign_in_form():
@@ -162,7 +197,27 @@ def sign_in_form():
 
 @app.route('/auth', methods=["POST"])
 def auth():
-    return render_template('/views/events.html')
+    username = request.form["username"]
+    password = request.form["password"]
+
+    user = authenticate_user(username, password)
+    if user:
+        print("User", user)
+        login_user(user)
+        flask.flash('Logged in successfully.')
+
+        # redirect to /events
+        resp = make_response()
+        resp.headers['HX-Redirect'] = '/events'
+        return resp
+    else:
+        pass
+        # raise error
+        # show login form again with error?
+        # todo fix swap with err
+        resp = make_response()
+        resp.headers['HX-Redirect'] = '/login'
+        return resp
 
 
 @app.route('/events-table.html')
