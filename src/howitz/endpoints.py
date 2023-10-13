@@ -6,13 +6,13 @@ from flask_login import LoginManager, login_required, login_user, current_user
 from flask_assets import Bundle, Environment
 from logging.config import dictConfig
 
-from enum import StrEnum
 from datetime import datetime, timezone
 from pathlib import Path
 
 from zinolib.ritz import ritz, parse_tcl_config
 from zinolib.zino1 import Zino1EventEngine, EventAdapter, HistoryAdapter
 from zinolib.event_types import EventType, Event, HistoryEntry, LogEntry, AdmState, PortState, BFDState, ReachabilityState
+from zinolib.compat import StrEnum
 
 from howitz.users.db import UserDB
 from howitz.users.utils import authenticate_user
