@@ -94,7 +94,7 @@ class EventColor(StrEnum):
 def get_current_events():
     event_engine.get_events()
     events = event_engine.events
-    # app.logger.debug('EVENTS %s', events)
+    app.logger.debug('EVENTS %s', events)
 
     events_sorted = {k: events[k] for k in sorted(events,
                                                   key=lambda k: (
@@ -104,10 +104,7 @@ def get_current_events():
 
     table_events = []
     for c in events_sorted.values():
-        # app.logger.debug('EVENT %s', c)
         table_events.append(create_table_event(c))
-
-    # app.logger.debug('Table events %s', table_events)
 
     return table_events
 
@@ -160,7 +157,6 @@ def color_code_event(event):
 def get_event_attributes(id, res_format=dict):
     event = event_engine.create_event_from_id(int(id))
     attr_list = [':'.join([str(i[0]), str(i[1])]) for i in event]
-    # app.logger.debug('EVENT %s', attr_list)
 
     # fixme is there a better way to do switch statements in Python?
     return {
@@ -173,13 +169,9 @@ def get_event_details(id):
     event_attr = get_event_attributes(int(id))
     event_logs = event_engine.get_log_for_id(int(id))
     event_history = event_engine.get_history_for_id(int(id))
-    # app.logger.debug('EVENT ATTRIBUTES %s', event_attr)
-    # app.logger.debug('EVENT LOGS %s', event_logs)
-    # app.logger.debug('EVENT HISTORY %s', event_history)
+    app.logger.debug('Event: attrs %s, logs %s, history %s', event_attr, event_logs, event_history)
 
     event_msgs = event_logs + event_history
-
-    # app.logger.debug('EVENT MESSAGES %s', event_msgs)
 
     return event_attr, event_logs, event_history, event_msgs
 
@@ -203,7 +195,6 @@ def login():
     app.logger.debug('current user is authenticated %s', current_user.is_authenticated)
     if current_user.is_authenticated:
         default_url = flask.url_for('index')
-        # app.logger.debug('DEFAULT URL %s', default_url)
         return flask.redirect(default_url)
     else:
         return render_template('/views/login.html')
@@ -248,7 +239,7 @@ def get_events():
 def expand_event_row(i):
     with app.app_context():
         expanded_events.append(i)
-    # app.logger.debug('EXPANDED EVENTS %s', expanded_events)
+    app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
     event_attr, event_logs, event_history, event_msgs = get_event_details(i)
     event = create_table_event(event_engine.create_event_from_id(int(i)))
@@ -262,7 +253,7 @@ def expand_event_row(i):
 def collapse_event_row(i):
     with app.app_context():
         expanded_events.remove(i)
-    # app.logger.debug('EXPANDED EVENTS %s', expanded_events)
+    app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
     event = create_table_event(event_engine.create_event_from_id(int(i)))
 
@@ -277,18 +268,14 @@ def update_event_status(i):
     if request.method == 'POST':
         new_state = request.form['event-state']
         new_history = request.form['event-history']
-        # app.logger.debug('NEW STATE %s', new_state)
-        # app.logger.debug('NEW HISTORY %s', new_history)
 
         if not current_state == new_state:
             set_state_res = EventAdapter.set_admin_state(session, event_engine.events.get(event_id),
                                                          AdmState(new_state))
-            # app.logger.debug('SET_STATE RES %s', set_state_res)
 
         if new_history:
             add_history_res = HistoryAdapter.add(session, new_history,
                                                  event_engine.events.get(event_id))
-            # app.logger.debug('ADD_HISTORY RES %s', add_history_res)
 
         event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
         event = create_table_event(event_engine.create_event_from_id(event_id))
@@ -298,7 +285,6 @@ def update_event_status(i):
                                event_history=event_history, event_msgs=event_msgs)
 
     elif request.method == 'GET':
-        # app.logger.debug('CURRENT STATE %s', current_state)
         return render_template('/responses/get-update-event-status-form.html', id=i, current_state=current_state)
 
 
