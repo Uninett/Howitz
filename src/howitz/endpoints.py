@@ -1,4 +1,4 @@
-from enum import StrEnum
+from zinolib.compat import StrEnum
 
 from flask import Flask, render_template, request
 from flask_assets import Bundle, Environment
