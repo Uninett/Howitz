@@ -3,8 +3,6 @@
         role="form"
         method="post"
         hx-post="/auth"
-        hx-push-url="/events"
-        hx-target="body"
 >
     <div>
         <label for="username" class="block text-sm font-medium leading-6 text-sky-100">Username</label>
@@ -18,14 +16,6 @@
         <label for="password" class="block text-sm font-medium leading-6 text-sky-100">Password</label>
         <div class="mt-2">
             <input id="password" name="password" type="password" autocomplete="current-password" required
-                   class="block w-full rounded-md border-0 py-1.5 bg-slate-900 text-sky-100 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-600 sm:text-sm sm:leading-6">
-        </div>
-    </div>
-
-    <div>
-        <label for="token" class="block text-sm font-medium leading-6 text-sky-100">Token</label>
-        <div class="mt-2">
-            <input id="token" name="token" type="password" autocomplete="current-token" required
                    class="block w-full rounded-md border-0 py-1.5 bg-slate-900 text-sky-100 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-600 sm:text-sm sm:leading-6">
         </div>
     </div>

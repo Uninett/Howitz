@@ -21,6 +21,7 @@ dependencies = [
     "flask-login",
     "jinja2",
     "zinolib",
+    "werkzeug",
 ]
 
 [project.optional-dependencies]
