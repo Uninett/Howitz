@@ -2,7 +2,7 @@ import os
 
 import flask
 from flask import Flask, render_template, request, make_response
-from flask_login import LoginManager, login_required, login_user, current_user
+from flask_login import LoginManager, login_user, current_user, logout_user
 from flask_assets import Bundle, Environment
 from logging.config import dictConfig
 
@@ -11,16 +11,27 @@ from pathlib import Path
 
 from zinolib.ritz import ritz, parse_tcl_config
 from zinolib.zino1 import Zino1EventEngine, EventAdapter, HistoryAdapter
-from zinolib.event_types import EventType, Event, HistoryEntry, LogEntry, AdmState, PortState, BFDState, ReachabilityState
+from zinolib.event_types import EventType, Event, HistoryEntry, LogEntry, AdmState, PortState, BFDState, \
+    ReachabilityState
 from zinolib.compat import StrEnum
 
 from howitz.users.db import UserDB
-from howitz.users.utils import authenticate_user
+from howitz.users.utils import authenticate_user, update_token
+from .utils import login_check
 
 # todo remove all use of curitz when zinolib is ready
 from curitz import cli
 # todo remove
 import time
+
+
+class EventColor(StrEnum):
+    RED = "red"
+    BLUE = "cyan"
+    GREEN = "green"
+    YELLOW = "yellow"
+    DEFAULT = ""
+
 
 dictConfig({
     'version': 1,
@@ -57,18 +68,23 @@ css.build()
 
 DB_URL = Path('howitz.sqlite3')
 database = UserDB(DB_URL)
-database.initdb()
 
-conf = parse_tcl_config("~/.ritz.tcl")['default']
-session = ritz(
+conf = parse_tcl_config("~/.ritz.tcl")["default"]
+zino_session = ritz(
     conf['Server'],
-    username=conf['User'],
-    password=conf['Secret'],
     timeout=30,
 )
-session.connect()
+event_engine = Zino1EventEngine(zino_session)
 
-event_engine = Zino1EventEngine(session)
+
+def initialize_database():
+    database.initdb()
+    app.logger.info('Connected to database %s', database.connection)
+
+
+def connect_to_zino():
+    zino_session.connect()
+    app.logger.info('Connected to Zino %s', zino_session.connStatus)
 
 
 @login_manager.user_loader
@@ -81,14 +97,33 @@ def load_user(user_id):
 
 with app.app_context():
     expanded_events = []
+    initialize_database()
+    connect_to_zino()
 
 
-class EventColor(StrEnum):
-    RED = "red"
-    BLUE = "cyan"
-    GREEN = "green"
-    YELLOW = "yellow"
-    DEFAULT = ""
+@login_manager.unauthorized_handler
+def unauthorized():
+    logout_user()
+    zino_session.close()
+    with app.app_context():
+        connect_to_zino()
+
+    return flask.redirect(flask.url_for('login'))
+
+
+def auth_handler(username, password):
+    user = authenticate_user(username, password)
+    if user:  # is authenticated
+        app.logger.debug('User %s', user)
+
+        update_token(user, zino_session.authChallenge, password)
+        zino_session.authenticate(user.username, password)
+        app.logger.debug('User connected to Zino %s', zino_session.connStatus)
+
+        login_user(user)
+        flask.flash('Logged in successfully.')
+        return user
+    return None
 
 
 def get_current_events():
@@ -178,43 +213,44 @@ def get_event_details(id):
 
 @app.route('/')
 @app.route('/hello-world')
-@login_required
+@login_check(current_user, zino_session, unauthorized)
 def index():
     exemplify_loop = list('abracadabra')
     return render_template('index.html', example_list=exemplify_loop)
 
 
-@app.route('/events')
-@login_required
-def events():
-    # current_app["expanded_events"] = []
-    return render_template('/views/events.html')
-
 @app.route('/login')
 def login():
     app.logger.debug('current user is authenticated %s', current_user.is_authenticated)
-    if current_user.is_authenticated:
-        default_url = flask.url_for('index')
-        return flask.redirect(default_url)
-    else:
+    try:
+        if current_user.is_authenticated and zino_session.authenticated:
+            default_url = flask.url_for('index')
+            return flask.redirect(default_url)
+    except:
         return render_template('/views/login.html')
+    return render_template('/views/login.html')
+
 
 @app.route('/sign_in_form')
 def sign_in_form():
     return render_template('/components/login/sign-in-form.html')
 
+
+@app.route('/events')
+@login_check(current_user, zino_session, unauthorized)
+def events():
+    # current_app["expanded_events"] = []
+    return render_template('/views/events.html')
+
+
 @app.route('/auth', methods=["POST"])
 def auth():
     username = request.form["username"]
     password = request.form["password"]
-
-    user = authenticate_user(username, password)
+    user = auth_handler(username, password)
     res = make_response()
-    if user:  # is authenticated
-        app.logger.debug('User %s', user)
-        login_user(user)
-        flask.flash('Logged in successfully.')
 
+    if user:  # is both zino and flask authenticated
         # redirect to /events
         res.headers['HX-Redirect'] = '/events'
         return res
@@ -270,11 +306,11 @@ def update_event_status(i):
         new_history = request.form['event-history']
 
         if not current_state == new_state:
-            set_state_res = EventAdapter.set_admin_state(session, event_engine.events.get(event_id),
+            set_state_res = EventAdapter.set_admin_state(zino_session, event_engine.events.get(event_id),
                                                          AdmState(new_state))
 
         if new_history:
-            add_history_res = HistoryAdapter.add(session, new_history,
+            add_history_res = HistoryAdapter.add(zino_session, new_history,
                                                  event_engine.events.get(event_id))
 
         event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
