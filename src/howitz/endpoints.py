@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from zinolib.ritz import ritz, parse_tcl_config
-from zinolib.zino1 import Zino1EventEngine, EventAdapter, HistoryAdapter
+from zinolib.controllers.zino1 import Zino1EventManager, EventAdapter, HistoryAdapter
 from zinolib.event_types import EventType, Event, HistoryEntry, LogEntry, AdmState, PortState, BFDState, \
     ReachabilityState
 from zinolib.compat import StrEnum
@@ -69,7 +69,7 @@ zino_session = ritz(
     conf['Server'],
     timeout=30,
 )
-event_engine = Zino1EventEngine(zino_session)
+event_engine = Zino1EventManager(zino_session)
 
 
 def initialize_database():
