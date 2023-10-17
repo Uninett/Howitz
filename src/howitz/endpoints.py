@@ -19,11 +19,6 @@ from howitz.users.db import UserDB
 from howitz.users.utils import authenticate_user, update_token
 from .utils import login_check
 
-# todo remove all use of curitz when zinolib is ready
-from curitz import cli
-# todo remove
-import time
-
 
 class EventColor(StrEnum):
     RED = "red"
