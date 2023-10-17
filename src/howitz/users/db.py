@@ -54,6 +54,13 @@ class UserDB:
         self.connection.commit()
         return self.get(user.username)
 
+    def update_token(self, username, token):
+        querystring = "UPDATE user SET token=? where username=?"
+        params = (token, username)
+        self.cursor.execute(querystring, params)
+        self.connection.commit()
+        return self.get(username)
+
     def remove(self, username):
         querystring = "DELETE from user where username = ?"
         params = (username,)
