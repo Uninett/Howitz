@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from .models import ServerConfig, DevServerConfig
+from .models import HowitzConfig, DevHowitzConfig
 
 
-class Config(ServerConfig):
+class Config:
 
     @staticmethod
     def from_args(args):
@@ -11,9 +11,9 @@ class Config(ServerConfig):
         config_dict = {
             'port': args.port,
             'listen': args.listen,
-            # 'storage_location': args.storage,
+            'storage': args.storage,
         }
-        cls = DevServerConfig if args.devmode else ServerConfig
+        cls = DevHowitzConfig if args.devmode else HowitzConfig
         return cls(**config_dict)
 
     def update_from_args(self, args):
