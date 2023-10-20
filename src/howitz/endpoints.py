@@ -170,6 +170,18 @@ def login():
     return render_template('/views/login.html')
 
 
+@app.route('/logout')
+@login_check(current_user, event_manager, unauthorized)
+def logout():
+    # logout_handler()
+    try:
+        logout_handler()
+    except:
+        app.logger.debug('Error logging out')
+        return flask.redirect(flask.url_for('login'))
+    return flask.redirect(flask.url_for('login'))
+
+
 @main.route('/sign_in_form')
 def sign_in_form():
     return render_template('/components/login/sign-in-form.html')
