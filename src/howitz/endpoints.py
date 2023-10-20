@@ -62,6 +62,8 @@ css.build()
 
 DB_URL = Path('howitz.sqlite3')
 database = UserDB(DB_URL)
+database.initdb()
+app.logger.info('Connected to database %s', database)
 
 config = ZinoV1Config.from_tcl('ritz.tcl')
 app.logger.debug('ZinoV1Config %s', config)
@@ -69,14 +71,10 @@ event_manager = Zino1EventManager.configure(config)
 app.logger.debug('Zino1EventManager %s', event_manager)
 
 
-def initialize_database():
-    database.initdb()
-    app.logger.info('Connected to database %s', database.connection)
-
-
 def connect_to_zino():
-    zino_session.connect()
-    app.logger.info('Connected to Zino %s', zino_session.connStatus)
+    event_manager.configure(config)
+    event_manager.connect()
+    app.logger.info('Connected to Zino %s', event_manager.is_connected)
 
 
 @login_manager.user_loader
@@ -89,8 +87,6 @@ def load_user(user_id):
 
 with app.app_context():
     expanded_events = []
-    initialize_database()
-    connect_to_zino()
 
 
 @login_manager.unauthorized_handler
