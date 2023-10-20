@@ -55,6 +55,15 @@ def auth_handler(username, password):
     return None
 
 
+def logout_handler():
+    logged_out = logout_user()
+    app.logger.debug('User logged out %s', logged_out)
+    event_manager.disconnect()
+    app.logger.debug("Zino session was disconnected")
+    flask.flash('Logged out successfully.')
+    app.logger.info("Logged out successfully.")
+
+
 def get_current_events():
     current_app.event_manager.get_events()
     events = current_app.event_manager.events
