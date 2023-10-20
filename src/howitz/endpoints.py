@@ -103,17 +103,18 @@ def unauthorized():
 
 
 def auth_handler(username, password):
+    # check user credentials in database
     user = authenticate_user(username, password)
-    if user:  # is authenticated
+    if user:  # is registered in database
         app.logger.debug('User %s', user)
 
-        update_token(user, zino_session.authChallenge, password)
-        zino_session.authenticate(user.username, password)
-        app.logger.debug('User connected to Zino %s', zino_session.connStatus)
+        connect_to_zino()
 
-        login_user(user)
-        flask.flash('Logged in successfully.')
-        return user
+        if event_manager.is_authenticated:  # is zino authenticated
+            app.logger.debug('User is Zino authenticated %s', event_manager.is_authenticated)
+            login_user(user)
+            flask.flash('Logged in successfully.')
+            return user
     return None
 
 
