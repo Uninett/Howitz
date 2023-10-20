@@ -204,7 +204,7 @@ def get_event_details(id):
 
 @app.route('/')
 @app.route('/hello-world')
-@login_check(current_user, zino_session, unauthorized)
+@login_check(current_user, event_manager, unauthorized)
 def index():
     exemplify_loop = list('abracadabra')
     return render_template('index.html', example_list=exemplify_loop)
@@ -214,7 +214,7 @@ def index():
 def login():
     app.logger.debug('current user is authenticated %s', current_user.is_authenticated)
     try:
-        if current_user.is_authenticated and zino_session.authenticated:
+        if current_user.is_authenticated and event_manager.is_authenticated:
             default_url = flask.url_for('index')
             return flask.redirect(default_url)
     except:
@@ -228,7 +228,7 @@ def sign_in_form():
 
 
 @app.route('/events')
-@login_check(current_user, zino_session, unauthorized)
+@login_check(current_user, event_manager, unauthorized)
 def events():
     # current_app["expanded_events"] = []
     return render_template('/views/events.html')
