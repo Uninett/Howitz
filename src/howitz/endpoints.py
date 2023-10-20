@@ -15,7 +15,7 @@ from zinolib.compat import StrEnum
 from zinolib.config.zino1 import ZinoV1Config
 
 from howitz.users.db import UserDB
-from howitz.users.utils import authenticate_user, update_token
+from howitz.users.utils import authenticate_user
 from .utils import login_check
 
 
