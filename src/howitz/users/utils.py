@@ -2,8 +2,6 @@ import hashlib
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from .. import endpoints
-
 
 __all__ = [
     "authenticate_user",
@@ -12,8 +10,8 @@ __all__ = [
 ]
 
 
-def authenticate_user(username: str, password: str):
-    user = endpoints.database.get(username)
+def authenticate_user(database, username: str, password: str):
+    user = database.get(username)
     if user and user.authenticate(password):
         return user
     return None
