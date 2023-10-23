@@ -3,20 +3,17 @@ import sqlite3
 from .model import User
 
 
-def user_factory(cursor, row):
-    fields = [column[0] for column in cursor.description]
-    return User(**{k: v for k,v in zip(fields, row)})
-
-
 class UserDB:
     class Exception(Exception):
         pass
 
     def __init__(self, database_file: str):
-        connection = sqlite3.connect(database_file, check_same_thread=False)
-        connection.row_factory = user_factory
-        self.connection = connection
-        self.cursor = connection.cursor()
+        self.database_file = database_file
+
+    @staticmethod
+    def user_factory(cursor, row):
+        fields = [column[0] for column in cursor.description]
+        return User(**{k: v for k,v in zip(fields, row)})
 
     def initdb(self):
         field_items = []
@@ -26,13 +23,34 @@ class UserDB:
                 field_string += ' PRIMARY KEY'
             field_items.append(field_string)
         field_query = ', '.join(field_items)
-        self.cursor.execute(f"CREATE TABLE IF NOT EXISTS user ({field_query})")
+        querystring = f"CREATE TABLE IF NOT EXISTS user ({field_query})"
+        params = ()
+        connection = self.change_db(querystring, params)
+        connection.close()
 
-    def get(self, username):
+    def connect(self):
+        connection = sqlite3.connect(self.database_file, check_same_thread=False)
+        connection.row_factory = self.user_factory
+        return connection
+
+    def change_db(self, querystring, params):
+        connection = self.connect()
+        with connection:
+            connection.execute(querystring, params)
+        return connection
+
+    def change_and_return_user(self, user, querystring, params):
+        connection = self.change_db(querystring, params)
+        return self.get(user.username, connection)
+
+    def get(self, username, connection=None):
+        if not connection:
+            connection = self.connect()
         querystring = "SELECT * from user where username=?"
         params = (username,)
-        query = self.cursor.execute(querystring, params)
+        query = connection.execute(querystring, params)
         result = query.fetchall()
+        connection.close()
         if not result:
             return None
         if len(result) > 1:
@@ -43,20 +61,14 @@ class UserDB:
         querystring = "INSERT INTO user (username, password, token) values (?, ?, ?)"
         password = user.encode_password(user.password)
         params = (user.username, password, user.token)
-        self.cursor.execute(querystring, params)
-        self.connection.commit()
-        return self.get(user.username)
+        return self.change_and_return_user(user, querystring, params)
 
     def update(self, user: User):
         querystring = "REPLACE INTO user (username, password, token) values (?, ?, ?)"
         params = (user.username, user.password, user.token)
-        self.cursor.execute(querystring, params)
-        self.connection.commit()
-        return self.get(user.username)
+        return self.change_and_return_user(user, querystring, params)
 
     def remove(self, username):
         querystring = "DELETE from user where username = ?"
         params = (username,)
-        result = self.cursor.execute(querystring, params)
-        self.connection.commit()
-        return self.get(username)
+        return self.change_and_return_user(user, querystring, params)
