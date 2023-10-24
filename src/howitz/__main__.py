@@ -1,4 +1,9 @@
 from .endpoints import app
+from .config import Config, cliargs
+
 
 if __name__ == '__main__':
-    app.run(host="127.0.0.1", port=9000)
+    parser = cliargs.make_argument_parser()
+    args = cliargs.parse_args(parser)
+    config = Config.from_args(args)
+    app.run(host=str(config.listen), port=config.port)
