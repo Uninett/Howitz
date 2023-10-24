@@ -9,9 +9,10 @@ from flask import Flask, g, redirect, url_for, current_app
 from flask_assets import Bundle, Environment
 from flask_login import LoginManager, logout_user
 
+from howitz.config.utils import set_config, validate_config
+from howitz.config.zino1 import make_zino1_config
 from howitz.users.db import UserDB
 from zinolib.controllers.zino1 import Zino1EventManager
-from zinolib.config.zino1 import ZinoV1Config
 
 
 __all__ = ["create_app"]
@@ -20,37 +21,27 @@ __all__ = ["create_app"]
 def create_app(test_config=None):
     app = Flask(__name__)
 
-    # TODO: Read from config-file and translate to FLASK-style via dict
-    app.config.from_mapping(
-        SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'howitz.sqlite3'),
-    )
+    config_filename = "howitz.toml"
+    app = set_config(app, config_filename)
+    validate_config(app.config)
+    zino_config = make_zino1_config(app.config)
 
-    # TODO: Move actual dict to config file
-    dictConfig({
-        'version': 1,
-        'formatters': {'default': {
-            'format': '%(levelname)-8s in %(funcName)-20s %(message)s',
-        }},
-        'handlers': {'wsgi': {
-            'class': 'logging.StreamHandler',
-            'stream': 'ext://flask.logging.wsgi_errors_stream',
-            'formatter': 'default'
-        }},
-        'root': {
-            'level': 'INFO',
-            'handlers': ['wsgi']
-        }
-    })
+    logging_dict = app.config.get("LOGGING", {})
+    if logging_dict:
+        dictConfig(logging_dict)
+        app.logger.debug('Logging config -> %s', logging_dict)
+    else:
+        app.logger.warn('Logging not set up, config not found')
 
-    # TODO: Get from howitz config file, sans user
-    config = ZinoV1Config.from_tcl('ritz.tcl')
-    config.password = None
-    config.username = None
-    app.logger.debug('ZinoV1Config %s', config)
-    event_manager = Zino1EventManager.configure(config)
+    app.logger.debug('ZinoV1Config %s', zino_config)
+    event_manager = Zino1EventManager.configure(zino_config)
     app.event_manager = event_manager
     app.logger.debug('Zino1EventManager %s', event_manager)
+
+    database = UserDB(app.config["HOWITZ_STORAGE"])
+    database.initdb()
+    app.database = database
+    app.logger.info('Connected to database %s', database)
 
     login_manager = LoginManager()
     login_manager.init_app(app)
@@ -82,12 +73,6 @@ def create_app(test_config=None):
 
     assets.register("css", css)
     css.build()
-
-    DB_URL = Path('howitz.sqlite3')
-    database = UserDB(DB_URL)
-    database.initdb()
-    app.database = database
-    app.logger.info('Connected to database %s', database)
 
     from . import endpoints
     app.register_blueprint(endpoints.main)
