@@ -1,9 +1,7 @@
 __version__ = '0.1'
 
 
-import os
 from logging.config import dictConfig
-from pathlib import Path
 
 from flask import Flask, g, redirect, url_for, current_app
 from flask.logging import default_handler
