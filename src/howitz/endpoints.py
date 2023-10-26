@@ -1,24 +1,33 @@
 import os
 
-import flask
-from flask import Flask, render_template, request, make_response
-from flask_login import LoginManager, login_user, current_user, logout_user
-from flask_assets import Bundle, Environment
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    g,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
+from flask_login import login_user, current_user, logout_user
 from logging.config import dictConfig
 
 from datetime import datetime, timezone
-from pathlib import Path
 
-from zinolib.controllers.zino1 import Zino1EventManager
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState
 from zinolib.compat import StrEnum
-from zinolib.config.zino1 import ZinoV1Config
 
-from howitz.users.db import UserDB
 from howitz.users.utils import authenticate_user
 from .utils import login_check
 
 
+main = Blueprint('main', __name__)
+
+
+# TODO: Should be configurable
 class EventColor(StrEnum):
     RED = "red"
     BLUE = "cyan"
@@ -27,101 +36,29 @@ class EventColor(StrEnum):
     DEFAULT = ""
 
 
-dictConfig({
-    'version': 1,
-    'formatters': {'default': {
-        'format': '%(levelname)-8s in %(funcName)-20s %(message)s',
-    }},
-    'handlers': {'wsgi': {
-        'class': 'logging.StreamHandler',
-        'stream': 'ext://flask.logging.wsgi_errors_stream',
-        'formatter': 'default'
-    }},
-    'root': {
-        'level': 'INFO',
-        'handlers': ['wsgi']
-    }
-})
-
-app = Flask(__name__)
-
-app.config.from_mapping(
-    SECRET_KEY='dev',
-    DATABASE=os.path.join(app.instance_path, 'howitz.sqlite3'),
-)
-
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = "login"
-
-assets = Environment(app)
-css = Bundle("main.css", output="dist/main.css")
-
-assets.register("css", css)
-css.build()
-
-DB_URL = Path('howitz.sqlite3')
-database = UserDB(DB_URL)
-database.initdb()
-app.logger.info('Connected to database %s', database)
-
-config = ZinoV1Config.from_tcl('ritz.tcl')
-app.logger.debug('ZinoV1Config %s', config)
-event_manager = Zino1EventManager.configure(config)
-app.logger.debug('Zino1EventManager %s', event_manager)
-
-
-def connect_to_zino():
-    event_manager.configure(config)
-    event_manager.connect()
-    app.logger.info('Connected to Zino %s', event_manager.is_connected)
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    user = database.get(user_id)
-    app.logger.info('User "%s" logged in', user.username)
-    app.logger.debug('User "%s"', user)
-    return user
-
-
-with app.app_context():
-    expanded_events = []
-
-
-@login_manager.unauthorized_handler
-def unauthorized():
-    logout_user()
-    try:
-        if event_manager.is_connected and not event_manager.is_authenticated:
-            event_manager.disconnect()
-            app.logger.debug("Zino session was disconnected")
-    except ValueError:
-        app.logger.debug("Zino session was not established")
-
-    return flask.redirect(flask.url_for('login'))
-
-
 def auth_handler(username, password):
     # check user credentials in database
-    user = authenticate_user(username, password)
-    if user:  # is registered in database
-        app.logger.debug('User %s', user)
+    with current_app.app_context():
+        user = authenticate_user(current_app.database, username, password)
+        if user:  # is registered in database
+            current_app.logger.debug('User %s', user)
 
-        connect_to_zino()
+            current_app.event_manager.connect()
+            current_app.logger.info('Connected to Zino %s', current_app.event_manager.is_connected)
+            current_app.event_manager.authenticate(username=user.username, password=user.token)
 
-        if event_manager.is_authenticated:  # is zino authenticated
-            app.logger.debug('User is Zino authenticated %s', event_manager.is_authenticated)
-            login_user(user)
-            flask.flash('Logged in successfully.')
-            return user
+            if current_app.event_manager.is_authenticated:  # is zino authenticated
+                current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
+                login_user(user)
+                flash('Logged in successfully.')
+                return user
     return None
 
 
 def get_current_events():
-    event_manager.get_events()
-    events = event_manager.events
-    app.logger.debug('EVENTS %s', events)
+    current_app.event_manager.get_events()
+    events = current_app.event_manager.events
+    current_app.logger.debug('EVENTS %s', events)
 
     events_sorted = {k: events[k] for k in sorted(events,
                                                   key=lambda k: (
@@ -182,60 +119,61 @@ def color_code_event(event):
 
 
 def get_event_attributes(id, res_format=dict):
-    event = event_manager.create_event_from_id(int(id))
-    attr_list = [':'.join([str(i[0]), str(i[1])]) for i in event]
+    event = current_app.event_manager.create_event_from_id(int(id))
+    event_dict = vars(event)
+    attr_list = [f"{k}:{v}" for k, v in event_dict.items()]
 
     # fixme is there a better way to do switch statements in Python?
     return {
         list: attr_list,
-        dict: vars(event),
+        dict: event_dict,
     }[res_format]
 
 
 def get_event_details(id):
-    event_attr = get_event_attributes(int(id))
-    event_logs = event_manager.get_log_for_id(int(id))
-    event_history = event_manager.get_history_for_id(int(id))
-    app.logger.debug('Event: attrs %s, logs %s, history %s', event_attr, event_logs, event_history)
+    event_attr = vars(current_app.event_manager.create_event_from_id(int(id)))
+    event_logs = current_app.event_manager.get_log_for_id(int(id))
+    event_history = current_app.event_manager.get_history_for_id(int(id))
+    current_app.logger.debug('Event: attrs %s, logs %s, history %s', event_attr, event_logs, event_history)
 
     event_msgs = event_logs + event_history
 
     return event_attr, event_logs, event_history, event_msgs
 
 
-@app.route('/')
-@app.route('/hello-world')
-@login_check(current_user, event_manager, unauthorized)
+@main.route('/')
+@main.route('/hello-world')
+@login_check()
 def index():
     exemplify_loop = list('abracadabra')
     return render_template('index.html', example_list=exemplify_loop)
 
 
-@app.route('/login')
+@main.route('/login')
 def login():
-    app.logger.debug('current user is authenticated %s', current_user.is_authenticated)
+    current_app.logger.debug('current user is authenticated %s', current_user.is_authenticated)
     try:
-        if current_user.is_authenticated and event_manager.is_authenticated:
-            default_url = flask.url_for('index')
-            return flask.redirect(default_url)
+        if current_user.is_authenticated and current_app.event_manager.is_authenticated:
+            default_url = url_for('main.index')
+            return redirect(default_url)
     except:
         return render_template('/views/login.html')
     return render_template('/views/login.html')
 
 
-@app.route('/sign_in_form')
+@main.route('/sign_in_form')
 def sign_in_form():
     return render_template('/components/login/sign-in-form.html')
 
 
-@app.route('/events')
-@login_check(current_user, event_manager, unauthorized)
+@main.route('/events')
+@login_check()
 def events():
     # current_app["expanded_events"] = []
     return render_template('/views/events.html')
 
 
-@app.route('/auth', methods=["POST"])
+@main.route('/auth', methods=["POST"])
 def auth():
     username = request.form["username"]
     password = request.form["password"]
@@ -251,75 +189,83 @@ def auth():
     return res
 
 
-@app.route('/events-table.html')
+@main.route('/events-table.html')
 def events_table():
     return render_template('/components/table/events-table.html')
 
 
-@app.route('/get_events')
+@main.route('/get_events')
 def get_events():
+    session["expanded_events"] = session.get("expanded_events", []) or []
     table_events = get_current_events()
 
     return render_template('/components/table/event-rows.html', event_list=table_events)
 
 
-@app.route('/events/<i>/expand_row', methods=["GET"])
-def expand_event_row(i):
-    with app.app_context():
-        expanded_events.append(i)
-    app.logger.debug('EXPANDED EVENTS %s', expanded_events)
+@main.route('/events/<event_id>/expand_row', methods=["GET"])
+def expand_event_row(event_id):
+    event_id = int(event_id)
+    expanded_events = session.get("expanded_events", []) or []
+    expanded_events.append(event_id)
+    current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
-    event_attr, event_logs, event_history, event_msgs = get_event_details(i)
-    event = create_table_event(event_manager.create_event_from_id(int(i)))
+    event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
+    event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
 
-    return render_template('/components/row/expanded-row.html', event=event, id=i, event_attr=event_attr,
+    return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                            event_logs=event_logs,
                            event_history=event_history, event_msgs=event_msgs)
 
 
-@app.route('/events/<i>/collapse_row', methods=["GET"])
-def collapse_event_row(i):
-    with app.app_context():
-        expanded_events.remove(i)
-    app.logger.debug('EXPANDED EVENTS %s', expanded_events)
+@main.route('/events/<event_id>/collapse_row', methods=["GET"])
+def collapse_event_row(event_id):
+    event_id = int(event_id)
+    expanded_events = session.get("expanded_events", []) or []
+    try:
+        expanded_events.remove(event_id)
+    except ValueError:
+        pass
+    session["expanded_events"] = expanded_events
+    current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
-    event = create_table_event(event_manager.create_event_from_id(int(i)))
+    event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
 
-    return render_template('/responses/collapse-row.html', event=event, id=i)
+    return render_template('/responses/collapse-row.html', event=event, id=event_id)
 
 
-@app.route('/event/<i>/update_status', methods=['GET', 'POST'])
-def update_event_status(i):
-    event_id = int(i)
-    current_state = get_event_attributes(event_id)['adm_state']
+@main.route('/event/<event_id>/update_status', methods=['GET', 'POST'])
+def update_event_status(event_id):
+    event_id = int(event_id)
+    event = current_app.event_manager.create_event_from_id(int(event_id))
+    current_state = event.adm_state
 
     if request.method == 'POST':
         new_state = request.form['event-state']
         new_history = request.form['event-history']
 
         if not current_state == new_state:
-            set_state_res = event_manager.change_admin_state_for_id(event_id, AdmState(new_state))
+            set_state_res = current_app.event_manager.change_admin_state_for_id(event_id, AdmState(new_state))
 
         if new_history:
-            add_history_res = event_manager.add_history_entry_for_id(event_id, new_history)
+            add_history_res = current_app.event_manager.add_history_entry_for_id(event_id, new_history)
 
         event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
-        event = create_table_event(event_manager.create_event_from_id(event_id))
+        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
 
         return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                                event_logs=event_logs,
                                event_history=event_history, event_msgs=event_msgs)
 
     elif request.method == 'GET':
-        return render_template('/responses/get-update-event-status-form.html', id=i, current_state=current_state)
+        return render_template('/responses/get-update-event-status-form.html', id=event_id, current_state=current_state)
 
 
-@app.route('/event/<i>/update_status/cancel', methods=["GET"])
-def cancel_update_event_status(i):
-    return render_template('/responses/hide-update-event-status-form.html', id=i)
+@main.route('/event/<event_id>/update_status/cancel', methods=["GET"])
+def cancel_update_event_status(event_id):
+    return render_template('/responses/hide-update-event-status-form.html', id=event_id)
 
 
 # TODO: replace this with some other HTMX pattern
-@app.route('/get_none', methods=["GET"])
+@main.route('/get_none', methods=["GET"])
 def get_none():
     return render_template('/responses/generic-hidden.html')

@@ -1,7 +1,10 @@
 import functools
 
+from flask import current_app
+from flask_login import current_user
 
-def login_check(current_user, event_manager, fallback_func):
+
+def login_check():
     """Check authentication status in both zino and flask session.
     """
 
@@ -9,11 +12,13 @@ def login_check(current_user, event_manager, fallback_func):
 
         @functools.wraps(func)
         def __login_check(*args):
-            if current_user.is_authenticated and event_manager.is_authenticated:
-                return func(*args)
+            with current_app.app_context():
+                if current_user.is_authenticated and current_app.event_manager.is_authenticated:
+                    current_app.logger.info("User authorized")
+                    return func(*args)
 
-            return fallback_func(*args)
-        
+            return current_app.login_manager.unauthorized(*args)
+
         return __login_check
 
     return _login_check
