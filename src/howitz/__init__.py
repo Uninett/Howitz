@@ -6,6 +6,7 @@ from logging.config import dictConfig
 from pathlib import Path
 
 from flask import Flask, g, redirect, url_for, current_app
+from flask.logging import default_handler
 from flask_assets import Bundle, Environment
 from flask_login import LoginManager, logout_user
 
@@ -26,11 +27,13 @@ def create_app(test_config=None):
     validate_config(app.config)
     zino_config = make_zino1_config(app.config)
 
+    app.logger.removeHandler(default_handler)
     logging_dict = app.config.get("LOGGING", {})
     if logging_dict:
         dictConfig(logging_dict)
         app.logger.debug('Logging config -> %s', logging_dict)
     else:
+        app.logger.addHandler(default_handler)
         app.logger.warn('Logging not set up, config not found')
 
     app.logger.debug('ZinoV1Config %s', zino_config)
