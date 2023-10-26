@@ -56,12 +56,13 @@ def auth_handler(username, password):
 
 
 def logout_handler():
-    logged_out = logout_user()
-    app.logger.debug('User logged out %s', logged_out)
-    event_manager.disconnect()
-    app.logger.debug("Zino session was disconnected")
-    flask.flash('Logged out successfully.')
-    app.logger.info("Logged out successfully.")
+    with current_app.app_context():
+        logged_out = logout_user()
+        current_app.logger.debug('User logged out %s', logged_out)
+        event_manager.disconnect()
+        current_app.logger.debug("Zino session was disconnected")
+        flash('Logged out successfully.')
+        current_app.logger.info("Logged out successfully.")
 
 
 def get_current_events():
@@ -170,16 +171,17 @@ def login():
     return render_template('/views/login.html')
 
 
-@app.route('/logout')
-@login_check(current_user, event_manager, unauthorized)
+@main.route('/logout')
+@login_check()
 def logout():
     # logout_handler()
-    try:
-        logout_handler()
-    except:
-        app.logger.debug('Error logging out')
-        return flask.redirect(flask.url_for('login'))
-    return flask.redirect(flask.url_for('login'))
+    with current_app.app_context():
+        try:
+            logout_handler()
+        except:
+            current_app.logger.debug('Error logging out')
+            return redirect(url_for('main.login'))
+        return redirect(url_for('main.login'))
 
 
 @main.route('/sign_in_form')
