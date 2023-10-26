@@ -24,6 +24,7 @@ def create_app(test_config=None):
     app = set_config(app, config_filename)
     validate_config(app.config)
     zino_config = make_zino1_config(app.config)
+    app.zino_config = zino_config
 
     app.logger.removeHandler(default_handler)
     logging_dict = app.config.get("LOGGING", {})
