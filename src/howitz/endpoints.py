@@ -1,4 +1,5 @@
 import os
+from enum import Enum
 
 from flask import (
     Blueprint,
@@ -14,7 +15,7 @@ from flask import (
 )
 from flask_login import login_user, current_user, logout_user
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from werkzeug.exceptions import BadRequest
 from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError
@@ -37,6 +38,45 @@ class EventColor(StrEnum):
     GREEN = "green"
     YELLOW = "yellow"
     DEFAULT = ""
+
+
+# Inspired by https://stackoverflow.com/a/54732120
+class EventSorting(Enum):
+    # ENUM = "value from config", "event attribute it depends on", "is reversed"
+
+    # # AGE = {
+    # #     "config-value": "age",
+    # #     "attribute": "opened",
+    # #     "reversed": False
+    # # }
+    # AGE = SortingDict(config_value="age", attribute="opened", reversed=False)
+    AGE = "age", "opened", True
+    AGE_REV = "age-rev", "opened", False
+    UPD = "upd", "updated", True
+    UPD_REV = "upd-rev", "updated", False
+    DOWN = "down", "get_downtime", True
+    DOWN_REV = "down-rev", "get_downtime", False
+    DEFAULT = "default", "", True
+
+    def __new__(cls, *args, **kwds):
+        obj = object.__new__(cls)
+        obj._value_ = args[0]
+        return obj
+
+    def __init__(self, _: str, attribute: str = None, reversed: bool = None):
+        self._attribute_ = attribute
+        self._reversed_ = reversed
+
+    def __str__(self):
+        return self.value
+
+    @property
+    def attribute(self):
+        return self._attribute_
+
+    @property
+    def reversed(self):
+        return self._reversed_
 
 
 def auth_handler(username, password):
@@ -98,11 +138,13 @@ def get_current_events():
 
     events = current_app.event_manager.events
 
-    events_sorted = {k: events[k] for k in sorted(events,
-                                                  key=lambda k: (
-                                                      0 if events[k].adm_state == AdmState.IGNORED else 1,
-                                                      events[k].updated,
-                                                  ), reverse=True)}
+    with current_app.app_context():
+        sort_method = EventSorting(current_app.config.get("ZINO1_SORTBY", "default"))
+
+    current_app.logger.debug("Sortby %s", sort_method)
+    # events_sorted = sort_events(events, sort_by=sort_method)
+    events_sorted = sort_events(events, sort_by=EventSorting.DOWN)
+
 
     table_events = []
     for c in events_sorted.values():
@@ -141,6 +183,56 @@ def poll_current_events():
                                                selected=str(c.id) in session["selected_events"]))
 
     return poll_events
+
+
+def sort_events(events_dict, sort_by=EventSorting.DEFAULT):
+    if sort_by == EventSorting.DEFAULT:
+        events_sorted = {k: events_dict[k] for k in sorted(events_dict,
+                                                           key=lambda k: (
+                                                               # 0 if (events_dict[k].adm_state == AdmState.OPEN and events_dict[k].op_state == "down") else
+                                                               # 1 if (events_dict[k].adm_state == AdmState.WAITING or events_dict[k].adm_state == AdmState.WORKING) and events_dict[k].op_state == "down" else
+                                                               # 2 if not (events_dict[k].adm_state == AdmState.IGNORED or events_dict[k].adm_state == AdmState.CLOSED) else
+                                                               # 3 if events_dict[k].adm_state == AdmState.IGNORED else 4,
+                                                               get_priority(events_dict[k]),
+                                                               # getattr(events_dict[k], field),
+                                                               events_dict[k].type,
+                                                           ), reverse=sort_by.reversed)}
+    elif sort_by == EventSorting.DOWN or sort_by == EventSorting.DOWN_REV:
+        events_sorted = {k: events_dict[k] for k in sorted(events_dict,
+                                                           key=lambda k: (
+                                                               0 if not getattr(events_dict[k], sort_by.attribute,
+                                                                                timedelta)() == timedelta() else 1,
+                                                               # 0 if events_dict[k].adm_state == AdmState.IGNORED else 1,
+                                                               # events_dict[k].field,
+                                                           ), reverse=sort_by.reversed)}
+    else:
+        events_sorted = {k: events_dict[k] for k in sorted(events_dict,
+                                                           key=lambda k: (
+                                                               getattr(events_dict[k], sort_by.attribute),
+                                                               # 0 if events_dict[k].adm_state == AdmState.IGNORED else 1,
+                                                               # events_dict[k].field,
+                                                           ), reverse=sort_by.reversed)}
+
+    return events_sorted
+
+
+def get_priority(event):
+    if event.adm_state == AdmState.IGNORED:
+        return 1
+    elif event.adm_state == AdmState.CLOSED:
+        return 0
+    elif ((event.type == Event.Type.PORTSTATE and event.port_state in [PortState.DOWN,
+                                                                       PortState.LOWER_LAYER_DOWN])
+          or (event.type == Event.Type.BGP and event.bgp_OS == "down")
+          or (event.type == Event.Type.BFD and event.bfd_state == BFDState.DOWN)
+          or (event.type == Event.Type.REACHABILITY and event.reachability == ReachabilityState.NORESPONSE)
+          or (event.type == Event.Type.ALARM and event.alarm_count > 0)):
+        if event.adm_state == AdmState.OPEN:
+            return 4
+        elif event.adm_state in [AdmState.WORKING, AdmState.WAITING]:
+            return 3
+    else:
+        return 2
 
 
 # todo remove all use of helpers from curitz
