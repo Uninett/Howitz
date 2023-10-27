@@ -17,6 +17,7 @@ from logging.config import dictConfig
 
 from datetime import datetime, timezone
 
+from zinolib.controllers.zino1 import Zino1EventManager
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState
 from zinolib.compat import StrEnum
 
@@ -43,9 +44,14 @@ def auth_handler(username, password):
         if user:  # is registered in database
             current_app.logger.debug('User %s', user)
 
-            current_app.event_manager.connect()
-            current_app.logger.info('Connected to Zino %s', current_app.event_manager.is_connected)
-            current_app.event_manager.authenticate(username=user.username, password=user.token)
+            if not current_app.event_manager.is_connected:
+                current_app.event_manager = Zino1EventManager.configure(current_app.zino_config)
+                current_app.event_manager.connect()
+                current_app.logger.info('Connected to Zino %s', current_app.event_manager.is_connected)
+
+            if not current_app.event_manager.is_authenticated:
+                current_app.event_manager.authenticate(username=user.username, password=user.token)
+                current_app.logger.info('Authenticated in Zino %s', current_app.event_manager.is_authenticated)
 
             if current_app.event_manager.is_authenticated:  # is zino authenticated
                 current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
@@ -53,6 +59,16 @@ def auth_handler(username, password):
                 flash('Logged in successfully.')
                 return user
     return None
+
+
+def logout_handler():
+    with current_app.app_context():
+        logged_out = logout_user()
+        current_app.logger.debug('User logged out %s', logged_out)
+        current_app.event_manager.disconnect()
+        current_app.logger.debug("Zino session was disconnected")
+        flash('Logged out successfully.')
+        current_app.logger.info("Logged out successfully.")
 
 
 def get_current_events():
@@ -151,14 +167,27 @@ def index():
 
 @main.route('/login')
 def login():
-    current_app.logger.debug('current user is authenticated %s', current_user.is_authenticated)
-    try:
-        if current_user.is_authenticated and current_app.event_manager.is_authenticated:
-            default_url = url_for('main.index')
-            return redirect(default_url)
-    except:
+    with current_app.app_context():
+        current_app.logger.debug('current user is authenticated %s', current_user.is_authenticated)
+        try:
+            if current_user.is_authenticated and current_app.event_manager.is_authenticated:
+                default_url = url_for('main.index')
+                return redirect(default_url)
+        except Exception:
+            current_app.logger.exception('An error occurred at login')
+            return render_template('/views/login.html')
         return render_template('/views/login.html')
-    return render_template('/views/login.html')
+
+
+@main.route('/logout')
+@login_check()
+def logout():
+    try:
+        logout_handler()
+    except Exception:
+        current_app.logger.exception('An error occurred at log out')
+        return redirect(url_for('main.login'))
+    return redirect(url_for('main.login'))
 
 
 @main.route('/sign_in_form')
