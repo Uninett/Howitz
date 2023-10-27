@@ -173,7 +173,8 @@ def login():
             if current_user.is_authenticated and current_app.event_manager.is_authenticated:
                 default_url = url_for('main.index')
                 return redirect(default_url)
-        except:
+        except Exception as exc:
+            current_app.logger.exception('An error occurred when login in %s', exc)
             return render_template('/views/login.html')
         return render_template('/views/login.html')
 
@@ -183,8 +184,8 @@ def login():
 def logout():
     try:
         logout_handler()
-    except:
-        current_app.logger.debug('Error logging out')
+    except Exception as exc:
+        current_app.logger.exception('An error occurred when login out %s', exc)
         return redirect(url_for('main.login'))
     return redirect(url_for('main.login'))
 
