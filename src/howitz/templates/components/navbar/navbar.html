@@ -1,0 +1,33 @@
+<nav class="bg-slate-950">
+    <div class="max-w-full h-16 flex justify-between items-center px-2 lg:px-4">
+        <a
+                href="/"
+                hx-push-url="/"
+                class="hover:bg-gray-700 p-2 rounded-md"
+                aria-current="page">
+            {% include "/includes/zino-logo.html" %}
+
+        </a>
+        <div class="flex space-x-1 md:space-x-4 items-center">
+            <a
+                    href="/"
+                    hx-push-url="/"
+                    class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-4 py-2 text-base font-normal"
+                    aria-current="page">
+                Home
+            </a>
+            <a
+                    href="/events"
+                    hx-push-url="/events"
+                    class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-4 py-2 text-base font-normal"
+                    aria-current="page">
+                Dashboard
+            </a>
+        </div>
+
+        <div>
+            {% include "/components/navbar/user-menu-btn.html" %}
+            {% include "/components/navbar/user-dropdown-menu-hidden.html" %}
+        </div>
+    </div>
+</nav>

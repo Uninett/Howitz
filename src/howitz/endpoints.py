@@ -294,6 +294,16 @@ def cancel_update_event_status(event_id):
     return render_template('/responses/hide-update-event-status-form.html', id=event_id)
 
 
+@main.route('/navbar/show-user-menu', methods=["GET"])
+def show_user_menu():
+    return render_template('/responses/show-user-menu.html')
+
+
+@main.route('/navbar/hide-user-menu', methods=["GET"])
+def hide_user_menu():
+    return render_template('/responses/hide-user-menu.html')
+
+
 # TODO: replace this with some other HTMX pattern
 @main.route('/get_none', methods=["GET"])
 def get_none():
