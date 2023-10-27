@@ -184,8 +184,8 @@ def login():
 def logout():
     try:
         logout_handler()
-    except Exception as exc:
-        current_app.logger.exception('An error occurred when login out %s', exc)
+    except Exception:
+        current_app.logger.exception('An error occurred at log out')
         return redirect(url_for('main.login'))
     return redirect(url_for('main.login'))
 
