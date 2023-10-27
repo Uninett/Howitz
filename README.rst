@@ -83,6 +83,6 @@ Debugging can be turned on either by adding ``DEBUG = true`` to the
 Run tests
 =========
 
-::
+Linting: ``tox -e lint``
 
-    tox
+Tests: currently, just run ``pytest``

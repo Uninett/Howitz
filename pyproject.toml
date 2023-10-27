@@ -27,3 +27,4 @@ dependencies = [
 
 [project.optional-dependencies]
 docs = ["sphinx"]
+dev = ["ruff"]
