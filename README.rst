@@ -14,12 +14,10 @@ Make and activate a virtualenv, install dependencies in that virtualenv::
     $ source howitz/bin/activate
     $ pip install -e .
 
-On this branch you need a version of zinolib that is still a work-in-progress (hmpf's decoupling branch).
-Build it with f.e. `pyproject-build`. Make sure that zinolib dependency is reinstalled as the newly built wheel file.
-
-::
-
-    pip install --force-reinstall zinolib-example.whl
+Howitz is deeply dependent on the library ``zinolib``. When developing Howitz,
+it might be prudent to add zinolib manually to the virtualenv by downloading
+the source, entering the directory and running ``pip install -e .``. This will
+make it very easy to switch between versions and branches of zinolib.
 
 Run in development-mode
 -----------------------
@@ -85,4 +83,4 @@ Run tests
 
 Linting: ``tox -e lint``
 
-Tests: currently, just run ``pytest``
+Tests: ``tox``
