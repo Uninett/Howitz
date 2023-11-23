@@ -23,9 +23,6 @@ from zinolib.compat import StrEnum
 
 from howitz.users.utils import authenticate_user
 from .utils import login_check
-with app.app_context():
-    selected_events = []
-    expanded_events = []
 
 
 main = Blueprint('main', __name__)
@@ -60,6 +57,7 @@ def auth_handler(username, password):
                 current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
                 login_user(user)
                 flash('Logged in successfully.')
+                session["selected_events"] = []
                 return user
     return None
 
@@ -71,6 +69,7 @@ def logout_handler():
         current_app.event_manager.disconnect()
         current_app.logger.debug("Zino session was disconnected")
         flash('Logged out successfully.')
+        session.pop('selected_events', [])
         current_app.logger.info("Logged out successfully.")
 
 
@@ -301,20 +300,20 @@ def cancel_update_event_status(event_id):
 
 
 
-@app.route('/event/<i>/unselect', methods=["GET"])
+@main.route('/event/<i>/unselect', methods=["GET"])
 def unselect_event(i):
-    with app.app_context():
-        selected_events.remove(i)
-    print("SELECTED EVENTS", selected_events)
+    with current_app.app_context():
+        session["selected_events"].remove(i)
+    print("SELECTED EVENTS", session["selected_events"])
 
     return render_template('/components/row/event-unchecked-box.html', id=i)
 
 
-@app.route('/event/<i>/select', methods=["GET"])
+@main.route('/event/<i>/select', methods=["GET"])
 def select_event(i):
-    with app.app_context():
-        selected_events.append(i)
-    print("SELECTED EVENTS", selected_events)
+    with current_app.app_context():
+        session["selected_events"].append(i)
+    print("SELECTED EVENTS", session["selected_events"])
 
     return render_template('/components/row/event-checked-box.html', id=i)
 
