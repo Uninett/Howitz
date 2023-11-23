@@ -236,6 +236,7 @@ def get_events():
 @main.route('/events/<event_id>/expand_row', methods=["GET"])
 def expand_event_row(event_id):
     event_id = int(event_id)
+    selected_events = session.get("selected_events", []) or []
     expanded_events = session.get("expanded_events", []) or []
     expanded_events.append(event_id)
     current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
@@ -245,15 +246,12 @@ def expand_event_row(event_id):
 
     return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                            event_logs=event_logs,
-                           event_history=event_history, event_msgs=event_msgs)
-
-    return render_template('/components/row/expanded-row.html', event=event, id=i, event_attr=event_attr,
-                           event_logs=event_logs,
-                           event_history=event_history, event_msgs=event_msgs, is_selected=i in selected_events)
+                           event_history=event_history, event_msgs=event_msgs, is_selected=str(event_id) in selected_events)
 
 @main.route('/events/<event_id>/collapse_row', methods=["GET"])
 def collapse_event_row(event_id):
     event_id = int(event_id)
+    selected_events = session.get("selected_events", []) or []
     expanded_events = session.get("expanded_events", []) or []
     try:
         expanded_events.remove(event_id)
@@ -264,7 +262,7 @@ def collapse_event_row(event_id):
 
     event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
 
-    return render_template('/responses/collapse-row.html', event=event, id=event_id)
+    return render_template('/responses/collapse-row.html', event=event, id=event_id, is_selected=str(event_id) in selected_events)
 
 
 @main.route('/event/<event_id>/update_status', methods=['GET', 'POST'])
@@ -302,18 +300,27 @@ def cancel_update_event_status(event_id):
 
 @main.route('/event/<i>/unselect', methods=["GET"])
 def unselect_event(i):
-    with current_app.app_context():
+    try:
         session["selected_events"].remove(i)
-    print("SELECTED EVENTS", session["selected_events"])
+        session.modified = True
+        current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
+    except ValueError:
+        pass
 
     return render_template('/components/row/event-unchecked-box.html', id=i)
 
 
 @main.route('/event/<i>/select', methods=["GET"])
 def select_event(i):
-    with current_app.app_context():
+    try:
         session["selected_events"].append(i)
-    print("SELECTED EVENTS", session["selected_events"])
+        session.modified = True
+        current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
+    except ValueError:
+        pass
+
+
+    # print("SELECTED EVENTS", session["selected_events"])
 
     return render_template('/components/row/event-checked-box.html', id=i)
 
