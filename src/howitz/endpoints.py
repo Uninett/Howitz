@@ -1,46 +1,37 @@
-from enum import StrEnum
+import os
 
-from flask import Flask, render_template, request
-from flask_assets import Bundle, Environment
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    g,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
+from flask_login import login_user, current_user, logout_user
+from logging.config import dictConfig
 
-import logging
 from datetime import datetime, timezone
 
-from zinolib.zino1 import Zino1EventEngine, EventAdapter, HistoryAdapter
-from zinolib.event_types import EventType, Event, HistoryEntry, LogEntry, AdmState, PortState, BFDState, ReachabilityState
-from zinolib.ritz import ritz, parse_tcl_config
+from zinolib.controllers.zino1 import Zino1EventManager
+from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState
+from zinolib.compat import StrEnum
 
-# todo remove all use of curitz when zinolib is ready
-from curitz import cli
-# todo remove
-import time
-
-app = Flask(__name__)
-LOG = logging.getLogger(__name__)
-
+from howitz.users.utils import authenticate_user
+from .utils import login_check
 with app.app_context():
-    expanded_events = []
     selected_events = []
+    expanded_events = []
 
 
-assets = Environment(app)
-css = Bundle("main.css", output="dist/main.css")
-
-assets.register("css", css)
-css.build()
-
-conf = parse_tcl_config("~/.ritz.tcl")['default']
-session = ritz(
-    conf['Server'],
-    username=conf['User'],
-    password=conf['Secret'],
-    timeout=30,
-)
-session.connect()
-
-event_engine = Zino1EventEngine(session)
+main = Blueprint('main', __name__)
 
 
+# TODO: Should be configurable
 class EventColor(StrEnum):
     RED = "red"
     BLUE = "cyan"
@@ -49,10 +40,44 @@ class EventColor(StrEnum):
     DEFAULT = ""
 
 
+def auth_handler(username, password):
+    # check user credentials in database
+    with current_app.app_context():
+        user = authenticate_user(current_app.database, username, password)
+        if user:  # is registered in database
+            current_app.logger.debug('User %s', user)
+
+            if not current_app.event_manager.is_connected:
+                current_app.event_manager = Zino1EventManager.configure(current_app.zino_config)
+                current_app.event_manager.connect()
+                current_app.logger.info('Connected to Zino %s', current_app.event_manager.is_connected)
+
+            if not current_app.event_manager.is_authenticated:
+                current_app.event_manager.authenticate(username=user.username, password=user.token)
+                current_app.logger.info('Authenticated in Zino %s', current_app.event_manager.is_authenticated)
+
+            if current_app.event_manager.is_authenticated:  # is zino authenticated
+                current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
+                login_user(user)
+                flash('Logged in successfully.')
+                return user
+    return None
+
+
+def logout_handler():
+    with current_app.app_context():
+        logged_out = logout_user()
+        current_app.logger.debug('User logged out %s', logged_out)
+        current_app.event_manager.disconnect()
+        current_app.logger.debug("Zino session was disconnected")
+        flash('Logged out successfully.')
+        current_app.logger.info("Logged out successfully.")
+
+
 def get_current_events():
-    event_engine.get_events()
-    events = event_engine.events
-    # print("EVENTS", events)
+    current_app.event_manager.get_events()
+    events = current_app.event_manager.events
+    current_app.logger.debug('EVENTS %s', events)
 
     events_sorted = {k: events[k] for k in sorted(events,
                                                   key=lambda k: (
@@ -62,10 +87,7 @@ def get_current_events():
 
     table_events = []
     for c in events_sorted.values():
-        # print("EVENT", c)
         table_events.append(create_table_event(c))
-
-    # print('Table events', table_events)
 
     return table_events
 
@@ -81,11 +103,9 @@ def create_table_event(event):
         common["port"] = event.port
 
         age = datetime.now(timezone.utc) - event.opened
-        # common["age"] = cli.strfdelta(age, "{days:2d}d {hours:02}:{minutes:02}")
         common["age"] = age
 
         if event.type == Event.Type.PORTSTATE:
-            # common["downtime"] = cli.downtimeShortner(event.get_downtime())
             common["downtime"] = event.get_downtime()
         else:
             common["downtime"] = ""
@@ -118,118 +138,167 @@ def color_code_event(event):
 
 
 def get_event_attributes(id, res_format=dict):
-    event = event_engine.create_event_from_id(int(id))
-    attr_list = [':'.join([str(i[0]), str(i[1])]) for i in event]
-    # print('EVENT', attr_list)
+    event = current_app.event_manager.create_event_from_id(int(id))
+    event_dict = vars(event)
+    attr_list = [f"{k}:{v}" for k, v in event_dict.items()]
 
     # fixme is there a better way to do switch statements in Python?
     return {
         list: attr_list,
-        dict: vars(event),
+        dict: event_dict,
     }[res_format]
 
 
 def get_event_details(id):
-    event_attr = get_event_attributes(int(id))
-    event_logs = event_engine.get_log_for_id(int(id))
-    event_history = event_engine.get_history_for_id(int(id))
-    # print('EVENT ATTR', event_attr)
-    # print('EVENT LOGS', event_logs)
-    # print('EVENT HISTORY', event_history)
+    event_attr = vars(current_app.event_manager.create_event_from_id(int(id)))
+    event_logs = current_app.event_manager.get_log_for_id(int(id))
+    event_history = current_app.event_manager.get_history_for_id(int(id))
+    current_app.logger.debug('Event: attrs %s, logs %s, history %s', event_attr, event_logs, event_history)
 
     event_msgs = event_logs + event_history
-
-    # print('EVENT MSGS', event_msgs)
 
     return event_attr, event_logs, event_history, event_msgs
 
 
-@app.route('/')
-@app.route('/hello-world')
+@main.route('/')
+@main.route('/hello-world')
+@login_check()
 def index():
     exemplify_loop = list('abracadabra')
     return render_template('index.html', example_list=exemplify_loop)
 
 
-@app.route('/events')
+@main.route('/login')
+def login():
+    with current_app.app_context():
+        current_app.logger.debug('current user is authenticated %s', current_user.is_authenticated)
+        try:
+            if current_user.is_authenticated and current_app.event_manager.is_authenticated:
+                default_url = url_for('main.index')
+                return redirect(default_url)
+        except Exception:
+            current_app.logger.exception('An error occurred at login')
+            return render_template('/views/login.html')
+        return render_template('/views/login.html')
+
+
+@main.route('/logout')
+@login_check()
+def logout():
+    try:
+        logout_handler()
+    except Exception:
+        current_app.logger.exception('An error occurred at log out')
+        return redirect(url_for('main.login'))
+    return redirect(url_for('main.login'))
+
+
+@main.route('/sign_in_form')
+def sign_in_form():
+    return render_template('/components/login/sign-in-form.html')
+
+
+@main.route('/events')
+@login_check()
 def events():
     # current_app["expanded_events"] = []
     return render_template('/views/events.html')
 
 
-@app.route('/events-table.html')
+@main.route('/auth', methods=["POST"])
+def auth():
+    username = request.form["username"]
+    password = request.form["password"]
+    user = auth_handler(username, password)
+    res = make_response()
+
+    if user:  # is both zino and flask authenticated
+        # redirect to /events
+        res.headers['HX-Redirect'] = '/events'
+        return res
+
+    res.headers['HX-Redirect'] = '/login'
+    return res
+
+
+@main.route('/events-table.html')
 def events_table():
     return render_template('/components/table/events-table.html')
 
 
-@app.route('/get_events')
+@main.route('/get_events')
 def get_events():
+    session["expanded_events"] = session.get("expanded_events", []) or []
     table_events = get_current_events()
 
     return render_template('/components/table/event-rows.html', event_list=table_events)
 
 
-@app.route('/events/<i>/expand_row', methods=["GET"])
-def expand_event_row(i):
-    with app.app_context():
-        expanded_events.append(i)
-    # print("EXPANDED EVENTS", expanded_events)
+@main.route('/events/<event_id>/expand_row', methods=["GET"])
+def expand_event_row(event_id):
+    event_id = int(event_id)
+    expanded_events = session.get("expanded_events", []) or []
+    expanded_events.append(event_id)
+    current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
-    event_attr, event_logs, event_history, event_msgs = get_event_details(i)
-    event = create_table_event(event_engine.create_event_from_id(int(i)))
+    event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
+    event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+
+    return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
+                           event_logs=event_logs,
+                           event_history=event_history, event_msgs=event_msgs)
 
     return render_template('/components/row/expanded-row.html', event=event, id=i, event_attr=event_attr,
                            event_logs=event_logs,
                            event_history=event_history, event_msgs=event_msgs, is_selected=i in selected_events)
 
+@main.route('/events/<event_id>/collapse_row', methods=["GET"])
+def collapse_event_row(event_id):
+    event_id = int(event_id)
+    expanded_events = session.get("expanded_events", []) or []
+    try:
+        expanded_events.remove(event_id)
+    except ValueError:
+        pass
+    session["expanded_events"] = expanded_events
+    current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
-@app.route('/events/<i>/collapse_row', methods=["GET"])
-def collapse_event_row(i):
-    with app.app_context():
-        expanded_events.remove(i)
-    # print("EXPANDED EVENTS", expanded_events)
+    event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
 
-    event = create_table_event(event_engine.create_event_from_id(int(i)))
-
-    return render_template('/responses/collapse-row.html', event=event, id=i, is_selected=i in selected_events)
+    return render_template('/responses/collapse-row.html', event=event, id=event_id)
 
 
-@app.route('/event/<i>/update_status', methods=['GET', 'POST'])
-def update_event_status(i):
-    event_id = int(i)
-    current_state = get_event_attributes(event_id)['adm_state']
+@main.route('/event/<event_id>/update_status', methods=['GET', 'POST'])
+def update_event_status(event_id):
+    event_id = int(event_id)
+    event = current_app.event_manager.create_event_from_id(int(event_id))
+    current_state = event.adm_state
 
     if request.method == 'POST':
         new_state = request.form['event-state']
         new_history = request.form['event-history']
-        # print('NEW STATE', new_state)
-        # print('NEW HISTORY', new_history)
 
         if not current_state == new_state:
-            set_state_res = EventAdapter.set_admin_state(session, event_engine.events.get(event_id),
-                                                         AdmState(new_state))
-            # print("SET_STATE RES", set_state_res)
+            set_state_res = current_app.event_manager.change_admin_state_for_id(event_id, AdmState(new_state))
 
         if new_history:
-            add_history_res = HistoryAdapter.add(session, new_history,
-                                                 event_engine.events.get(event_id))
-            # print("ADD_HISTORY RES", add_history_res)
+            add_history_res = current_app.event_manager.add_history_entry_for_id(event_id, new_history)
 
         event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
-        event = create_table_event(event_engine.create_event_from_id(event_id))
+        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
 
         return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                                event_logs=event_logs,
-                               event_history=event_history, event_msgs=event_msgs, is_selected=i in selected_events)
+                               event_history=event_history, event_msgs=event_msgs)
 
     elif request.method == 'GET':
-        # print("CURRENT STATE", current_state)
-        return render_template('/responses/get-update-event-status-form.html', id=i, current_state=current_state)
+        return render_template('/responses/get-update-event-status-form.html', id=event_id, current_state=current_state)
 
 
-@app.route('/event/<i>/update_status/cancel', methods=["GET"])
-def cancel_update_event_status(i):
-    return render_template('/responses/hide-update-event-status-form.html', id=i)
+@main.route('/event/<event_id>/update_status/cancel', methods=["GET"])
+def cancel_update_event_status(event_id):
+    return render_template('/responses/hide-update-event-status-form.html', id=event_id)
+
 
 
 @app.route('/event/<i>/unselect', methods=["GET"])
@@ -251,6 +320,6 @@ def select_event(i):
 
 
 # TODO: replace this with some other HTMX pattern
-@app.route('/get_none', methods=["GET"])
+@main.route('/get_none', methods=["GET"])
 def get_none():
     return render_template('/responses/generic-hidden.html')
