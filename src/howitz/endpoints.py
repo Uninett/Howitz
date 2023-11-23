@@ -1,5 +1,4 @@
 import os
-from typing import TypedDict
 
 from flask import (
     Blueprint,
@@ -14,7 +13,6 @@ from flask import (
     url_for,
 )
 from flask_login import login_user, current_user, logout_user
-from logging.config import dictConfig
 
 from datetime import datetime, timezone
 
@@ -75,25 +73,13 @@ def logout_handler():
         current_app.logger.info("Logged out successfully.")
 
 
-# class TableEvent(TypedDict):
-#     data: dict
-#     expanded: bool
-#     selected: bool
-
-# TableEvent = TypedDict(
-#     "TableEvent",
-#     {"data": dict, "expanded": bool, "selected": bool},
-#     total=False,
-# )
-
-
 def get_current_events():
     try:
         current_app.event_manager.get_events()
     except Exception:
         current_app.logger.exception('An error ocurred on event fetch')
     events = current_app.event_manager.events
-    # current_app.logger.debug('EVENTS %s', events)
+    current_app.logger.debug('EVENTS %s', events)
 
     events_sorted = {k: events[k] for k in sorted(events,
                                                   key=lambda k: (
@@ -117,7 +103,6 @@ def poll_current_events():
         current_app.logger.exception('An error ocurred on event poll')
 
     events = current_app.event_manager.events
-    # current_app.logger.debug('POLL EVENTS %s', events[int("161454")])
 
     events_sorted = {k: events[k] for k in sorted(events,
                                                   key=lambda k: (
@@ -128,13 +113,6 @@ def poll_current_events():
     poll_events = []
     for c in events_sorted.values():
         poll_events.append(create_polled_event(create_table_event(c), expanded=str(c.id) in session["expanded_events"]))
-        # with current_app.app_context():
-        #     if session.modified:
-        #         current_app.logger.debug('Session was modified %s', session.modified)
-        #         poll_events.append(create_polled_event(create_table_event(c), c.id in expanded_events))
-        #     else:
-        #         current_app.logger.debug('Session was NOT modified')
-        #         poll_events.append(create_polled_event(create_table_event(c), False))
 
     current_app.logger.debug('POLL EVENTS %s', poll_events[0])
 
@@ -171,7 +149,6 @@ def create_polled_event(table_event, expanded=False, selected=False):
         "event": table_event
     }
     if expanded:
-        # event_attr, event_logs, event_history, event_msgs = get_event_details(int(table_event["id"]))
         poll_event["event_attr"], poll_event["event_logs"], poll_event["event_history"], poll_event["event_msgs"] = (
             get_event_details(int(table_event["id"])))
         poll_event["expanded"] = expanded
@@ -215,7 +192,7 @@ def get_event_details(id):
     event_attr = vars(current_app.event_manager.create_event_from_id(int(id)))
     event_logs = current_app.event_manager.get_log_for_id(int(id))
     event_history = current_app.event_manager.get_history_for_id(int(id))
-    # current_app.logger.debug('Event: attrs %s, logs %s, history %s', event_attr, event_logs, event_history)
+    current_app.logger.debug('Event: attrs %s, logs %s, history %s', event_attr, event_logs, event_history)
 
     event_msgs = event_logs + event_history
 
@@ -282,7 +259,6 @@ def events_table():
 
 @main.route('/get_events')
 def get_events():
-    # session["expanded_events"] = session.get("expanded_events") or dict()
     table_events = get_current_events()
 
     return render_template('/components/table/event-rows.html', event_list=table_events)
@@ -290,7 +266,6 @@ def get_events():
 
 @main.route('/poll_events')
 def poll_events():
-    # session["expanded_events"] = session.get("expanded_events") or dict()
     poll_events_list = poll_current_events()
 
     return render_template('/components/poll/poll-rows.html', poll_event_list=poll_events_list)
@@ -298,18 +273,6 @@ def poll_events():
 
 @main.route('/events/<event_id>/expand_row', methods=["GET"])
 def expand_event_row(event_id):
-
-    # expanded_events = session.get("expanded_events") or set()
-    # session["expanded_events"].add(event_id)
-    # expanded_events.add(event_id)
-    # expanded_events = session.get("expanded_events") or set()
-    # try:
-    #     expanded_events.add(event_id)
-    # except ValueError:
-    #     pass
-    # session["expanded_events"] = expanded_events
-    # session.modified = True
-    # current_app.logger.debug('EXPANDED EVENTS %s', session["expanded_events"])
     try:
         session["expanded_events"][str(event_id)] = ""
         session.modified = True
@@ -334,9 +297,6 @@ def expand_event_row(event_id):
 
 @main.route('/events/<event_id>/collapse_row', methods=["GET"])
 def collapse_event_row(event_id):
-    event_id = int(event_id)
-    selected_events = session.get("selected_events", [])
-    expanded_events = session.get("expanded_events", [])
     try:
         session["expanded_events"].pop(str(event_id))
         session.modified = True
