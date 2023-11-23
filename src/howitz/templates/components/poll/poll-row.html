@@ -1,0 +1,21 @@
+<tr
+        class="bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+        id="event-accordion-row-{{ id }}"
+        hx-get="/events/{{ id }}/expand_row"
+        hx-trigger="dblclick"
+        hx-target="#event-accordion-row-{{ id }}"
+        hx-swap="outerHTML"
+>
+    {% with padding='px-3 py-2' %}
+
+        {% with event=event %}
+            {% include "/components/row/data-cells.html" %}
+        {% endwith %}
+
+        {% with id=id, color=event.color %}
+            {% include "/components/row/expand-btn.html" %}
+        {% endwith %}
+
+    {% endwith %}
+
+</tr>

@@ -1,0 +1,17 @@
+{% if poll_event_list|length>0 %}
+    {% for poll_event in poll_event_list %}
+
+        {% if poll_event.expanded==True %}
+            {% with id=poll_event.event.id, event=poll_event.event, event_attr=poll_event.event_attr,
+                           event_logs=poll_event.event_logs,
+                           event_history=poll_event.event_history, event_msgs=poll_event.event_msgs %}
+                {% include "/components/poll/expanded-row.html" %}
+            {% endwith %}
+        {% else %}
+            {% with id=poll_event.event.id, event=poll_event.event %}
+                {% include "/components/poll/poll-row.html" %}
+            {% endwith %}
+        {% endif %}
+
+    {% endfor %}
+{% endif %}

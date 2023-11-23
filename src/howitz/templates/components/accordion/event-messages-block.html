@@ -1,0 +1,18 @@
+<div
+        hx-trigger="load"
+        hx-swap="innerHTML show:this:bottom"
+        class="basis-0 grow overflow-y-scroll overflow-x-auto p-5 bg-white border border-gray-200 rounded-2xl shadow sm:p-5 dark:bg-gray-800 dark:border-gray-700">
+    <div class="flex justify-between mb-3">
+        <h5 class="text-center text-lg font-bold leading-none text-gray-900 dark:text-white">Logs & History</h5>
+
+        {% include "/components/accordion/messages-view-options.html" %}
+    </div>
+
+    {% include "/components/accordion/event-messages.html" %}
+
+    <div id="event-messages-update-component-{{ id }}" hx-preserve>
+
+    </div>
+
+
+</div>

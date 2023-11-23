@@ -1,0 +1,27 @@
+{% block content %}
+
+    <tr
+            class="bg-white dark:bg-gray-800 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
+            id="event-accordion-row-{{ id }}"
+            hx-get="/events/{{ id }}/collapse_row"
+            hx-trigger="dblclick"
+            hx-swap="multi:#event-accordion-row-{{ id }}:outerHTML,#event-details-row-{{ id }}:delete"
+    >
+
+        {% with padding='px-3 py-2' %}
+
+            {% with event=event %}
+                {% include "/components/row/data-cells.html" %}
+            {% endwith %}
+
+            {% with id=id, color=event.color %}
+                {% include "/components/row/collapse-btn.html" %}
+            {% endwith %}
+
+        {% endwith %}
+
+    </tr>
+
+    {% include "/components/accordion/event-details.html" %}
+
+{% endblock content %}

@@ -1,0 +1,11 @@
+{% with id=poll_event.event.id, event=poll_event.event, event_attr=poll_event.event_attr,
+                           event_logs=poll_event.event_logs,
+                           event_history=poll_event.event_history, event_msgs=poll_event.event_msgs %}
+    {% include "/components/poll/expanded-row.html" %}
+{% endwith %}
+
+{#<li id="hidden-li-{{ id }}" hidden></li>#}
+
+{% with oob_swap='outerHTML' %}
+    {% include "/components/accordion/update-state-btn.html" %}
+{% endwith %}

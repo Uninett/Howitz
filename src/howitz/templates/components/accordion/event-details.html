@@ -15,7 +15,7 @@
             >
 
                 {% with id=id %}
-                {% include "/components/accordion/event-actions-buttons.html" %}
+                    {% include "/components/accordion/event-actions-buttons.html" %}
                 {% endwith %}
 
                 <div
@@ -23,13 +23,13 @@
                 >
                     <div class="flex flex-col basis-4/12">
                         {% with event_attr=event_attr %}
-                        {% include "/components/accordion/event-attributes.html" %}
+                            {% include "/components/accordion/event-attributes.html" %}
                         {% endwith %}
                     </div>
 
                     <div class="flex flex-col basis-8/12">
                         {% with id=id, event_msgs=event_msgs %}
-                        {% include "/components/accordion/event-messages.html" %}
+                            {% include "/components/accordion/event-messages-block.html" %}
                         {% endwith %}
                     </div>
                 </div>

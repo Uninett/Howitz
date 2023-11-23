@@ -1,38 +1,31 @@
-<div class="basis-0 grow overflow-y-scroll overflow-x-auto p-5 bg-white border border-gray-200 rounded-2xl shadow sm:p-5 dark:bg-gray-800 dark:border-gray-700">
-    <div class="flex justify-between mb-3">
-        <h5 class="text-center text-lg font-bold leading-none text-gray-900 dark:text-white">Logs & History</h5>
+<div id="event-msg-feed-{{ id }}" class="flow-root">
 
-        {% include "/components/accordion/messages-view-options.html" %}
-    </div>
-    <div class="flow-root">
+    <ul
+            id="ol-event-{{ id }}"
+            class="relative border-l border-gray-200 dark:border-gray-700">
 
-        <ul
-                id="ol-event-{{ id }}"
-                class="relative border-l border-gray-200 dark:border-gray-700">
-
-            {% if event_msgs|length>0 %}
+        {% if event_msgs|length>0 %}
 
             {% for msg in event_msgs %}
 
 
-            <li class="mb-4 ml-4">
+                <li class="mb-4 ml-4">
 
-                <div class="absolute w-3 h-3  rounded-full mt-1.5 -left-1.5 border border-white dark:border-gray-900 {% if msg.user %} bg-orange-950 dark:bg-orange-400 {% else %} bg-blue-950 dark:bg-blue-400 {% endif %}"></div>
-                <h3 class="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                    {{ msg.user }}
-                </h3>
-                <time class="text-lg font-semibold text-gray-900 dark:text-white">{{ msg.date }}</time>
-                <p class="mb-2 text-base font-normal text-gray-500 dark:text-gray-400">{{ msg.log }}</p>
-            </li>
+                    <div class="absolute w-3 h-3  rounded-full mt-1.5 -left-1.5 border border-white dark:border-gray-900 {% if msg.user %} bg-orange-950 dark:bg-orange-400 {% else %} bg-blue-950 dark:bg-blue-400 {% endif %}"></div>
+                    <h3 class="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                        {{ msg.user }}
+                    </h3>
+                    <time class="text-lg font-semibold text-gray-900 dark:text-white">{{ msg.date }}</time>
+                    <p class="mb-2 text-base font-normal text-gray-500 dark:text-gray-400">{{ msg.log }}</p>
+                </li>
 
 
             {% endfor %}
 
-            {% endif %}
+        {% endif %}
 
-            {% include "/components/accordion/hidden-li.html" %}
+        {#            {% include "/components/accordion/hidden-li.html" %}#}
 
-        </ul>
+    </ul>
 
-    </div>
 </div>
