@@ -1,0 +1,13 @@
+<div id="checked-box-{{ id }}"
+     class="flex items-center">
+    <input id="unselect-event-{{ id }}"
+           type="checkbox"
+           class="w-4 h-4 text-white rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-offset-gray-800 focus:ring-2 bg-gray-700 border-gray-500"
+           checked
+           hx-get="/event/{{ id }}/unselect"
+           hx-trigger='click from:#unselect-event-{{ id }}, dblclick from:#unselect-event-{{ id }} consume'
+           hx-target="closest div"
+           hx-swap="outerHTML"
+    >
+    <label for="unselect-event-{{ id }}" class="sr-only">checkbox event {{ id }}</label>
+</div>

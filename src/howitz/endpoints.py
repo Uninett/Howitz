@@ -307,7 +307,7 @@ def unselect_event(i):
     except ValueError:
         pass
 
-    return render_template('/components/row/event-unchecked-box.html', id=i)
+    return render_template('/responses/unchecked-box.html', id=i)
 
 
 @main.route('/event/<i>/select', methods=["GET"])
@@ -322,7 +322,7 @@ def select_event(i):
 
     # print("SELECTED EVENTS", session["selected_events"])
 
-    return render_template('/components/row/event-checked-box.html', id=i)
+    return render_template('/responses/checked-box.html', id=i)
 
 
 # TODO: replace this with some other HTMX pattern
