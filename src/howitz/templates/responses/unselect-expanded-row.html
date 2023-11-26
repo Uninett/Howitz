@@ -1,0 +1,121 @@
+{% block content %}
+
+    {% if is_selected %}
+        <tr
+                class="bg-white border-2 dark:bg-gray-700 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-600"
+                id="event-accordion-row-{{ id }}"
+                hx-get="/events/{{ id }}/collapse_row"
+                hx-trigger="dblclick"
+                hx-swap="multi:#event-details-row-{{ id }}:delete,#event-accordion-row-{{ id }}:outerHTML"
+        >
+
+            {% with padding='px-3 py-2' %}
+
+                {% if is_selected %}
+                    <td class="w-4 p-4">
+                        <div class="flex items-center">
+                            <input id="unselect-event-{{ id }}"
+                                   type="checkbox"
+                                   class="w-4 h-4 text-white rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-offset-gray-800 focus:ring-2 bg-gray-700 border-gray-500"
+                                   checked
+                                   hx-get="/event/{{ id }}/unselect"
+                                   hx-trigger='click from:#unselect-event-{{ id }}, dblclick from:#unselect-event-{{ id }} consume'
+                                   hx-target="multi:#event-accordion-row-{{ id }}:outerHTML,#event-details-row-{{ id }}:delete"
+                            >
+                            <label for="unselect-event-{{ id }}" class="sr-only">checkbox event {{ id }}</label>
+                        </div>
+                    </td>
+                {% else %}
+                    <td class="w-4 p-4">
+                        <div class="flex items-center">
+                            <input id="select-event-{{ id }}"
+                                   type="checkbox"
+                                   class="w-4 h-4 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-offset-gray-800 focus:ring-2 bg-gray-700 border-gray-500"
+                                   hx-get="/event/{{ id }}/select"
+                                   hx-trigger='click from:#select-event-{{ id }}, dblclick from:#select-event-{{ id }} consume'
+                                   hx-target="multi:#event-accordion-row-{{ id }}:outerHTML,#event-details-row-{{ id }}:delete"
+
+                            >
+                            <label for="select-event-{{ id }}" class="sr-only">checkbox event {{ id }}</label>
+                        </div>
+                    </td>
+                {% endif %}
+
+                {% with event=event, border_color_level = '500' if is_selected else '700' %}
+                    {% include "/components/row/data-cells.html" %}
+                {% endwith %}
+
+                {% with id=id, color=event.color, border_color_level = '500' if is_selected else '700' %}
+                    {% include "/components/row/collapse-btn.html" %}
+                {% endwith %}
+
+            {% endwith %}
+
+        </tr>
+    {% else %}
+        <tr
+                class="bg-white dark:bg-gray-800 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
+                id="event-accordion-row-{{ id }}"
+                hx-get="/events/{{ id }}/collapse_row"
+                hx-trigger="dblclick"
+                hx-swap="multi:#event-accordion-row-{{ id }}:outerHTML,#event-details-row-{{ id }}:delete"
+        >
+
+            {% with padding='px-3 py-2' %}
+
+                {% if is_selected %}
+                    {% include "/components/row/event-checked-box.html" %}
+                {% else %}
+                    {% include "/components/row/event-unchecked-box.html" %}
+                {% endif %}
+
+                {% with event=event %}
+                    {% include "/components/row/data-cells.html" %}
+                {% endwith %}
+
+                {% with id=id, color=event.color %}
+                    {% include "/components/row/collapse-btn.html" %}
+                {% endwith %}
+
+            {% endwith %}
+
+        </tr>
+    {% endif %}
+
+
+
+    {% include "/components/accordion/event-details.html" %}
+
+{% endblock content %}
+
+
+<tr
+        id="event-details-row-{{ id }}"
+        class="bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+
+>
+</tr>
+
+<td
+        id="toggle-row-btn-{{ id }}"
+        class="{{ padding }} border border-slate-{{ border_color_level if border_color_level else '700' }} relative"
+        hx-get="/events/{{ id }}/collapse_row"
+        hx-trigger="click"
+        hx-swap-oob="true"
+        hx-swap="multi:#event-accordion-row-{{ id }}:outerHTML,#event-details-row-{{ id }}:delete"
+        hx-indicator="#row-{{ id }}-indicator"
+>
+
+    {% include "/components/row/row-toggle-spinner.html" %}
+
+    <svg
+            id="svg-icon-{{ id }}"
+            class="rotate-180 w-6 h-6 shrink-0 z-0"
+            fill="{{ color if (color != '' and color is not none) else 'currentColor' }}" viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg">
+
+        <path fill-rule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clip-rule="evenodd"></path>
+    </svg>
+</td>
