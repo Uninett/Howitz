@@ -57,6 +57,7 @@ def auth_handler(username, password):
                 current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
                 login_user(user)
                 flash('Logged in successfully.')
+                session["selected_events"] = []
                 return user
     return None
 
@@ -68,6 +69,7 @@ def logout_handler():
         current_app.event_manager.disconnect()
         current_app.logger.debug("Zino session was disconnected")
         flash('Logged out successfully.')
+        session.pop('selected_events', [])
         current_app.logger.info("Logged out successfully.")
 
 
@@ -233,38 +235,46 @@ def get_events():
 
 @main.route('/events/<event_id>/expand_row', methods=["GET"])
 def expand_event_row(event_id):
-    event_id = int(event_id)
+    selected_events = session.get("selected_events", []) or []
+    session["expanded_events"].append(event_id)
+    session.modified = True
     expanded_events = session.get("expanded_events", []) or []
-    expanded_events.append(event_id)
     current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
+
+    event_id = int(event_id)
 
     event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
     event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
 
     return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                            event_logs=event_logs,
-                           event_history=event_history, event_msgs=event_msgs)
-
+                           event_history=event_history, event_msgs=event_msgs, is_selected=str(event_id) in selected_events)
 
 @main.route('/events/<event_id>/collapse_row', methods=["GET"])
 def collapse_event_row(event_id):
-    event_id = int(event_id)
-    expanded_events = session.get("expanded_events", []) or []
+
+    selected_events = session["selected_events"]
+
     try:
-        expanded_events.remove(event_id)
+        session["expanded_events"].remove(event_id)
+        session.modified = True
     except ValueError:
         pass
-    session["expanded_events"] = expanded_events
+    # session["expanded_events"] = expanded_events
+    expanded_events = session.get("expanded_events", []) or []
     current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
+
+    event_id = int(event_id)
 
     event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
 
-    return render_template('/responses/collapse-row.html', event=event, id=event_id)
+    return render_template('/responses/collapse-row.html', event=event, id=event_id, is_selected=str(event_id) in selected_events)
 
 
 @main.route('/event/<event_id>/update_status', methods=['GET', 'POST'])
 def update_event_status(event_id):
     event_id = int(event_id)
+    selected_events = session.get("selected_events", []) or []
     event = current_app.event_manager.create_event_from_id(int(event_id))
     current_state = event.adm_state
 
@@ -283,7 +293,7 @@ def update_event_status(event_id):
 
         return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                                event_logs=event_logs,
-                               event_history=event_history, event_msgs=event_msgs)
+                               event_history=event_history, event_msgs=event_msgs, is_selected=str(event_id) in selected_events)
 
     elif request.method == 'GET':
         return render_template('/responses/get-update-event-status-form.html', id=event_id, current_state=current_state)
@@ -292,6 +302,81 @@ def update_event_status(event_id):
 @main.route('/event/<event_id>/update_status/cancel', methods=["GET"])
 def cancel_update_event_status(event_id):
     return render_template('/responses/hide-update-event-status-form.html', id=event_id)
+
+
+
+@main.route('/event/<i>/unselect', methods=["GET"])
+def unselect_event(i):
+    try:
+        session["selected_events"].remove(i)
+        session.modified = True
+        current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
+    except ValueError:
+        pass
+
+    event_id = int(i)
+
+    event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
+    event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+
+    # expanded_events = session.get("expanded_events", []) or []
+    # is_expanded = str(i) in session["expanded_events"]
+    # current_app.logger.debug("EXPANDED EVENTS %s", session["expanded_events"])
+    # current_app.logger.debug("is Expanded %s", is_expanded)
+
+    # return render_template('/components/responses/select-expanded-row.html', event=event, id=event_id,
+    #                        is_selected=False)
+
+    # if is_expanded:
+    #     return render_template('/responses/unselect-expanded-row.html', event=event, id=event_id, is_selected=False)
+    # else:
+    #     return render_template('/components/row/event-row.html', event=event, id=event_id, is_selected=False)
+
+    return render_template('/responses/row-toggle-select.html', event=event, id=event_id, event_attr=event_attr,
+                               event_logs=event_logs,
+                               event_history=event_history, event_msgs=event_msgs, is_selected=False, is_expanded=str(i) in session["expanded_events"])
+
+
+    # return render_template('/components/row/event-unchecked-box.html', id=i)
+
+
+@main.route('/event/<i>/select', methods=["GET"])
+def select_event(i):
+    try:
+        session["selected_events"].append(i)
+        session.modified = True
+        current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
+    except ValueError:
+        pass
+
+
+    # print("SELECTED EVENTS", session["selected_events"])
+
+    event_id = int(i)
+
+    event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
+    event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+
+    # is_expanded = str(i) in session["expanded_events"]
+    # current_app.logger.debug("EXPANDED EVENTS %s", session["expanded_events"])
+    # current_app.logger.debug("is Expanded %s", is_expanded)
+    #
+    # # return render_template('/components/responses/select-expanded-row.html', event=event, id=event_id,
+    # #                        is_selected=False)
+    #
+    # if is_expanded:
+    #     return render_template('/responses/unselect-expanded-row.html', event=event, id=event_id, is_selected=True)
+    # else:
+    #     return render_template('/components/row/selected-event-row.html', event=event, id=event_id, is_selected=True)
+
+    # # event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
+    # event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+    #
+    return render_template('/responses/row-toggle-select.html', event=event, id=event_id, event_attr=event_attr,
+                               event_logs=event_logs,
+                               event_history=event_history, event_msgs=event_msgs, is_selected=True, is_expanded=str(i) in session["expanded_events"])
+    #
+    # # return render_template('/components/row/event-checked-box.html', id=i)
 
 
 # TODO: replace this with some other HTMX pattern

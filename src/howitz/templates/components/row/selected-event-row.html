@@ -1,5 +1,5 @@
 <tr
-        class="bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+        class="bg-white border-2 dark:bg-gray-700 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-600"
         id="event-accordion-row-{{ id }}"
         hx-get="/events/{{ id }}/expand_row"
         hx-trigger="dblclick"
@@ -14,14 +14,15 @@
     {% include "/components/row/event-unchecked-box.html" %}
     {% endif %}
 
-    {% with event=event %}
+    {% with event=event, border_color_level = '500' if is_selected else '700' %}
     {% include "/components/row/data-cells.html" %}
     {% endwith %}
 
-    {% with id=id, color=event.color %}
+    {% with id=id, color=event.color, border_color_level = '500' if is_selected else '700' %}
     {% include "/components/row/expand-btn.html" %}
     {% endwith %}
 
     {% endwith %}
 
 </tr>
+
