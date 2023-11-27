@@ -246,7 +246,9 @@ def expand_event_row(event_id):
 
     return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                            event_logs=event_logs,
-                           event_history=event_history, event_msgs=event_msgs, is_selected=str(event_id) in selected_events)
+                           event_history=event_history, event_msgs=event_msgs,
+                           is_selected=str(event_id) in selected_events)
+
 
 @main.route('/events/<event_id>/collapse_row', methods=["GET"])
 def collapse_event_row(event_id):
@@ -262,7 +264,8 @@ def collapse_event_row(event_id):
 
     event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
 
-    return render_template('/responses/collapse-row.html', event=event, id=event_id, is_selected=str(event_id) in selected_events)
+    return render_template('/responses/collapse-row.html', event=event, id=event_id,
+                           is_selected=str(event_id) in selected_events)
 
 
 @main.route('/event/<event_id>/update_status', methods=['GET', 'POST'])
@@ -307,7 +310,8 @@ def unselect_event(i):
     except ValueError:
         pass
 
-    return render_template('/responses/unchecked-box.html', id=i)
+    return render_template('/responses/toggle-select.html', id=i, is_checked=False,
+                           is_menu=len(session["selected_events"]) > 0)
 
 
 @main.route('/event/<i>/select', methods=["GET"])
@@ -319,10 +323,10 @@ def select_event(i):
     except ValueError:
         pass
 
-
     # print("SELECTED EVENTS", session["selected_events"])
 
-    return render_template('/responses/checked-box.html', id=i)
+    return render_template('/responses/toggle-select.html', id=i, is_checked=True,
+                           is_menu=len(session["selected_events"]) > 0)
 
 
 # TODO: replace this with some other HTMX pattern

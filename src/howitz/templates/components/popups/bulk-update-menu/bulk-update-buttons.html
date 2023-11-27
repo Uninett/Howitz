@@ -1,0 +1,37 @@
+<div class="inline-flex gap-x-4 rounded-md shadow-xs" role="group">
+
+    <button
+            id="update-event-{{ id }}"
+            hx-get="/event/{{ id }}/update_status"
+            hx-target="#hidden-li-{{ id }}"
+            hx-swap="outerHTML show:bottom"
+            hx-swap-oob="{{ oob_swap if oob_swap is not none else 'false' }}"
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3.5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+    >
+        Update Status
+    </button>
+
+    <button
+            disabled
+            id="poll-event-{{ id }}"
+            class="text-white bg-blue-400 dark:bg-blue-500 cursor-not-allowed font-medium rounded-lg text-sm px-3.5 py-2.5 mr-2 mb-2 text-center"
+    >
+        Poll
+    </button>
+
+    <button
+            disabled
+            id="clear-flapping-{{ id }}"
+            class="text-white bg-blue-400 dark:bg-blue-500 cursor-not-allowed font-medium rounded-lg text-sm px-3.5 py-2.5 mr-2 mb-2 text-center">
+        Clear Flapping
+    </button>
+
+{#    <button type="button"#}
+{#            class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white">#}
+{#        Settings#}
+{#    </button>#}
+{#    <button type="button"#}
+{#            class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white">#}
+{#        Messages#}
+{#    </button>#}
+</div>

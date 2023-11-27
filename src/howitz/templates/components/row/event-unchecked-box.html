@@ -6,8 +6,9 @@
                    class="w-4 h-4 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-offset-gray-800 focus:ring-2 bg-gray-700 border-gray-500"
                    hx-get="/event/{{ id }}/select"
                    hx-trigger='click from:#select-event-{{ id }}, dblclick from:#select-event-{{ id }} consume'
-                   hx-target="closest div"
+                   hx-target="#unchecked-box-{{ id }}"
                    hx-swap="outerHTML"
+                   hx-select="#checked-box-{{ id }}"
             >
             <label for="select-event-{{ id }}" class="sr-only">checkbox event {{ id }}</label>
         </div>
@@ -21,8 +22,9 @@
                    class="w-4 h-4 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-offset-gray-800 focus:ring-2 bg-gray-700 border-gray-500"
                    hx-get="/event/{{ id }}/select"
                    hx-trigger='click from:#select-event-{{ id }}, dblclick from:#select-event-{{ id }} consume'
-                   hx-target="closest div"
+                   hx-target="#unchecked-box-{{ id }}"
                    hx-swap="outerHTML"
+                   hx-select="#checked-box-{{ id }}"
             >
             <label for="select-event-{{ id }}" class="sr-only">checkbox event {{ id }}</label>
         </div>

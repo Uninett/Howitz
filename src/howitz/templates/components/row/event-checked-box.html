@@ -8,8 +8,9 @@
                    checked
                    hx-get="/event/{{ id }}/unselect"
                    hx-trigger='click from:#unselect-event-{{ id }}, dblclick from:#unselect-event-{{ id }} consume'
-                   hx-target="closest div"
+                   hx-target="#checked-box-{{ id }}"
                    hx-swap="outerHTML"
+                   hx-select="#unchecked-box-{{ id }}"
             >
             <label for="unselect-event-{{ id }}" class="sr-only">checkbox event {{ id }}</label>
         </div>
@@ -24,8 +25,9 @@
                    checked
                    hx-get="/event/{{ id }}/unselect"
                    hx-trigger='click from:#unselect-event-{{ id }}, dblclick from:#unselect-event-{{ id }} consume'
-                   hx-target="closest div"
+                   hx-target="#checked-box-{{ id }}"
                    hx-swap="outerHTML"
+                   hx-select="#unchecked-box-{{ id }}"
             >
             <label for="unselect-event-{{ id }}" class="sr-only">checkbox event {{ id }}</label>
         </div>
