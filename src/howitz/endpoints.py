@@ -267,6 +267,8 @@ def update_event_status(event_id):
     current_state = event.adm_state
 
     if request.method == 'POST':
+        selected_events = session.get("selected_events", []) or []
+
         new_state = request.form['event-state']
         new_history = request.form['event-history']
 
@@ -281,7 +283,7 @@ def update_event_status(event_id):
 
         return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                                event_logs=event_logs,
-                               event_history=event_history, event_msgs=event_msgs)
+                               event_history=event_history, event_msgs=event_msgs, is_selected=str(event_id) in selected_events)
 
     elif request.method == 'GET':
         return render_template('/responses/get-update-event-status-form.html', id=event_id, current_state=current_state)
