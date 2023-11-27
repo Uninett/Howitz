@@ -160,11 +160,10 @@ def get_event_details(id):
 
 
 @main.route('/')
-@main.route('/hello-world')
+@main.route('/events')
 @login_check()
 def index():
-    exemplify_loop = list('abracadabra')
-    return render_template('index.html', example_list=exemplify_loop)
+    return render_template('/views/events.html')
 
 
 @main.route('/login')
@@ -197,13 +196,6 @@ def sign_in_form():
     return render_template('/components/login/sign-in-form.html')
 
 
-@main.route('/events')
-@login_check()
-def events():
-    # current_app["expanded_events"] = []
-    return render_template('/views/events.html')
-
-
 @main.route('/auth', methods=["POST"])
 def auth():
     username = request.form["username"]
@@ -213,7 +205,7 @@ def auth():
 
     if user:  # is both zino and flask authenticated
         # redirect to /events
-        res.headers['HX-Redirect'] = '/events'
+        res.headers['HX-Redirect'] = '/'
         return res
 
     res.headers['HX-Redirect'] = '/login'
@@ -327,6 +319,16 @@ def select_event(i):
 
     return render_template('/responses/toggle-select.html', id=i, is_checked=True,
                            is_menu=len(session["selected_events"]) > 0)
+
+
+@main.route('/navbar/show-user-menu', methods=["GET"])
+def show_user_menu():
+    return render_template('/responses/show-user-menu.html')
+
+
+@main.route('/navbar/hide-user-menu', methods=["GET"])
+def hide_user_menu():
+    return render_template('/responses/hide-user-menu.html')
 
 
 # TODO: replace this with some other HTMX pattern
