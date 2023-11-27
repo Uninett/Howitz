@@ -1,0 +1,17 @@
+<div class="absolute right-0 z-10 my-4 w-48 text-base origin-top-right rounded-md divide-y divide-slate-300 rounded-lg shadow-md shadow-slate-500 bg-slate-600"
+     aria-orientation="vertical"
+     id="user-menu-dropdown">
+    <div class="px-4 py-3">
+        <span class="block text-sm text-white">User</span>
+        <span class="block text-sm text-white truncate">{{ current_user.username }}</span>
+    </div>
+    <ul class="py-2" aria-labelledby="user-menu-btn">
+        <li>
+            <a
+                    href="/logout"
+                    hx-push-url="/logout"
+                    class="block px-4 py-2 text-sm text-white hover:bg-slate-800">Log
+                out</a>
+        </li>
+    </ul>
+</div>
