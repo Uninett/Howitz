@@ -1,0 +1,168 @@
+<div id="bulk-update-event-status-modal"
+     class="fixed inset-0 z-50 flex flex-col items-center justify-center"
+     aria-labelledby="modal-title"
+     role="dialog"
+     aria-modal="true"
+>
+    <div
+            class="modal-underlay inset-0 bg-gray-500 bg-opacity-50 transition-opacity"
+            hx-get="/get_none"
+            hx-target="#bulk-update-event-status-modal"
+            hx-swap="delete"
+    ></div>
+
+    <div class="w-1/3 flex items-end justify-center p-4 text-center sm:items-center sm:p-0">
+
+        <div class="relative transform overflow-x-auto overflow-y-auto rounded-lg bg-white text-left shadow-xl sm:my-8 sm:w-full sm:max-w-3xl w-fit">
+            <div class="bg-slate-600 px-4 py-4 sm:flex sm:px-6">
+                <h3 class="text-lg font-semibold leading-6 text-white" id="modal-title">Update selected events
+                </h3>
+            </div>
+
+            <div class="bg-slate-700 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="w-full mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+
+
+                        <div
+                                id="bulk-update-event-form"
+                                class="mb-6">
+
+                            <form class="mb-6 space-y-5">
+
+                                <div class="text-base w-4/5">
+                                    <label
+                                            for="event-state"
+                                            class="block mb-2 font-medium text-gray-900 dark:text-white">
+                                        Select state
+                                    </label>
+                                    <select id="event-state"
+                                            name="event-state"
+                                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                        <option class="px-2" value="open"
+                                                {% if current_state=='open' %}selected{% endif %}>Open
+                                        </option>
+                                        <option class="mx-2" value="working"
+                                                {% if current_state=='working' %}selected{% endif %}>Working
+                                        </option>
+                                        <option value="waiting"
+                                                {% if current_state=='waiting' %}selected{% endif %}>Waiting
+                                        </option>
+                                        <option value="confirm-wait"
+                                                {% if current_state=='confirm-wait' %}selected{% endif %}>Confirm
+                                        </option>
+                                        <option value="ignored"
+                                                {% if current_state=='ignored' %}selected{% endif %}>Ignored
+                                        </option>
+                                        <option value="closed" {% if current_state=='closed' %}selected{% endif %}>
+                                            Closed
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="w-4/5 py-2 px-4 mb-4 bg-white rounded-lg rounded-t-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                                    <label for="comment" class="sr-only">Your comment</label>
+                                    <textarea id="comment" rows="4"
+                                              name="event-history"
+                                              class="px-0 w-full text-base text-gray-900 border-0 focus:ring-0 focus:outline-none dark:text-white dark:placeholder-gray-400 dark:bg-gray-800"
+                                              placeholder="Add a message to history..."></textarea>
+                                </div>
+
+                                <button
+                                        type="submit"
+                                        hx-post="/event/bulk_update_status"
+                                        {#                                            hx-swap="multi:#event-details-row-{{ id }}:outerHTML,#event-accordion-row-{{ id }}:outerHTML show:#ol-event-{{ id }}:bottom"#}
+                                        class="mr-1 inline-flex items-center py-2.5 px-4 font-medium text-center text-white bg-primary-700 rounded-lg focus:ring-4 focus:ring-primary-200 dark:focus:ring-primary-900 hover:bg-primary-800 bg-blue-700 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                                    Update events
+                                </button>
+
+                                {#                                    <button#}
+                                {#                                            type="button"#}
+                                {#                                            hx-trigger="click"#}
+                                {#                                            hx-get="/get_none"#}
+                                {#                                            hx-swap="outerHTML"#}
+                                {#                                            hx-target="#update-event-form-{{ id }}"#}
+                                {#                                            class="ml-1 inline-flex items-center py-2.5 px-4 font-medium text-center text-white bg-primary-700 rounded-lg focus:ring-4 focus:ring-primary-200 dark:focus:ring-primary-900 hover:bg-primary-800 bg-blue-700 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">#}
+                                {#                                        Cancel#}
+                                {#                                    </button>#}
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-600 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                <button
+                        hx-get="/get_none"
+                        hx-target="#bulk-update-event-status-modal"
+                        hx-swap="delete"
+                        class="mt-3 inline-flex w-full justify-center rounded-md bg-slate-700 px-3 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-white hover:bg-slate-600 sm:mt-0 sm:w-auto">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {#    <div class="flex items-end justify-center p-4 text-center sm:items-center sm:p-0">#}
+    {##}
+    {#        <div class="relative transform overflow-auto rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 w-fit h-fit sm:w-full sm:max-w-fit">#}
+    {#            <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">#}
+    {#                <div class="sm:flex sm:items-start">#}
+    {#                    <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">#}
+    {#                        <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">Event details#}
+    {#                            #{{ id }}</h3>#}
+    {#                        <div class="mt-2">#}
+    {##}
+    {#                            <div#}
+    {#                                    id="accordion-collapse-body-{{ id }}"#}
+    {#                                    aria-labelledby="accordion-collapse-row-{{ id }}"#}
+    {#                                    class="max-w-5xl max-h-96 p-5 border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">#}
+    {##}
+    {#                                <div#}
+    {#                                        class="grid grid-cols-1 content-between gap-4 divide-y-4 divide-slate-500"#}
+    {#                                >#}
+    {##}
+    {#                                    {% with id=id %}#}
+    {#                                    {% include "ui-event-actions-buttons.html" %}#}
+    {#                                    {% endwith %}#}
+    {##}
+    {##}
+    {#                                    <div#}
+    {#                                            class="flex grow-0 gap-5 justify-evenly"#}
+    {#                                    >#}
+    {#                                        <div class="flex flex-col basis-4/12">#}
+    {#                                            {% with event_attr=event_attr %}#}
+    {#                                            {% include "ui-event-attributes.html" %}#}
+    {#                                            {% endwith %}#}
+    {#                                        </div>#}
+    {##}
+    {#                                        <div class="flex flex-col basis-8/12">#}
+    {#                                            {% with id=id, event_msgs=event_msgs %}#}
+    {#                                            {% include "ui-event-messages.html" %}#}
+    {#                                            {% endwith %}#}
+    {#                                        </div>#}
+    {#                                    </div>#}
+    {##}
+    {#                                </div>#}
+    {##}
+    {##}
+    {#                            </div>#}
+    {##}
+    {#                        </div>#}
+    {#                    </div>#}
+    {#                </div>#}
+    {#            </div>#}
+    {#            <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">#}
+    {#                <button#}
+    {#                        hx-get="/get_none"#}
+    {#                        hx-target="#bulk-update-event-status-modal"#}
+    {#                        hx-swap="delete"#}
+    {#                        type="button"#}
+    {#                        class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">#}
+    {#                    Close#}
+    {#                </button>#}
+    {#            </div>#}
+    {#        </div>#}
+    {##}
+    {#    </div>#}
+
+</div>
