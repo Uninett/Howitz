@@ -8,7 +8,7 @@
 >
     {% with padding='px-3 py-2' %}
 
-        {% with color=event.color if event.color else "" %}
+        {% with color=event.color if event.color %}
             {% if is_selected %}
                 {% include "/components/row/event-checked-box.html" %}
             {% else %}
