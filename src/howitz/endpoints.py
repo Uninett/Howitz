@@ -294,67 +294,38 @@ def cancel_update_event_status(event_id):
     return render_template('/responses/hide-update-event-status-form.html', id=event_id)
 
 
-@main.route('/event/<event_id>/bulk_update_status', methods=['POST'])
-def bulk_update_events_status(event_id):
-    event_id = int(event_id)
+@main.route('/event/bulk_update_status', methods=['POST'])
+def bulk_update_events_status():
     selected_events = session.get("selected_events", []) or []
     expanded_events = session.get("expanded_events", []) or []
-    expanded_events.append(event_id)
+    current_app.logger.debug('SELECTED EVENTS %s', selected_events)
     current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
-    # event = current_app.event_manager.create_event_from_id(int(event_id))
-
-    event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
-    event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
-    current_state = event.adm_state
-
-    selected_events = session.get("selected_events", []) or []
 
     new_state = request.form['event-state']
     new_history = request.form['event-history']
 
-    if not current_state == new_state:
-        set_state_res = current_app.event_manager.change_admin_state_for_id(event_id, AdmState(new_state))
+    for event_id in selected_events:
+        if new_state:
+            set_state_res = current_app.event_manager.change_admin_state_for_id(int(event_id), AdmState(new_state))
 
-    if new_history:
-        add_history_res = current_app.event_manager.add_history_entry_for_id(event_id, new_history)
+        if new_history:
+            add_history_res = current_app.event_manager.add_history_entry_for_id(int(event_id), new_history)
 
-    event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
-    event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+    session["selected_events"] = []
+    session.modified = True
+    current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
-    return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
-                           event_logs=event_logs,
-                           event_history=event_history, event_msgs=event_msgs,
-                           is_selected=str(event_id) in selected_events)
+    table_events = get_current_events()
+
+    return render_template('/responses/bulk-update-events-status.html', event_list=table_events)
 
 
 @main.route('/show_update_status_modal', methods=['GET'])
 def show_update_events_status_modal():
-    # event_id = int(event_id)
-    selected_events = session.get("selected_events", []) or []
-    expanded_events = session.get("expanded_events", []) or []
-    # expanded_events.append(event_id)
-    current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
-    # event = current_app.event_manager.create_event_from_id(int(event_id))
-
-    # event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
-    # event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
-    # current_state = event.adm_state
-
     return render_template('/components/popups/modals/update-event-status-modal.html', current_state='open')
 
 @main.route('/hide_update_status_modal', methods=['GET'])
 def hide_update_events_status_modal():
-    # # event_id = int(event_id)
-    # selected_events = session.get("selected_events", []) or []
-    # expanded_events = session.get("expanded_events", []) or []
-    # # expanded_events.append(event_id)
-    # current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
-    # # event = current_app.event_manager.create_event_from_id(int(event_id))
-    #
-    # # event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
-    # # event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
-    # current_state = event.adm_state
-
     return render_template('/components/popups/modals/update-event-status-modal.html', current_state='open')
 
 
@@ -379,8 +350,6 @@ def select_event(i):
         current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
     except ValueError:
         pass
-
-    # print("SELECTED EVENTS", session["selected_events"])
 
     return render_template('/responses/toggle-select.html', id=i, is_checked=True,
                            is_menu=len(session["selected_events"]) > 0)
