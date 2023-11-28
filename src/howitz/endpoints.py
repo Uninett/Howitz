@@ -112,9 +112,10 @@ def poll_current_events():
 
     poll_events = []
     for c in events_sorted.values():
-        poll_events.append(create_polled_event(create_table_event(c), expanded=str(c.id) in session["expanded_events"]))
+        poll_events.append(create_polled_event(create_table_event(c), expanded=str(c.id) in session["expanded_events"],
+                                               selected=str(c.id) in session["selected_events"]))
 
-    current_app.logger.debug('POLL EVENTS %s', poll_events[0])
+    # current_app.logger.debug('POLL EVENTS %s', poll_events[0])
 
     return poll_events
 
@@ -152,6 +153,9 @@ def create_polled_event(table_event, expanded=False, selected=False):
         poll_event["event_attr"], poll_event["event_logs"], poll_event["event_history"], poll_event["event_msgs"] = (
             get_event_details(int(table_event["id"])))
         poll_event["expanded"] = expanded
+
+    if selected:
+        poll_event["selected"] = selected
 
     return poll_event
 
