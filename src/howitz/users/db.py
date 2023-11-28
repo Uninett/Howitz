@@ -64,3 +64,11 @@ class UserDB:
         result = self.cursor.execute(querystring, params)
         self.connection.commit()
         return self.get(username)
+
+    def get_all(self):
+        querystring = "SELECT username, password, token from user"
+        query = self.cursor.execute(querystring)
+        result = query.fetchall()
+        if not result:
+            return None
+        return result
