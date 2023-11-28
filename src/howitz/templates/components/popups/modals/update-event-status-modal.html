@@ -69,16 +69,21 @@
                                 </div>
 
                                 <button
-                                        type="submit"
                                         hx-post="/event/bulk_update_status"
                                         hx-target="#eventlist-list"
                                         hx-swap="innerHTML"
                                         hx-trigger="click"
-{#                                        hx-select="#eventlist-list"#}
-{#                                        hx-swap="multi:#eventlist-list:outerHTML,#bulk-update-event-status-modal:delete"#}
+                                        hx-indicator="#bulk-update-indicator"
                                         class="mr-1 inline-flex items-center py-2.5 px-4 font-medium text-center text-white bg-primary-700 rounded-lg focus:ring-4 focus:ring-primary-200 dark:focus:ring-primary-900 hover:bg-primary-800 bg-blue-700 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
                                     Update events
+
                                 </button>
+
+                                <p id="bulk-update-indicator"
+                                   class="flex-inline mt-2 animate-pulse text-white bulk-update-htmx-indicator">
+                                    Updating selected events...
+                                </p>
+
 
                                 {#                                    <button#}
                                 {#                                            type="button"#}

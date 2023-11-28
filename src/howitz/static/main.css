@@ -1,13 +1,13 @@
 
-    .my-htmx-indicator {
+    .bulk-update-htmx-indicator {
         display: none;
     }
 
-    .htmx-request .my-htmx-indicator {
+    .htmx-request .bulk-update-htmx-indicator {
         display: inline;
     }
 
-    .htmx-request.my-htmx-indicator {
+    .htmx-request.bulk-update-htmx-indicator {
         display: inline;
     }
 
