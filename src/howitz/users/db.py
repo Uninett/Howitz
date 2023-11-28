@@ -49,7 +49,11 @@ class UserDB:
 
     def update(self, user: User):
         querystring = "REPLACE INTO user (username, password, token) values (?, ?, ?)"
-        params = (user.username, user.password, user.token)
+        password = user.password
+        # Do not reencrypt
+        if not password.startswith(('scrypt:', 'pbkdf2:')):
+            password = user.encode_password(password)
+        params = (user.username, password, user.token)
         self.cursor.execute(querystring, params)
         self.connection.commit()
         return self.get(user.username)
