@@ -57,5 +57,6 @@ class UserDB:
     def remove(self, username):
         querystring = "DELETE from user where username = ?"
         params = (username,)
-        self.cursor.execute(querystring, params)
+        result = self.cursor.execute(querystring, params)
+        self.connection.commit()
         return self.get(username)
