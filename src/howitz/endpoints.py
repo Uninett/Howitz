@@ -281,10 +281,7 @@ def expand_event_row(event_id):
         pass
 
     event_id = int(event_id)
-    selected_events = session.get("selected_events", [])
-    expanded_events = session.get("expanded_events", [])
-    expanded_events.append(event_id)
-    current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
+    selected_events = session.get("selected_events") or []
 
     event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
     event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
@@ -305,6 +302,7 @@ def collapse_event_row(event_id):
         pass
 
     event_id = int(event_id)
+    selected_events = session.get("selected_events") or []
 
     event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
 
