@@ -8,7 +8,7 @@ from flask.logging import default_handler
 from flask_assets import Bundle, Environment
 from flask_login import LoginManager, logout_user
 
-from howitz.config.utils import set_config, validate_config
+from howitz.config.utils import load_config
 from howitz.config.zino1 import make_zino1_config
 from howitz.users.db import UserDB
 from zinolib.controllers.zino1 import Zino1EventManager
@@ -20,9 +20,7 @@ __all__ = ["create_app"]
 def create_app(test_config=None):
     app = Flask(__name__)
 
-    config_filename = "howitz.toml"
-    app = set_config(app, config_filename)
-    validate_config(app.config)
+    app = load_config(app)
     zino_config = make_zino1_config(app.config)
     app.zino_config = zino_config
 
