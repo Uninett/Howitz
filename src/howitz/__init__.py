@@ -8,7 +8,7 @@ from flask.logging import default_handler
 from flask_assets import Bundle, Environment
 from flask_login import LoginManager, logout_user
 
-from howitz.config.utils import set_config, validate_config
+from howitz.config.utils import load_config
 from howitz.config.zino1 import make_zino1_config
 from howitz.config.howitz import make_howitz_config
 from howitz.users.db import UserDB
@@ -27,9 +27,7 @@ def create_app(test_config=None):
     app.register_error_handler(Exception, handle_generic_exception)
     app.register_error_handler(HTTPException, handle_generic_http_exception)
 
-    config_filename = "howitz.toml"
-    app = set_config(app, config_filename)
-    validate_config(app.config)
+    app = load_config(app)
     zino_config = make_zino1_config(app.config)
     app.zino_config = zino_config
     howitz_config = make_howitz_config(app.config)
