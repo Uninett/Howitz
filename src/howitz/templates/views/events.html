@@ -9,23 +9,28 @@
 
 {% include "/components/navbar/navbar.html"%}
 
-<h1 class="sr-only">Events table</h1>
-<main class="relative overflow-x-auto shadow-md sm:rounded-lg">
+    <h1 class="sr-only">Events table</h1>
+    <main class="relative overflow-x-auto shadow-md sm:rounded-lg">
 
-    <div
-            hx-get="events-table.html"
-            hx-swap="outerHTML"
-            hx-trigger="load"
-            role="status"
-            class="htmx-indicator animate-pulse"
-    >
+        <div
+                hx-get="events-table.html"
+                hx-swap="outerHTML"
+                hx-trigger="load"
+                role="status"
+                class="htmx-indicator animate-pulse"
+        >
 
-        <span class="sr-only">Loading Table...</span>
+            <span class="sr-only">Loading Table...</span>
 
 
+        </div>
+
+
+    </main>
+
+    <div id="bulk-update-menu" tabindex="-1"
+         hidden>
     </div>
-
-</main>
 
 {% endblock content %}
 

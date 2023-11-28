@@ -8,13 +8,21 @@
 >
     {% with padding='px-3 py-2' %}
 
-    {% with event=event %}
-    {% include "/components/row/data-cells.html" %}
-    {% endwith %}
+        {% with color=event.color if event.color %}
+            {% if is_selected %}
+                {% include "/components/row/event-checked-box.html" %}
+            {% else %}
+                {% include "/components/row/event-unchecked-box.html" %}
+            {% endif %}
+        {% endwith %}
 
-    {% with id=id, color=event.color %}
-    {% include "/components/row/expand-btn.html" %}
-    {% endwith %}
+        {% with event=event %}
+            {% include "/components/row/data-cells.html" %}
+        {% endwith %}
+
+        {% with id=id, color=event.color %}
+            {% include "/components/row/expand-btn.html" %}
+        {% endwith %}
 
     {% endwith %}
 

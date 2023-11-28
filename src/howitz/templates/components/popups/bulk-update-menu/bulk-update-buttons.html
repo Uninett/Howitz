@@ -1,0 +1,29 @@
+<div class="flex gap-x-4 rounded-md shadow-xs" role="group">
+
+    <button
+            id="update-event-{{ id }}"
+            hx-get="/event/{{ id }}/update_status"
+            hx-target="#hidden-li-{{ id }}"
+            hx-swap="outerHTML show:bottom"
+            hx-swap-oob="{{ oob_swap if oob_swap is not none else 'false' }}"
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3.5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+    >
+        Update Status
+    </button>
+
+    <button
+            disabled
+            id="poll-event-{{ id }}"
+            class="text-white bg-blue-400 dark:bg-blue-500 cursor-not-allowed font-medium rounded-lg text-sm px-3.5 py-2.5 mr-2 mb-2 text-center"
+    >
+        Poll
+    </button>
+
+    <button
+            disabled
+            id="clear-flapping-{{ id }}"
+            class="text-white bg-blue-400 dark:bg-blue-500 cursor-not-allowed font-medium rounded-lg text-sm px-3.5 py-2.5 mr-2 mb-2 text-center">
+        Clear Flapping
+    </button>
+
+</div>

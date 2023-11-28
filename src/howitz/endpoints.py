@@ -57,6 +57,7 @@ def auth_handler(username, password):
                 current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
                 login_user(user)
                 flash('Logged in successfully.')
+                session["selected_events"] = []
                 return user
     return None
 
@@ -68,6 +69,7 @@ def logout_handler():
         current_app.event_manager.disconnect()
         current_app.logger.debug("Zino session was disconnected")
         flash('Logged out successfully.')
+        session.pop('selected_events', [])
         current_app.logger.info("Logged out successfully.")
 
 
@@ -226,6 +228,7 @@ def get_events():
 @main.route('/events/<event_id>/expand_row', methods=["GET"])
 def expand_event_row(event_id):
     event_id = int(event_id)
+    selected_events = session.get("selected_events", []) or []
     expanded_events = session.get("expanded_events", []) or []
     expanded_events.append(event_id)
     current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
@@ -235,12 +238,14 @@ def expand_event_row(event_id):
 
     return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                            event_logs=event_logs,
-                           event_history=event_history, event_msgs=event_msgs)
+                           event_history=event_history, event_msgs=event_msgs,
+                           is_selected=str(event_id) in selected_events)
 
 
 @main.route('/events/<event_id>/collapse_row', methods=["GET"])
 def collapse_event_row(event_id):
     event_id = int(event_id)
+    selected_events = session.get("selected_events", []) or []
     expanded_events = session.get("expanded_events", []) or []
     try:
         expanded_events.remove(event_id)
@@ -251,7 +256,8 @@ def collapse_event_row(event_id):
 
     event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
 
-    return render_template('/responses/collapse-row.html', event=event, id=event_id)
+    return render_template('/responses/collapse-row.html', event=event, id=event_id,
+                           is_selected=str(event_id) in selected_events)
 
 
 @main.route('/event/<event_id>/update_status', methods=['GET', 'POST'])
@@ -261,6 +267,8 @@ def update_event_status(event_id):
     current_state = event.adm_state
 
     if request.method == 'POST':
+        selected_events = session.get("selected_events", []) or []
+
         new_state = request.form['event-state']
         new_history = request.form['event-history']
 
@@ -275,7 +283,7 @@ def update_event_status(event_id):
 
         return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                                event_logs=event_logs,
-                               event_history=event_history, event_msgs=event_msgs)
+                               event_history=event_history, event_msgs=event_msgs, is_selected=str(event_id) in selected_events)
 
     elif request.method == 'GET':
         return render_template('/responses/get-update-event-status-form.html', id=event_id, current_state=current_state)
@@ -284,6 +292,35 @@ def update_event_status(event_id):
 @main.route('/event/<event_id>/update_status/cancel', methods=["GET"])
 def cancel_update_event_status(event_id):
     return render_template('/responses/hide-update-event-status-form.html', id=event_id)
+
+
+
+@main.route('/event/<i>/unselect', methods=["GET"])
+def unselect_event(i):
+    try:
+        session["selected_events"].remove(i)
+        session.modified = True
+        current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
+    except ValueError:
+        pass
+
+    return render_template('/responses/toggle-select.html', id=i, is_checked=False,
+                           is_menu=len(session["selected_events"]) > 0)
+
+
+@main.route('/event/<i>/select', methods=["GET"])
+def select_event(i):
+    try:
+        session["selected_events"].append(i)
+        session.modified = True
+        current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
+    except ValueError:
+        pass
+
+    # print("SELECTED EVENTS", session["selected_events"])
+
+    return render_template('/responses/toggle-select.html', id=i, is_checked=True,
+                           is_menu=len(session["selected_events"]) > 0)
 
 
 @main.route('/navbar/show-user-menu', methods=["GET"])

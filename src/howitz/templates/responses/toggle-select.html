@@ -1,0 +1,15 @@
+{% if is_checked %}
+    {% include "/responses/checked-box.html" %}
+{% else %}
+    {% include "/responses/unchecked-box.html" %}
+{% endif %}
+
+{% if is_menu %}
+    {% include "/components/popups/bulk-update-menu/bulk-update-menu.html" %}
+{% else %}
+    <div id="bulk-update-menu" tabindex="-1"
+         hidden
+         hx-swap-oob="outerHTML"
+    >
+    </div>
+{% endif %}

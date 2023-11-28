@@ -1,9 +1,9 @@
+<td class="{{ padding }} text-center border border-slate-700">{{ event.id }}</td>
 {% if event.color != "" and event.color is not none %}
 {% with color=event.color %}
 {% include "/components/row/colored-data-cells.html" %}
 {% endwith %}
 {% else %}
-<td class="{{ padding }} text-center border border-slate-700">{{ event.id }}</td>
 <td class="{{ padding }} text-center font-medium  whitespace-nowrap text-white border border-slate-700">{{
     event.op_state }}
 </td>

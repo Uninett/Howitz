@@ -1,0 +1,32 @@
+{% if color != "" and color is not none %}
+    <td class="w-4 p-4 {{ padding }} text-center relative z-0">
+        <div id="unchecked-box-{{ id }}" class="flex items-center">
+            <input id="select-event-{{ id }}"
+                   type="checkbox"
+                   class="w-4 h-4 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-offset-gray-800 focus:ring-2 bg-gray-700 border-gray-500"
+                   hx-get="/event/{{ id }}/select"
+                   hx-trigger='click from:#select-event-{{ id }}, dblclick from:#select-event-{{ id }} consume'
+                   hx-target="#unchecked-box-{{ id }}"
+                   hx-swap="outerHTML"
+                   hx-select="#checked-box-{{ id }}"
+            >
+            <label for="select-event-{{ id }}" class="sr-only">checkbox event {{ id }}</label>
+        </div>
+        <div class="absolute inset-y-0 left-0 z-10 bg-{{ color }}-500 w-1 h-full"></div>
+    </td>
+{% else %}
+    <td class="w-4 p-4">
+        <div class="flex items-center">
+            <input id="select-event-{{ id }}"
+                   type="checkbox"
+                   class="w-4 h-4 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-offset-gray-800 focus:ring-2 bg-gray-700 border-gray-500"
+                   hx-get="/event/{{ id }}/select"
+                   hx-trigger='click from:#select-event-{{ id }}, dblclick from:#select-event-{{ id }} consume'
+                   hx-target="#unchecked-box-{{ id }}"
+                   hx-swap="outerHTML"
+                   hx-select="#checked-box-{{ id }}"
+            >
+            <label for="select-event-{{ id }}" class="sr-only">checkbox event {{ id }}</label>
+        </div>
+    </td>
+{% endif %}
