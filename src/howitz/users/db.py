@@ -78,3 +78,13 @@ class UserDB:
             username = username.username  # User-object sent in
         params = (username,)
         return self.change_and_return_user(username, querystring, params)
+
+    def get_all(self):
+        querystring = "SELECT username, password, token from user"
+        connection = self.connect()
+        query = connection.execute(querystring)
+        result = query.fetchall()
+        connection.close()
+        if not result:
+            return None
+        return result

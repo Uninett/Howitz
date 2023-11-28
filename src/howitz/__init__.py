@@ -7,15 +7,15 @@ from flask import Flask, g, redirect, url_for, current_app
 from flask.logging import default_handler
 from flask_assets import Bundle, Environment
 from flask_login import LoginManager, logout_user
+from werkzeug.exceptions import HTTPException
 
 from howitz.config.utils import load_config
 from howitz.config.zino1 import make_zino1_config
 from howitz.config.howitz import make_howitz_config
-from howitz.users.db import UserDB
-from werkzeug.exceptions import HTTPException
-from zinolib.controllers.zino1 import Zino1EventManager
-
 from howitz.error_handlers import handle_generic_exception, handle_generic_http_exception
+from howitz.users.db import UserDB
+from howitz.users.commands import user_cli
+from zinolib.controllers.zino1 import Zino1EventManager
 
 
 __all__ = ["create_app"]
@@ -24,15 +24,18 @@ __all__ = ["create_app"]
 def create_app(test_config=None):
     app = Flask(__name__)
 
+    # register error handlers
     app.register_error_handler(Exception, handle_generic_exception)
     app.register_error_handler(HTTPException, handle_generic_http_exception)
 
+    # load config
     app = load_config(app)
     zino_config = make_zino1_config(app.config)
     app.zino_config = zino_config
     howitz_config = make_howitz_config(app.config)
     app.howitz_config = howitz_config
 
+    # set up logging
     app.logger.removeHandler(default_handler)
     logging_dict = app.config.get("LOGGING", {})
     if logging_dict:
@@ -42,16 +45,22 @@ def create_app(test_config=None):
         app.logger.addHandler(default_handler)
         app.logger.warn('Logging not set up, config not found')
 
+    # set up zino controller
     app.logger.debug('ZinoV1Config %s', zino_config)
     event_manager = Zino1EventManager.configure(zino_config)
     app.event_manager = event_manager
     app.logger.debug('Zino1EventManager %s', event_manager)
 
+    # set up user database
     database = UserDB(app.config["HOWITZ_STORAGE"])
     database.initdb()
     app.database = database
     app.logger.info('Connected to database %s', database)
 
+    # load extra commands
+    app.cli.add_command(user_cli)
+
+    # set up web auth
     login_manager = LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = "login"
@@ -76,12 +85,14 @@ def create_app(test_config=None):
 
         return redirect(url_for('main.login'))
 
+    # load css
     assets = Environment(app)
     css = Bundle("main.css", output="dist/main.css")
 
     assets.register("css", css)
     css.build()
 
+    # import endpoints/urls
     from . import endpoints
     app.register_blueprint(endpoints.main)
 
