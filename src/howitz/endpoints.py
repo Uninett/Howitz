@@ -258,7 +258,8 @@ def auth():
 
 @main.route('/events-table.html')
 def events_table():
-    return render_template('/components/table/events-table.html')
+    return render_template('/components/table/events-table.html',
+                           poll_interval=current_app.howitz_config["poll_interval"])
 
 
 @main.route('/get_events')
