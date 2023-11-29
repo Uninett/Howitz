@@ -342,7 +342,8 @@ def update_event_status(event_id):
                                is_selected=str(event_id) in selected_events)
 
     elif request.method == 'GET':
-        return render_template('/responses/get-update-event-status-form.html', id=event_id, current_state=current_state)
+        return render_template('/components/popups/modals/update-singular-event-status-modal.html',
+                               id=event_id, current_state=current_state)
 
 
 @main.route('/event/<event_id>/update_status/cancel', methods=["GET"])
