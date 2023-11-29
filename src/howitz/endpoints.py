@@ -301,9 +301,11 @@ def bulk_update_events_status():
     current_app.logger.debug('SELECTED EVENTS %s', selected_events)
     current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
+    # Get new values from the requests
     new_state = request.form['event-state']
     new_history = request.form['event-history']
 
+    # Update each selected event with new values
     for event_id in selected_events:
         if new_state:
             set_state_res = current_app.event_manager.change_admin_state_for_id(int(event_id), AdmState(new_state))
@@ -311,12 +313,13 @@ def bulk_update_events_status():
         if new_history:
             add_history_res = current_app.event_manager.add_history_entry_for_id(int(event_id), new_history)
 
+    # Clear selected events
     session["selected_events"] = []
-    session.modified = True
+    session.modified = True  # Necessary when modifying arrays/dicts/etc in flask session
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
+    # Rerender whole events table
     table_events = get_current_events()
-
     return render_template('/responses/bulk-update-events-status.html', event_list=table_events)
 
 
