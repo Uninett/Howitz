@@ -218,7 +218,7 @@ def events_table():
 
 @main.route('/get_events')
 def get_events():
-    session["expanded_events"] = session.get("expanded_events", []) or []
+    session["expanded_events"] = session.get("expanded_events", [])
     table_events = get_current_events()
 
     return render_template('/components/table/event-rows.html', event_list=table_events)
@@ -227,8 +227,8 @@ def get_events():
 @main.route('/events/<event_id>/expand_row', methods=["GET"])
 def expand_event_row(event_id):
     event_id = int(event_id)
-    selected_events = session.get("selected_events", []) or []
-    expanded_events = session.get("expanded_events", []) or []
+    selected_events = session.get("selected_events", [])
+    expanded_events = session.get("expanded_events", [])
     expanded_events.append(event_id)
     current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
@@ -244,8 +244,8 @@ def expand_event_row(event_id):
 @main.route('/events/<event_id>/collapse_row', methods=["GET"])
 def collapse_event_row(event_id):
     event_id = int(event_id)
-    selected_events = session.get("selected_events", []) or []
-    expanded_events = session.get("expanded_events", []) or []
+    selected_events = session.get("selected_events", [])
+    expanded_events = session.get("expanded_events", [])
     try:
         expanded_events.remove(event_id)
     except ValueError:
@@ -266,7 +266,7 @@ def update_event_status(event_id):
     current_state = event.adm_state
 
     if request.method == 'POST':
-        selected_events = session.get("selected_events", []) or []
+        selected_events = session.get("selected_events", [])
 
         new_state = request.form['event-state']
         new_history = request.form['event-history']
@@ -296,8 +296,8 @@ def cancel_update_event_status(event_id):
 
 @main.route('/event/bulk_update_status', methods=['POST'])
 def bulk_update_events_status():
-    selected_events = session.get("selected_events", []) or []
-    expanded_events = session.get("expanded_events", []) or []
+    selected_events = session.get("selected_events", [])
+    expanded_events = session.get("expanded_events", [])
     current_app.logger.debug('SELECTED EVENTS %s', selected_events)
     current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
