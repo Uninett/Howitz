@@ -10,6 +10,7 @@ from flask_login import LoginManager, logout_user
 
 from howitz.config.utils import set_config, validate_config
 from howitz.config.zino1 import make_zino1_config
+from howitz.config.howitz import make_howitz_config
 from howitz.users.db import UserDB
 from zinolib.controllers.zino1 import Zino1EventManager
 
@@ -25,8 +26,10 @@ def create_app(test_config=None):
     validate_config(app.config)
     zino_config = make_zino1_config(app.config)
     app.zino_config = zino_config
+    howitz_config = make_howitz_config(app.config)
+    app.howitz_config = howitz_config
 
-    app.logger.removeHandler(default_handler)
+    # app.logger.removeHandler(default_handler)
     logging_dict = app.config.get("LOGGING", {})
     if logging_dict:
         dictConfig(logging_dict)
