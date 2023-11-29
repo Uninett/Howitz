@@ -375,8 +375,8 @@ def bulk_update_events_status():
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
     # Rerender whole events table
-    table_events = get_current_events()
-    return render_template('/responses/bulk-update-events-status.html', event_list=table_events)
+    poll_events_list = poll_current_events()  # Calling poll events method is needed to preserve info about which events are expanded
+    return render_template('/responses/bulk-update-events-status.html', poll_event_list=poll_events_list)
 
 
 @main.route('/show_update_status_modal', methods=['GET'])
