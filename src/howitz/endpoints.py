@@ -304,15 +304,12 @@ def bulk_update_events_status():
     new_state = request.form['event-state']
     new_history = request.form['event-history']
 
-    counter = 0
     for event_id in selected_events:
         if new_state:
             set_state_res = current_app.event_manager.change_admin_state_for_id(int(event_id), AdmState(new_state))
 
         if new_history:
             add_history_res = current_app.event_manager.add_history_entry_for_id(int(event_id), new_history)
-
-        counter += 1
 
     session["selected_events"] = []
     session.modified = True
