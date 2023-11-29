@@ -115,8 +115,6 @@ def poll_current_events():
         poll_events.append(create_polled_event(create_table_event(c), expanded=str(c.id) in session["expanded_events"],
                                                selected=str(c.id) in session["selected_events"]))
 
-    # current_app.logger.debug('POLL EVENTS %s', poll_events[0])
-
     return poll_events
 
 
@@ -346,11 +344,6 @@ def update_event_status(event_id):
                                id=event_id, current_state=current_state)
 
 
-@main.route('/event/<event_id>/update_status/cancel', methods=["GET"])
-def cancel_update_event_status(event_id):
-    return render_template('/responses/hide-update-event-status-form.html', id=event_id)
-
-
 @main.route('/event/bulk_update_status', methods=['POST'])
 def bulk_update_events_status():
     selected_events = session.get("selected_events", [])
@@ -382,11 +375,6 @@ def bulk_update_events_status():
 
 @main.route('/show_update_status_modal', methods=['GET'])
 def show_update_events_status_modal():
-    return render_template('/components/popups/modals/update-event-status-modal.html', current_state='open')
-
-
-@main.route('/hide_update_status_modal', methods=['GET'])
-def hide_update_events_status_modal():
     return render_template('/components/popups/modals/update-event-status-modal.html', current_state='open')
 
 
