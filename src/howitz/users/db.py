@@ -49,7 +49,11 @@ class UserDB:
 
     def update(self, user: User):
         querystring = "REPLACE INTO user (username, password, token) values (?, ?, ?)"
-        params = (user.username, user.password, user.token)
+        password = user.password
+        # Do not reencrypt
+        if not password.startswith(('scrypt:', 'pbkdf2:')):
+            password = user.encode_password(password)
+        params = (user.username, password, user.token)
         self.cursor.execute(querystring, params)
         self.connection.commit()
         return self.get(user.username)
@@ -57,5 +61,14 @@ class UserDB:
     def remove(self, username):
         querystring = "DELETE from user where username = ?"
         params = (username,)
-        self.cursor.execute(querystring, params)
+        result = self.cursor.execute(querystring, params)
+        self.connection.commit()
         return self.get(username)
+
+    def get_all(self):
+        querystring = "SELECT username, password, token from user"
+        query = self.cursor.execute(querystring)
+        result = query.fetchall()
+        if not result:
+            return None
+        return result
