@@ -1,0 +1,14 @@
+{% with event_list=event_list %}
+    {% include "/components/table/event-rows.html" %}
+{% endwith %}
+
+<div id="bulk-update-menu" tabindex="-1"
+     hx-swap-oob="outerHTML"
+     hidden>
+</div>
+
+<div id="bulk-update-event-status-modal" hx-swap-oob="delete">
+</div>
+
+<div id="progress-bar-bulk-state-update" hx-swap-oob="outerHTML">
+</div>

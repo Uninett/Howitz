@@ -24,7 +24,6 @@ from zinolib.compat import StrEnum
 from howitz.users.utils import authenticate_user
 from .utils import login_check
 
-
 main = Blueprint('main', __name__)
 
 
@@ -219,7 +218,7 @@ def events_table():
 
 @main.route('/get_events')
 def get_events():
-    session["expanded_events"] = session.get("expanded_events", []) or []
+    session["expanded_events"] = session.get("expanded_events", [])
     table_events = get_current_events()
 
     return render_template('/components/table/event-rows.html', event_list=table_events)
@@ -228,8 +227,8 @@ def get_events():
 @main.route('/events/<event_id>/expand_row', methods=["GET"])
 def expand_event_row(event_id):
     event_id = int(event_id)
-    selected_events = session.get("selected_events", []) or []
-    expanded_events = session.get("expanded_events", []) or []
+    selected_events = session.get("selected_events", [])
+    expanded_events = session.get("expanded_events", [])
     expanded_events.append(event_id)
     current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
@@ -245,8 +244,8 @@ def expand_event_row(event_id):
 @main.route('/events/<event_id>/collapse_row', methods=["GET"])
 def collapse_event_row(event_id):
     event_id = int(event_id)
-    selected_events = session.get("selected_events", []) or []
-    expanded_events = session.get("expanded_events", []) or []
+    selected_events = session.get("selected_events", [])
+    expanded_events = session.get("expanded_events", [])
     try:
         expanded_events.remove(event_id)
     except ValueError:
@@ -267,7 +266,7 @@ def update_event_status(event_id):
     current_state = event.adm_state
 
     if request.method == 'POST':
-        selected_events = session.get("selected_events", []) or []
+        selected_events = session.get("selected_events", [])
 
         new_state = request.form['event-state']
         new_history = request.form['event-history']
@@ -283,7 +282,8 @@ def update_event_status(event_id):
 
         return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                                event_logs=event_logs,
-                               event_history=event_history, event_msgs=event_msgs, is_selected=str(event_id) in selected_events)
+                               event_history=event_history, event_msgs=event_msgs,
+                               is_selected=str(event_id) in selected_events)
 
     elif request.method == 'GET':
         return render_template('/responses/get-update-event-status-form.html', id=event_id, current_state=current_state)
@@ -293,6 +293,44 @@ def update_event_status(event_id):
 def cancel_update_event_status(event_id):
     return render_template('/responses/hide-update-event-status-form.html', id=event_id)
 
+
+@main.route('/event/bulk_update_status', methods=['POST'])
+def bulk_update_events_status():
+    selected_events = session.get("selected_events", [])
+    expanded_events = session.get("expanded_events", [])
+    current_app.logger.debug('SELECTED EVENTS %s', selected_events)
+    current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
+
+    # Get new values from the requests
+    new_state = request.form['event-state']
+    new_history = request.form['event-history']
+
+    # Update each selected event with new values
+    for event_id in selected_events:
+        if new_state:
+            set_state_res = current_app.event_manager.change_admin_state_for_id(int(event_id), AdmState(new_state))
+
+        if new_history:
+            add_history_res = current_app.event_manager.add_history_entry_for_id(int(event_id), new_history)
+
+    # Clear selected events
+    session["selected_events"] = []
+    session.modified = True  # Necessary when modifying arrays/dicts/etc in flask session
+    current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
+
+    # Rerender whole events table
+    table_events = get_current_events()
+    return render_template('/responses/bulk-update-events-status.html', event_list=table_events)
+
+
+@main.route('/show_update_status_modal', methods=['GET'])
+def show_update_events_status_modal():
+    return render_template('/components/popups/modals/update-event-status-modal.html', current_state='open')
+
+
+@main.route('/hide_update_status_modal', methods=['GET'])
+def hide_update_events_status_modal():
+    return render_template('/components/popups/modals/update-event-status-modal.html', current_state='open')
 
 
 @main.route('/event/<i>/unselect', methods=["GET"])
@@ -316,8 +354,6 @@ def select_event(i):
         current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
     except ValueError:
         pass
-
-    # print("SELECTED EVENTS", session["selected_events"])
 
     return render_template('/responses/toggle-select.html', id=i, is_checked=True,
                            is_menu=len(session["selected_events"]) > 0)
