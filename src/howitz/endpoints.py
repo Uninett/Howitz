@@ -207,7 +207,7 @@ def get_event_details(id):
 @main.route('/events')
 @login_check()
 def index():
-    return render_template('/views/events.html')
+    return render_template('/views/events.html', poll_interval=current_app.howitz_config["poll_interval"])
 
 
 @main.route('/login')
