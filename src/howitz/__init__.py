@@ -29,7 +29,7 @@ def create_app(test_config=None):
     howitz_config = make_howitz_config(app.config)
     app.howitz_config = howitz_config
 
-    # app.logger.removeHandler(default_handler)
+    app.logger.removeHandler(default_handler)
     logging_dict = app.config.get("LOGGING", {})
     if logging_dict:
         dictConfig(logging_dict)
