@@ -298,7 +298,7 @@ def expand_event_row(event_id):
 @main.route('/events/<event_id>/collapse_row', methods=["GET"])
 def collapse_event_row(event_id):
     try:
-        session["expanded_events"].pop(str(event_id))
+        session["expanded_events"].pop(str(event_id), None)
         session.modified = True
         current_app.logger.debug('EXPANDED EVENTS %s', session["expanded_events"])
     except ValueError:
