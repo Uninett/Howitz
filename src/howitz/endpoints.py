@@ -13,7 +13,6 @@ from flask import (
     url_for,
 )
 from flask_login import login_user, current_user, logout_user
-from logging.config import dictConfig
 
 from datetime import datetime, timezone
 
@@ -54,9 +53,10 @@ def auth_handler(username, password):
 
             if current_app.event_manager.is_authenticated:  # is zino authenticated
                 current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
-                login_user(user)
+                login_user(user, remember=True)
                 flash('Logged in successfully.')
                 session["selected_events"] = []
+                session["expanded_events"] = {}
                 return user
     return None
 
@@ -68,12 +68,16 @@ def logout_handler():
         current_app.event_manager.disconnect()
         current_app.logger.debug("Zino session was disconnected")
         flash('Logged out successfully.')
+        session.pop('expanded_events', {})
         session.pop('selected_events', [])
         current_app.logger.info("Logged out successfully.")
 
 
 def get_current_events():
-    current_app.event_manager.get_events()
+    try:
+        current_app.event_manager.get_events()
+    except Exception:
+        current_app.logger.exception('An error ocurred on event fetch')
     events = current_app.event_manager.events
     current_app.logger.debug('EVENTS %s', events)
 
@@ -87,7 +91,31 @@ def get_current_events():
     for c in events_sorted.values():
         table_events.append(create_table_event(c))
 
+    current_app.logger.debug('TABLE EVENTS %s', table_events[0])
+
     return table_events
+
+
+def poll_current_events():
+    try:
+        current_app.event_manager.get_events()
+    except Exception:
+        current_app.logger.exception('An error ocurred on event poll')
+
+    events = current_app.event_manager.events
+
+    events_sorted = {k: events[k] for k in sorted(events,
+                                                  key=lambda k: (
+                                                      0 if events[k].adm_state == AdmState.IGNORED else 1,
+                                                      events[k].updated,
+                                                  ), reverse=True)}
+
+    poll_events = []
+    for c in events_sorted.values():
+        poll_events.append(create_polled_event(create_table_event(c), expanded=str(c.id) in session["expanded_events"],
+                                               selected=str(c.id) in session["selected_events"]))
+
+    return poll_events
 
 
 # todo remove all use of helpers from curitz
@@ -113,6 +141,21 @@ def create_table_event(event):
     common.update(vars(event))
 
     return common
+
+
+def create_polled_event(table_event, expanded=False, selected=False):
+    poll_event = {
+        "event": table_event
+    }
+    if expanded:
+        poll_event["event_attr"], poll_event["event_logs"], poll_event["event_history"], poll_event["event_msgs"] = (
+            get_event_details(int(table_event["id"])))
+        poll_event["expanded"] = expanded
+
+    if selected:
+        poll_event["selected"] = selected
+
+    return poll_event
 
 
 # fixme implementation copied from curitz
@@ -162,7 +205,7 @@ def get_event_details(id):
 @main.route('/events')
 @login_check()
 def index():
-    return render_template('/views/events.html')
+    return render_template('/views/events.html', poll_interval=current_app.howitz_config["poll_interval"])
 
 
 @main.route('/login')
@@ -213,24 +256,35 @@ def auth():
 
 @main.route('/events-table.html')
 def events_table():
-    return render_template('/components/table/events-table.html')
+    return render_template('/components/table/events-table.html',
+                           poll_interval=current_app.howitz_config["poll_interval"])
 
 
 @main.route('/get_events')
 def get_events():
-    session["expanded_events"] = session.get("expanded_events", [])
     table_events = get_current_events()
 
     return render_template('/components/table/event-rows.html', event_list=table_events)
 
 
+@main.route('/poll_events')
+def poll_events():
+    poll_events_list = poll_current_events()
+
+    return render_template('/components/poll/poll-rows.html', poll_event_list=poll_events_list)
+
+
 @main.route('/events/<event_id>/expand_row', methods=["GET"])
 def expand_event_row(event_id):
+    try:
+        session["expanded_events"][str(event_id)] = ""
+        session.modified = True
+        current_app.logger.debug('EXPANDED EVENTS %s', session["expanded_events"])
+    except ValueError:
+        pass
+
     event_id = int(event_id)
-    selected_events = session.get("selected_events", [])
-    expanded_events = session.get("expanded_events", [])
-    expanded_events.append(event_id)
-    current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
+    selected_events = session.get("selected_events") or []
 
     event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
     event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
@@ -243,15 +297,15 @@ def expand_event_row(event_id):
 
 @main.route('/events/<event_id>/collapse_row', methods=["GET"])
 def collapse_event_row(event_id):
-    event_id = int(event_id)
-    selected_events = session.get("selected_events", [])
-    expanded_events = session.get("expanded_events", [])
     try:
-        expanded_events.remove(event_id)
+        session["expanded_events"].pop(str(event_id), None)
+        session.modified = True
+        current_app.logger.debug('EXPANDED EVENTS %s', session["expanded_events"])
     except ValueError:
         pass
-    session["expanded_events"] = expanded_events
-    current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
+
+    event_id = int(event_id)
+    selected_events = session.get("selected_events") or []
 
     event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
 
@@ -280,18 +334,14 @@ def update_event_status(event_id):
         event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
         event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
 
-        return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
+        return render_template('/responses/update-event-response.html', event=event, id=event_id, event_attr=event_attr,
                                event_logs=event_logs,
                                event_history=event_history, event_msgs=event_msgs,
                                is_selected=str(event_id) in selected_events)
 
     elif request.method == 'GET':
-        return render_template('/responses/get-update-event-status-form.html', id=event_id, current_state=current_state)
-
-
-@main.route('/event/<event_id>/update_status/cancel', methods=["GET"])
-def cancel_update_event_status(event_id):
-    return render_template('/responses/hide-update-event-status-form.html', id=event_id)
+        return render_template('/components/popups/modals/update-singular-event-status-modal.html',
+                               id=event_id, current_state=current_state)
 
 
 @main.route('/event/bulk_update_status', methods=['POST'])
@@ -319,17 +369,12 @@ def bulk_update_events_status():
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
     # Rerender whole events table
-    table_events = get_current_events()
-    return render_template('/responses/bulk-update-events-status.html', event_list=table_events)
+    poll_events_list = poll_current_events()  # Calling poll events method is needed to preserve info about which events are expanded
+    return render_template('/responses/bulk-update-events-status.html', poll_event_list=poll_events_list)
 
 
 @main.route('/show_update_status_modal', methods=['GET'])
 def show_update_events_status_modal():
-    return render_template('/components/popups/modals/update-event-status-modal.html', current_state='open')
-
-
-@main.route('/hide_update_status_modal', methods=['GET'])
-def hide_update_events_status_modal():
     return render_template('/components/popups/modals/update-event-status-modal.html', current_state='open')
 
 

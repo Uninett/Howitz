@@ -10,7 +10,7 @@
 {% include "/components/navbar/navbar.html"%}
 
     <h1 class="sr-only">Events table</h1>
-    <main class="relative overflow-x-auto shadow-md sm:rounded-lg">
+    <main class="relative shadow-md sm:rounded-lg">
 
         <div
                 hx-get="events-table.html"
@@ -31,6 +31,8 @@
     <div id="bulk-update-menu" tabindex="-1"
          hidden>
     </div>
+
+    {% include "/components/footer/footer.html"%}
 
 {% endblock content %}
 

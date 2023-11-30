@@ -27,7 +27,9 @@ class DevStorageConfig(StorageConfig):
 
 class HowitzConfig(ServerConfig, StorageConfig):
     devmode: bool = Literal[False]
+    poll_interval: int = 60
 
 
 class DevHowitzConfig(DevServerConfig, DevStorageConfig):
     devmode: bool = Literal[True]
+    poll_interval: int = 30

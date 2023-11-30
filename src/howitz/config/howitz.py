@@ -19,7 +19,7 @@ class Config:
         return Config(**howitz_dict)
 
     @classmethod
-    def from_toml(cls,filename=None):
+    def from_toml(cls, filename=None):
         """Format:
 
         [howitz]
@@ -30,3 +30,16 @@ class Config:
             filename = 'howitz.toml'
         config_dict = parse_toml_config(filename)
         return cls.from_dict(config_dict)
+
+
+def make_howitz_config(config_dict, prefix='HOWITZ'):
+    howitz_config_dict = {}
+    if prefix and not prefix.endswith('_'):
+        prefix = f"{prefix}_"
+    for k, v in config_dict.copy().items():
+        if not k.startswith(prefix):
+            continue
+        k = k[len(prefix):]
+        k = k.lower()
+        howitz_config_dict[k] = v
+    return howitz_config_dict
