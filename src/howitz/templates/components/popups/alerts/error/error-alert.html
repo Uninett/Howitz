@@ -1,0 +1,22 @@
+<div id="error-alert-{{ alert_id }}"
+     class="fixed bottom-6 right-6 z-50 flex items-center w-full max-w-xs h-12 p-4 text-white bg-orange-800 rounded-lg shadow"
+     role="alert"
+>
+    <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-orange-950 bg-orange-950 rounded-lg">
+        {% include "/components/popups/alerts/error/error-icon.svg" %}
+        <span class="sr-only">Error icon</span>
+    </div>
+    <div class="ms-3 text-sm font-normal text-white">{{ short_err_msg }}</div>
+    <button type="button"
+            class="ms-auto -mx-3 -my-1.5 bg-opacity-20 bg-white text-gray-400 hover:text-gray-100 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-orange-400/70 inline-flex items-center justify-center h-8 w-8"
+            aria-label="Expand">
+        <span class="sr-only">Expand</span>
+        {% include "/components/popups/alerts/error/maximize-icon.svg" %}
+    </button>
+    <button type="button"
+            class="ms-auto -mx-1.5 -my-1.5 bg-opacity-20 bg-white text-gray-400 hover:text-gray-100 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-orange-400/70 inline-flex items-center justify-center h-8 w-8"
+            aria-label="Close">
+        <span class="sr-only">Close</span>
+        {% include "/components/popups/alerts/close-icon.svg" %}
+    </button>
+</div>
