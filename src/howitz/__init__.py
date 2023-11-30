@@ -54,7 +54,6 @@ def create_app(test_config=None):
         with current_app.app_context():
             user = current_app.database.get(user_id)
             current_app.logger.info('User "%s" logged in', user.username)
-            current_app.logger.debug('User "%s"', user)
             return user
 
     @login_manager.unauthorized_handler
