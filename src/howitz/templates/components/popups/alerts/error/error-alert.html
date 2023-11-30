@@ -14,6 +14,9 @@
         {% include "/components/popups/alerts/error/maximize-icon.svg" %}
     </button>
     <button type="button"
+            hx-get="/get_none"
+            hx-target="#error-alert-{{ alert_id }}"
+            hx-swap="delete"
             class="ms-auto -mx-1.5 -my-1.5 bg-opacity-20 bg-white text-gray-400 hover:text-gray-100 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-orange-400/70 inline-flex items-center justify-center h-8 w-8"
             aria-label="Close">
         <span class="sr-only">Close</span>
