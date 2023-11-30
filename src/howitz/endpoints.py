@@ -414,6 +414,11 @@ def hide_user_menu():
     return render_template('/responses/hide-user-menu.html')
 
 
+@main.route('/alert/<alert_id>/show-minimized-error', methods=["GET"])
+def show_minimized_error_alert(alert_id):
+    return render_template('/responses/collapse-error-alert.html', alert_id=alert_id)
+
+
 @main.route('/alert/<alert_id>/show-maximized-error', methods=["GET"])
 def show_maximized_error_alert(alert_id):
     return render_template('/responses/expand-error-alert.html', alert_id=alert_id, err_stacktrace='')
