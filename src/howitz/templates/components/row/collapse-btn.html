@@ -4,6 +4,7 @@
         hx-get="/events/{{ id }}/collapse_row"
         hx-trigger="click"
         hx-swap="multi:#event-accordion-row-{{ id }}:outerHTML,#event-details-row-{{ id }}:delete"
+        hx-target-error="body"
         hx-indicator="#row-{{ id }}-indicator"
 >
 

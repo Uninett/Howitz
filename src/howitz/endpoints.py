@@ -205,6 +205,17 @@ def get_event_details(id):
     return event_attr, event_logs, event_history, event_msgs
 
 
+def show_error_popup(error, short_description):
+    alert_random_id = randint(1, 100000)
+
+    session["errors"][str(alert_random_id)] = error.__repr__()
+    session.modified = True
+    current_app.logger.debug('ERRORS %s', session["errors"])
+
+    return render_template('/components/popups/alerts/error/error-alert.html',
+                           alert_id=alert_random_id, short_err_msg=short_description)
+
+
 @main.route('/')
 @main.route('/events')
 @login_check()
@@ -290,8 +301,15 @@ def expand_event_row(event_id):
     event_id = int(event_id)
     selected_events = session.get("selected_events") or []
 
-    event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
-    event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+    try:
+        event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
+        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+    except RetryError as retryErr:  # Intermittent error in Zino
+        show_error_popup(retryErr, 'Could not expand event, please retry')
+        raise
+    except Exception as e:
+        show_error_popup(e, 'An unexpected error has occurred when expanding event')
+        raise
 
     return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                            event_logs=event_logs,
@@ -311,7 +329,14 @@ def collapse_event_row(event_id):
     event_id = int(event_id)
     selected_events = session.get("selected_events") or []
 
-    event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+    try:
+        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+    except RetryError as retryErr:  # Intermittent error in Zino
+        show_error_popup(retryErr, 'Could not collapse event, please retry')
+        raise
+    except Exception as e:
+        show_error_popup(e, 'An unexpected error has occurred when collapsing event')
+        raise
 
     return render_template('/responses/collapse-row.html', event=event, id=event_id,
                            is_selected=str(event_id) in selected_events)

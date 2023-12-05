@@ -4,6 +4,7 @@
         hx-get="/events/{{ id }}/expand_row"
         hx-trigger="dblclick"
         hx-target="#event-accordion-row-{{ id }}"
+        hx-target-error="body"
         hx-swap="outerHTML"
 >
     {% with padding='px-3 py-2' %}

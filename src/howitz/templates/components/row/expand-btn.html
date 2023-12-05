@@ -4,6 +4,7 @@
         hx-get="/events/{{ id }}/expand_row"
         hx-trigger="click"
         hx-target="#event-accordion-row-{{ id }}"
+        hx-target-error="body"
         hx-swap="outerHTML"
         hx-indicator="#row-{{ id }}-indicator"
 >
