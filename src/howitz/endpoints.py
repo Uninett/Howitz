@@ -18,6 +18,7 @@ from flask_login import login_user, current_user, logout_user
 
 from datetime import datetime, timezone
 
+from werkzeug.exceptions import HTTPException
 from zinolib.controllers.zino1 import Zino1EventManager
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState
 from zinolib.compat import StrEnum
