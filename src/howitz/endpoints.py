@@ -1,4 +1,5 @@
 import os
+from random import randint
 
 from flask import (
     Blueprint,
@@ -11,6 +12,7 @@ from flask import (
     request,
     session,
     url_for,
+    json,
 )
 from flask_login import login_user, current_user, logout_user
 
@@ -35,6 +37,40 @@ class EventColor(StrEnum):
     DEFAULT = ""
 
 
+# Fixme add non-generic error handling as well
+@main.errorhandler(HTTPException)
+def handle_exception(e):
+    """Return JSON instead of HTML for HTTP errors."""
+    # start with the correct headers and status code from the error
+    response = e.get_response()
+    # replace the body with JSON
+    response.data = json.dumps({
+        "code": e.code,
+        "name": e.name,
+        "description": e.description,
+    })
+    response.content_type = "application/json"
+    return response
+
+
+@main.errorhandler(Exception)
+def handle_exception(e):
+    # pass through HTTP errors
+    if isinstance(e, HTTPException):
+        return e
+
+    # now you're handling non-HTTP exceptions only
+    alert_random_id = randint(1, 100000)
+    short_err_msg = 'An error has occurred'
+
+    current_app["errors"][alert_random_id] = e
+    session.modified = True
+    current_app.logger.debug('ERRORS %s', session["errors"])
+
+    return render_template('/components/popups/alerts/error/error-alert.html',
+                           alert_id=alert_random_id, short_err_msg=short_err_msg)
+
+
 def auth_handler(username, password):
     # check user credentials in database
     with current_app.app_context():
@@ -53,10 +89,12 @@ def auth_handler(username, password):
 
             if current_app.event_manager.is_authenticated:  # is zino authenticated
                 current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
+                current_app.logger.debug('HOWITZ CONFIG %s', current_app.howitz_config)
                 login_user(user, remember=True)
                 flash('Logged in successfully.')
                 session["selected_events"] = []
                 session["expanded_events"] = {}
+                session["errors"] = {}
                 return user
     return None
 
@@ -70,6 +108,7 @@ def logout_handler():
         flash('Logged out successfully.')
         session.pop('expanded_events', {})
         session.pop('selected_events', [])
+        session.pop('errors', {})
         current_app.logger.info("Logged out successfully.")
 
 
