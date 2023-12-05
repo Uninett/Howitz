@@ -461,7 +461,9 @@ def show_minimized_error_alert(alert_id):
 
 @main.route('/alert/<alert_id>/show-maximized-error', methods=["GET"])
 def show_maximized_error_alert(alert_id):
-    return render_template('/responses/expand-error-alert.html', alert_id=alert_id, err_stacktrace='')
+    err_description = traceback.format_exception(session["errors"][int(alert_id)])
+
+    return render_template('/responses/expand-error-alert.html', alert_id=alert_id, err_description=err_description)
 
 
 # TODO: replace this with some other HTMX pattern
