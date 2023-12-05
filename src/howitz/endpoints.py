@@ -65,7 +65,7 @@ def handle_exception(e):
     alert_random_id = randint(1, 100000)
     short_err_msg = 'An error has occurred'
 
-    session["errors"][alert_random_id] = e
+    session["errors"][str(alert_random_id)] = e.__repr__()
     session.modified = True
     current_app.logger.debug('ERRORS %s', session["errors"])
 
@@ -462,7 +462,7 @@ def show_minimized_error_alert(alert_id):
 
 @main.route('/alert/<alert_id>/show-maximized-error', methods=["GET"])
 def show_maximized_error_alert(alert_id):
-    err_description = traceback.format_exception(session["errors"][int(alert_id)])
+    err_description = session["errors"][alert_id]
 
     return render_template('/responses/expand-error-alert.html', alert_id=alert_id, err_description=err_description)
 
