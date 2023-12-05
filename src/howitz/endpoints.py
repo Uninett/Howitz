@@ -20,6 +20,7 @@ from datetime import datetime, timezone
 from zinolib.controllers.zino1 import Zino1EventManager, RetryError
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState
 from zinolib.compat import StrEnum
+from zinolib.ritz import NotConnectedError
 
 from howitz.users.utils import authenticate_user
 from .utils import login_check, serialize_exception
@@ -60,6 +61,7 @@ def auth_handler(username, password):
                 session["selected_events"] = []
                 session["expanded_events"] = {}
                 session["errors"] = {}
+                session["not_connected_counter"] = 0
                 return user
     return None
 
@@ -74,16 +76,28 @@ def logout_handler():
         session.pop('expanded_events', {})
         session.pop('selected_events', [])
         session.pop('errors', {})
+        session.pop('not_connected_counter', 0)
         current_app.logger.info("Logged out successfully.")
 
 
 def get_current_events():
     try:
         current_app.event_manager.get_events()
-    except Exception:
-        current_app.logger.exception('An error ocurred on event fetch')
+    except NotConnectedError as notConnErr:
+        if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
+            session["not_connected_counter"] += 1
+            show_error_popup(notConnErr, 'An error occurred, please check your connection status to Zino')
+            raise
+        else:  # This error is intermittent - increase counter and retry
+            session["not_connected_counter"] += 1
+            current_app.event_manager.get_events()
+            pass
+    except Exception as exc:
+        current_app.logger.exception('An error occurred on events fetch')
+        show_error_popup(exc, 'An unexpected error occurred when fetching events')
+        raise
+
     events = current_app.event_manager.events
-    current_app.logger.debug('EVENTS %s', events)
 
     events_sorted = {k: events[k] for k in sorted(events,
                                                   key=lambda k: (
@@ -103,8 +117,19 @@ def get_current_events():
 def poll_current_events():
     try:
         current_app.event_manager.get_events()
-    except Exception:
-        current_app.logger.exception('An error ocurred on event poll')
+    except NotConnectedError as notConnErr:
+        if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
+            session["not_connected_counter"] += 1
+            show_error_popup(notConnErr, 'An error occurred, please check your connection status to Zino')
+            raise
+        else:  # This error is intermittent - increase counter and retry
+            session["not_connected_counter"] += 1
+            current_app.event_manager.get_events()
+            pass
+    except Exception as exc:
+        current_app.logger.exception('An error occurred on events poll')
+        show_error_popup(exc, 'An unexpected error occurred when polling events')
+        raise
 
     events = current_app.event_manager.events
 
@@ -183,26 +208,33 @@ def color_code_event(event):
 
 
 def get_event_attributes(id, res_format=dict):
-    event = current_app.event_manager.create_event_from_id(int(id))
-    event_dict = vars(event)
-    attr_list = [f"{k}:{v}" for k, v in event_dict.items()]
+    try:
+        event = current_app.event_manager.create_event_from_id(int(id))
+        event_dict = vars(event)
+        attr_list = [f"{k}:{v}" for k, v in event_dict.items()]
 
-    # fixme is there a better way to do switch statements in Python?
-    return {
-        list: attr_list,
-        dict: event_dict,
-    }[res_format]
+        # fixme is there a better way to do switch statements in Python?
+        return {
+            list: attr_list,
+            dict: event_dict,
+        }[res_format]
+    except RetryError as retryErr:  # Intermittent error in Zino
+        show_error_popup(retryErr, 'Could not fetch event attributes, please retry')
+        raise
 
 
 def get_event_details(id):
-    event_attr = vars(current_app.event_manager.create_event_from_id(int(id)))
-    event_logs = current_app.event_manager.get_log_for_id(int(id))
-    event_history = current_app.event_manager.get_history_for_id(int(id))
-    current_app.logger.debug('Event: attrs %s, logs %s, history %s', event_attr, event_logs, event_history)
+    try:
+        event_attr = vars(current_app.event_manager.create_event_from_id(int(id)))
+        event_logs = current_app.event_manager.get_log_for_id(int(id))
+        event_history = current_app.event_manager.get_history_for_id(int(id))
 
-    event_msgs = event_logs + event_history
+        event_msgs = event_logs + event_history
 
-    return event_attr, event_logs, event_history, event_msgs
+        return event_attr, event_logs, event_history, event_msgs
+    except RetryError as retryErr:  # Intermittent error in Zino
+        show_error_popup(retryErr, 'Could not fetch event details, please retry')
+        raise
 
 
 def show_error_popup(error, short_description):
