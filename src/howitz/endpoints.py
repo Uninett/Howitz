@@ -64,7 +64,7 @@ def handle_exception(e):
     alert_random_id = randint(1, 100000)
     short_err_msg = 'An error has occurred'
 
-    current_app["errors"][alert_random_id] = e
+    session["errors"][alert_random_id] = e
     session.modified = True
     current_app.logger.debug('ERRORS %s', session["errors"])
 
