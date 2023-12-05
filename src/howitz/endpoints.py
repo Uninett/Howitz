@@ -1,6 +1,5 @@
 import os
-import traceback
-from random import randint
+import uuid
 
 from flask import (
     Blueprint,
@@ -62,7 +61,7 @@ def handle_exception(e):
         return e
 
     # now you're handling non-HTTP exceptions only
-    alert_random_id = randint(1, 100000)
+    alert_random_id = str(uuid.uuid4())
     short_err_msg = 'An error has occurred'
 
     session["errors"][str(alert_random_id)] = e.__repr__()
