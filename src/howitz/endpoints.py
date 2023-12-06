@@ -17,12 +17,12 @@ from flask_login import login_user, current_user, logout_user
 
 from datetime import datetime, timezone
 
-from zinolib.controllers.zino1 import Zino1EventManager
+from zinolib.controllers.zino1 import Zino1EventManager, RetryError
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState
 from zinolib.compat import StrEnum
 
 from howitz.users.utils import authenticate_user
-from .utils import login_check
+from .utils import login_check, serialize_exception
 
 main = Blueprint('main', __name__)
 
@@ -208,9 +208,8 @@ def get_event_details(id):
 def show_error_popup(error, short_description):
     alert_random_id = str(uuid.uuid4())
 
-    session["errors"][str(alert_random_id)] = error.__repr__()
+    session["errors"][str(alert_random_id)] = serialize_exception(error)
     session.modified = True
-    current_app.logger.debug('ERRORS %s', session["errors"])
 
     return render_template('/components/popups/alerts/error/error-alert.html',
                            alert_id=alert_random_id, short_err_msg=short_description)
