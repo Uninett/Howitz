@@ -92,10 +92,6 @@ def get_current_events():
             session["not_connected_counter"] += 1
             current_app.event_manager.get_events()
             pass
-    except Exception as exc:
-        current_app.logger.exception('An error occurred on events fetch')
-        show_error_popup(exc, 'An unexpected error occurred when fetching events')
-        raise
 
     events = current_app.event_manager.events
 
@@ -126,10 +122,6 @@ def poll_current_events():
             session["not_connected_counter"] += 1
             current_app.event_manager.get_events()
             pass
-    except Exception as exc:
-        current_app.logger.exception('An error occurred on events poll')
-        show_error_popup(exc, 'An unexpected error occurred when polling events')
-        raise
 
     events = current_app.event_manager.events
 
