@@ -40,7 +40,7 @@ class EventColor(StrEnum):
 
 # Fixme add non-generic error handling as well
 @main.errorhandler(HTTPException)
-def handle_exception(e):
+def handle_http_exception(e):
     """Return JSON instead of HTML for HTTP errors."""
     # start with the correct headers and status code from the error
     response = e.get_response()
