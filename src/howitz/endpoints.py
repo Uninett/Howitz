@@ -300,18 +300,18 @@ def expand_event_row(event_id):
     event_id = int(event_id)
     selected_events = session.get("selected_events") or []
 
+    event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
     try:
-        event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
-        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+        eventobj = current_app.event_manager.create_event_from_id(event_id)
     except RetryError as retryErr:  # Intermittent error in Zino
         current_app.logger.exception('RetryError on row expand %s', retryErr)
         try:
-            event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
-            event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+            eventobj = current_app.event_manager.create_event_from_id(event_id)
         except RetryError as retryErr:  # Intermittent error in Zino
-            current_app.logger.exception('RetryError on row expand %s', retryErr)
+            current_app.logger.exception('RetryError on row expand after retry, %s', retryErr)
             show_error_popup(retryErr, 'Could not expand event, please retry')
             raise
+    event = create_table_event(eventobj)
 
     return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                            event_logs=event_logs,
