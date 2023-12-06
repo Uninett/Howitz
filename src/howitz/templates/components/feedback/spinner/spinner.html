@@ -1,0 +1,8 @@
+<span id="spinner-indicator" class="htmx-indicator relative flex w-6 h-6 z-10 mx-2">
+    <span class="animate-ping absolute inline-flex w-full h-full rounded-full bg-current opacity-75"></span>
+    <span class="inline-flex rounded-full w-6 h-6 bg-transparent">
+        {% with color=color %}
+            {% include "/components/feedback/spinner/spinner.svg" %}
+        {% endwith %}
+    </span>
+</span>
