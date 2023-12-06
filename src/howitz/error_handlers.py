@@ -8,6 +8,8 @@ from howitz.utils import serialize_exception
 
 # Fixme add non-generic error handling as well
 def handle_generic_http_exception(e):
+    current_app.logger.exception("An unexpected HTTP exception has occurred %s", e)
+
     """Return JSON instead of HTML for HTTP errors."""
     # start with the correct headers and status code from the error
     response = e.get_response()
@@ -33,6 +35,7 @@ def handle_generic_exception(e):
     session["errors"][str(alert_random_id)] = serialize_exception(e)
     session.modified = True
     current_app.logger.debug('ERRORS %s', session["errors"])
+    current_app.logger.exception("An unexpected exception has occurred %s", e)
 
     return render_template('/components/popups/alerts/error/error-alert.html',
                            alert_id=alert_random_id, short_err_msg=short_err_msg)
