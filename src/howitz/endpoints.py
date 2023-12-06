@@ -208,7 +208,7 @@ def get_event_details(id):
 def show_error_popup(error, short_description):
     alert_random_id = str(uuid.uuid4())
 
-    session["errors"][str(alert_random_id)] = serialize_exception(error)
+    session["errors"][alert_random_id] = serialize_exception(error)
     session.modified = True
 
     return render_template('/components/popups/alerts/error/error-alert.html',
