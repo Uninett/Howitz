@@ -202,31 +202,33 @@ def color_code_event(event):
 def get_event_attributes(id, res_format=dict):
     try:
         event = current_app.event_manager.create_event_from_id(int(id))
-        event_dict = vars(event)
-        attr_list = [f"{k}:{v}" for k, v in event_dict.items()]
-
-        # fixme is there a better way to do switch statements in Python?
-        return {
-            list: attr_list,
-            dict: event_dict,
-        }[res_format]
     except RetryError as retryErr:  # Intermittent error in Zino
         show_error_popup(retryErr, 'Could not fetch event attributes, please retry')
         raise
+
+    event_dict = vars(event)
+    attr_list = [f"{k}:{v}" for k, v in event_dict.items()]
+
+    # fixme is there a better way to do switch statements in Python?
+    return {
+        list: attr_list,
+        dict: event_dict,
+    }[res_format]
 
 
 def get_event_details(id):
     try:
         event_attr = vars(current_app.event_manager.create_event_from_id(int(id)))
-        event_logs = current_app.event_manager.get_log_for_id(int(id))
-        event_history = current_app.event_manager.get_history_for_id(int(id))
-
-        event_msgs = event_logs + event_history
-
-        return event_attr, event_logs, event_history, event_msgs
     except RetryError as retryErr:  # Intermittent error in Zino
         show_error_popup(retryErr, 'Could not fetch event details, please retry')
         raise
+
+    event_logs = current_app.event_manager.get_log_for_id(int(id))
+    event_history = current_app.event_manager.get_history_for_id(int(id))
+
+    event_msgs = event_logs + event_history
+
+    return event_attr, event_logs, event_history, event_msgs
 
 
 def show_error_popup(error, short_description):
