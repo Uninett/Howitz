@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from flask import (
     Blueprint,
@@ -53,10 +54,12 @@ def auth_handler(username, password):
 
             if current_app.event_manager.is_authenticated:  # is zino authenticated
                 current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
+                current_app.logger.debug('HOWITZ CONFIG %s', current_app.howitz_config)
                 login_user(user, remember=True)
                 flash('Logged in successfully.')
                 session["selected_events"] = []
                 session["expanded_events"] = {}
+                session["errors"] = {}
                 return user
     return None
 
@@ -70,6 +73,7 @@ def logout_handler():
         flash('Logged out successfully.')
         session.pop('expanded_events', {})
         session.pop('selected_events', [])
+        session.pop('errors', {})
         current_app.logger.info("Logged out successfully.")
 
 
@@ -412,6 +416,18 @@ def show_user_menu():
 @main.route('/navbar/hide-user-menu', methods=["GET"])
 def hide_user_menu():
     return render_template('/responses/hide-user-menu.html')
+
+
+@main.route('/alert/<alert_id>/show-minimized-error', methods=["GET"])
+def show_minimized_error_alert(alert_id):
+    return render_template('/responses/collapse-error-alert.html', alert_id=alert_id)
+
+
+@main.route('/alert/<alert_id>/show-maximized-error', methods=["GET"])
+def show_maximized_error_alert(alert_id):
+    err_description = session["errors"][alert_id]
+
+    return render_template('/responses/expand-error-alert.html', alert_id=alert_id, err_description=err_description)
 
 
 # TODO: replace this with some other HTMX pattern

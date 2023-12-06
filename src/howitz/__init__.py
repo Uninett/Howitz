@@ -12,7 +12,10 @@ from howitz.config.utils import set_config, validate_config
 from howitz.config.zino1 import make_zino1_config
 from howitz.config.howitz import make_howitz_config
 from howitz.users.db import UserDB
+from werkzeug.exceptions import HTTPException
 from zinolib.controllers.zino1 import Zino1EventManager
+
+from howitz.error_handlers import handle_generic_exception, handle_generic_http_exception
 
 
 __all__ = ["create_app"]
@@ -20,6 +23,9 @@ __all__ = ["create_app"]
 
 def create_app(test_config=None):
     app = Flask(__name__)
+
+    app.register_error_handler(Exception, handle_generic_exception)
+    app.register_error_handler(HTTPException, handle_generic_http_exception)
 
     config_filename = "howitz.toml"
     app = set_config(app, config_filename)
