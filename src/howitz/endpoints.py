@@ -17,12 +17,12 @@ from flask_login import login_user, current_user, logout_user
 
 from datetime import datetime, timezone
 
-from zinolib.controllers.zino1 import Zino1EventManager
+from zinolib.controllers.zino1 import Zino1EventManager, RetryError
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState
 from zinolib.compat import StrEnum
 
 from howitz.users.utils import authenticate_user
-from .utils import login_check
+from .utils import login_check, serialize_exception
 
 main = Blueprint('main', __name__)
 
@@ -205,6 +205,16 @@ def get_event_details(id):
     return event_attr, event_logs, event_history, event_msgs
 
 
+def show_error_popup(error, short_description):
+    alert_random_id = str(uuid.uuid4())
+
+    session["errors"][alert_random_id] = serialize_exception(error)
+    session.modified = True
+
+    return render_template('/components/popups/alerts/error/error-alert.html',
+                           alert_id=alert_random_id, short_err_msg=short_description)
+
+
 @main.route('/')
 @main.route('/events')
 @login_check()
@@ -291,7 +301,17 @@ def expand_event_row(event_id):
     selected_events = session.get("selected_events") or []
 
     event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
-    event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+    try:
+        eventobj = current_app.event_manager.create_event_from_id(event_id)
+    except RetryError as retryErr:  # Intermittent error in Zino
+        current_app.logger.exception('RetryError on row expand %s', retryErr)
+        try:
+            eventobj = current_app.event_manager.create_event_from_id(event_id)
+        except RetryError as retryErr:  # Intermittent error in Zino
+            current_app.logger.exception('RetryError on row expand after retry, %s', retryErr)
+            show_error_popup(retryErr, 'Could not expand event, please retry')
+            raise
+    event = create_table_event(eventobj)
 
     return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                            event_logs=event_logs,
@@ -311,7 +331,17 @@ def collapse_event_row(event_id):
     event_id = int(event_id)
     selected_events = session.get("selected_events") or []
 
-    event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+    try:
+        eventobj = current_app.event_manager.create_event_from_id(event_id)
+    except RetryError as retryErr:  # Intermittent error in Zino
+        current_app.logger.exception('RetryError on row collapse %s', retryErr)
+        try:
+            eventobj = current_app.event_manager.create_event_from_id(event_id)
+        except RetryError as retryErr:  # Intermittent error in Zino
+            current_app.logger.exception('RetryError on row collapse %s', retryErr)
+            show_error_popup(retryErr, 'Could not collapse event, please retry')
+            raise
+    event = create_table_event(eventobj)
 
     return render_template('/responses/collapse-row.html', event=event, id=event_id,
                            is_selected=str(event_id) in selected_events)
