@@ -85,10 +85,12 @@ def get_current_events():
         current_app.event_manager.get_events()
     except NotConnectedError as notConnErr:
         if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
+            current_app.logger.exception('Recurrent NotConnectedError %s', notConnErr)
             session["not_connected_counter"] += 1
             show_error_popup(notConnErr, 'An error occurred, please check your connection status to Zino')
             raise
         else:  # This error is intermittent - increase counter and retry
+            current_app.logger.exception('Intermittent NotConnectedError %s', notConnErr)
             session["not_connected_counter"] += 1
             current_app.event_manager.get_events()
             pass
@@ -115,10 +117,12 @@ def poll_current_events():
         current_app.event_manager.get_events()
     except NotConnectedError as notConnErr:
         if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
+            current_app.logger.exception('Recurrent NotConnectedError %s', notConnErr)
             session["not_connected_counter"] += 1
             show_error_popup(notConnErr, 'An error occurred, please check your connection status to Zino')
             raise
         else:  # This error is intermittent - increase counter and retry
+            current_app.logger.exception('Intermittent NotConnectedError %s', notConnErr)
             session["not_connected_counter"] += 1
             current_app.event_manager.get_events()
             pass
@@ -203,6 +207,7 @@ def get_event_attributes(id, res_format=dict):
     try:
         event = current_app.event_manager.create_event_from_id(int(id))
     except RetryError as retryErr:  # Intermittent error in Zino
+        current_app.logger.exception('RetryError when fetching event attributes %s', retryErr)
         show_error_popup(retryErr, 'Could not fetch event attributes, please retry')
         raise
 
@@ -220,6 +225,7 @@ def get_event_details(id):
     try:
         event_attr = vars(current_app.event_manager.create_event_from_id(int(id)))
     except RetryError as retryErr:  # Intermittent error in Zino
+        current_app.logger.exception('RetryError when fetching event details %s', retryErr)
         show_error_popup(retryErr, 'Could not fetch event details, please retry')
         raise
 
