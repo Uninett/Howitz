@@ -332,15 +332,16 @@ def collapse_event_row(event_id):
     selected_events = session.get("selected_events") or []
 
     try:
-        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+        eventobj = current_app.event_manager.create_event_from_id(event_id)
     except RetryError as retryErr:  # Intermittent error in Zino
         current_app.logger.exception('RetryError on row collapse %s', retryErr)
         try:
-            event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+            eventobj = current_app.event_manager.create_event_from_id(event_id)
         except RetryError as retryErr:  # Intermittent error in Zino
             current_app.logger.exception('RetryError on row collapse %s', retryErr)
             show_error_popup(retryErr, 'Could not collapse event, please retry')
             raise
+    event = create_table_event(eventobj)
 
     return render_template('/responses/collapse-row.html', event=event, id=event_id,
                            is_selected=str(event_id) in selected_events)
