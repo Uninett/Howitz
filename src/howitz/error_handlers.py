@@ -3,6 +3,8 @@ import uuid
 from flask import json, render_template, session, current_app
 from werkzeug.exceptions import HTTPException
 
+from howitz.utils import serialize_exception
+
 
 # Fixme add non-generic error handling as well
 def handle_generic_http_exception(e):
@@ -26,9 +28,9 @@ def handle_generic_exception(e):
 
     # now you're handling non-HTTP exceptions only
     alert_random_id = str(uuid.uuid4())
-    short_err_msg = 'An error has occurred'
+    short_err_msg = 'An unexpected error has occurred'
 
-    session["errors"][str(alert_random_id)] = e.__repr__()
+    session["errors"][str(alert_random_id)] = serialize_exception(e)
     session.modified = True
     current_app.logger.debug('ERRORS %s', session["errors"])
 

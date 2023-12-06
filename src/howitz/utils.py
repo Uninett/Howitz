@@ -1,4 +1,5 @@
 import functools
+import traceback
 
 from flask import current_app
 from flask_login import current_user
@@ -9,7 +10,6 @@ def login_check():
     """
 
     def _login_check(func):
-
         @functools.wraps(func)
         def __login_check(*args):
             with current_app.app_context():
@@ -22,3 +22,7 @@ def login_check():
         return __login_check
 
     return _login_check
+
+
+def serialize_exception(exc):
+    return ''.join(traceback.format_exception(exc))
