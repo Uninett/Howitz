@@ -305,8 +305,13 @@ def expand_event_row(event_id):
         event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
     except RetryError as retryErr:  # Intermittent error in Zino
         current_app.logger.exception('RetryError on row expand %s', retryErr)
-        show_error_popup(retryErr, 'Could not expand event, please retry')
-        raise
+        try:
+            event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
+            event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+        except RetryError as retryErr:  # Intermittent error in Zino
+            current_app.logger.exception('RetryError on row expand %s', retryErr)
+            show_error_popup(retryErr, 'Could not expand event, please retry')
+            raise
 
     return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                            event_logs=event_logs,
@@ -330,8 +335,12 @@ def collapse_event_row(event_id):
         event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
     except RetryError as retryErr:  # Intermittent error in Zino
         current_app.logger.exception('RetryError on row collapse %s', retryErr)
-        show_error_popup(retryErr, 'Could not collapse event, please retry')
-        raise
+        try:
+            event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+        except RetryError as retryErr:  # Intermittent error in Zino
+            current_app.logger.exception('RetryError on row collapse %s', retryErr)
+            show_error_popup(retryErr, 'Could not collapse event, please retry')
+            raise
 
     return render_template('/responses/collapse-row.html', event=event, id=event_id,
                            is_selected=str(event_id) in selected_events)
