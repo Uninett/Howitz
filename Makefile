@@ -5,6 +5,9 @@ clean:
 	-find . -name "*.pyc" -print0 | xargs -0 rm -rf
 	-find . -name "*.egg-info" -print0 | xargs -0 rm -rf
 
+logclean:
+	-rm -rf *.log
+
 lintclean:
 	-rm -rf .ruff_cache
 
@@ -21,4 +24,4 @@ coverageclean:
 testclean: coverageclean clean
 	-rm -rf .tox
 
-nuke: clean distclean testclean lintclean
+nuke: clean distclean testclean lintclean logclean
