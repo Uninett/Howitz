@@ -18,8 +18,7 @@ distclean:
 coverageclean:
 	-rm .coverage
 	-rm .coverage.*
-	-rm coverage.xml
-	-rm -rf htmlcov
+	-rm -rf reports
 
 testclean: coverageclean clean
 	-rm -rf .tox
