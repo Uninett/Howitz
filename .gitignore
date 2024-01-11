@@ -5,6 +5,7 @@ dist/
 
 !*.svg
 !.gitignore
+!.github
 !.pre-commit-config.yaml
 
 
