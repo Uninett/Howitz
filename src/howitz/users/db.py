@@ -39,9 +39,9 @@ class UserDB:
             connection.execute(querystring, params)
         return connection
 
-    def change_and_return_user(self, user, querystring, params):
+    def change_and_return_user(self, username, querystring, params):
         connection = self.change_db(querystring, params)
-        return self.get(user.username, connection)
+        return self.get(username, connection)
 
     def get(self, username, connection=None):
         if not connection:
@@ -61,14 +61,16 @@ class UserDB:
         querystring = "INSERT INTO user (username, password, token) values (?, ?, ?)"
         password = user.encode_password(user.password)
         params = (user.username, password, user.token)
-        return self.change_and_return_user(user, querystring, params)
+        return self.change_and_return_user(user.username, querystring, params)
 
     def update(self, user: User):
         querystring = "REPLACE INTO user (username, password, token) values (?, ?, ?)"
         params = (user.username, user.password, user.token)
-        return self.change_and_return_user(user, querystring, params)
+        return self.change_and_return_user(user.username, querystring, params)
 
     def remove(self, username):
         querystring = "DELETE from user where username = ?"
+        if not isinstance(username, str):
+            username = username.username  # User-object sent in
         params = (username,)
-        return self.change_and_return_user(user, querystring, params)
+        return self.change_and_return_user(username, querystring, params)
