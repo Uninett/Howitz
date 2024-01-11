@@ -20,7 +20,7 @@ dependencies = [
     "flask_assets",
     "flask-login",
     "jinja2",
-    "zinolib>=1.0",
+    "zinolib>=1.0.1",
     "werkzeug<3",  # needed by flask-login
     "pydantic",
 ]
