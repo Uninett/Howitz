@@ -1,0 +1,50 @@
+name: Test zinolib
+
+on:
+  push:
+    branches: master
+  pull_request:
+
+jobs:
+  test:
+    name: "Python ${{ matrix.python-version }}"
+    runs-on: ubuntu-latest
+    env:
+      USING_COVERAGE: '3.11'
+
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+        cache-dependency-path: pyproject.toml
+
+    - name: Install dependencies
+      # if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        set -xe
+        python -VV
+        python -m site
+        python -m pip install --upgrade pip wheel
+        python -m pip install --upgrade virtualenv tox tox-gh-actions coverage
+        python -m pip freeze
+
+    - name: Run tests
+      run: |
+        python -m tox
+
+    - name: Upload test reports (${{ matrix.python-version }})
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: reports
+        path: |
+          reports/**/*
