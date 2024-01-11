@@ -101,7 +101,7 @@ Configuration
 =============
 
 Howitz *can* run without a configuration file. Default values will be used for
-listen-address (127.0.0.1), port (9000) and storage location
+listen-address (127.0.0.1), port (5000) and storage location
 (./howitz.sqlite3). However, at minimum you also need to pass in a SECRET_KEY
 for Flask and a zino server to fetch events from.
 
@@ -130,6 +130,39 @@ Poll interval values represented seconds and must be integers. The default value
 
 Debugging can be turned on either by adding ``DEBUG = true`` to the
 ``[flask]``-section or setting the environment variable ``HOWITZ_DEBUG`` to ``1``.
+
+Example config-file for development
+-----------------------------------
+
+For development, copy the contents of the included file ``dev-howitz.toml`` to ``.howitz.toml`` in the same directory.
+
+1. Set ``[flask] -> SECRET_KEY`` to some long string.
+2. Set ``[zino.connections.default] -> server`` to a Zino 1 server.
+3. Optionally set ``[zino.connections.other] -> server`` to a fallback Zino
+   1 server. If the default server stops working you can swap "other" with
+   "default" in the config-file and keep on working. If you don't set it to
+   anything, comment it out/remove it.
+
+There's a handler "debug" that will copy everything DEBUG or higher to a file
+``debug.log``, you might want to use this handler for your code.
+
+The handler ``error`` will likewise put everything WARNING or higher in the
+``error.log`` file.
+
+Config file for production
+--------------------------
+
+It is better to control ``[flask] -> SECRET_KEY`` and
+``[zino.connections.default] -> server`` via environment variables than
+hardcoding them in the config file. It's best to delete them from the config
+file.
+
+``[flask] -> DEBUG`` should be ``false``. You can stil override it via an
+environment variable.
+
+``[logging]`` will need adjustments. Increase the level of the ``wsgi``-handler
+or only use the ``error`` handler. Change the error-handler to ship its log
+somewhere else, via syslog or Sentry or similar.
 
 
 Run tests

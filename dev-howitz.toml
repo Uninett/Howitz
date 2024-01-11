@@ -1,0 +1,53 @@
+[flask]
+SECRET_KEY =
+DEBUG = true
+
+[howitz]
+storage = "./howitz.sqlite3"
+devmode = true
+poll_interval = 30
+
+[zino.connections.default]
+server =
+
+[zino.connections.other]
+server =
+
+[logging]
+version = 1
+
+[logging.root]
+level = "DEBUG"
+
+[logging.formatters.default]
+format = "%(levelname)s %(name)s in %(funcName)s: %(message)s"
+
+[logging.formatters.detail]
+format = "%(asctime)s %(levelname)s %(name)s %(pathname)s:%(lineno)s:: %(message)s"
+
+[logging.handlers.null]
+class = "logging.NullHandler"
+
+[logging.handlers.wsgi]
+class = "logging.StreamHandler"
+stream = "ext://flask.logging.wsgi_errors_stream"
+formatter = "default"
+
+[logging.handlers.error]
+level = "WARNING"
+class = "logging.FileHandler"
+filename = "errors.log"
+formatter = "detail"
+
+[logging.handlers.debug]
+level = "DEBUG"
+class = "logging.handlers.TimedRotatingFileHandler"
+filename = "debug.log"
+when = 'D'
+formatter = "detail"
+
+[logging.loggers.zinolib]
+handlers = ["debug", "wsgi"]
+
+[logging.loggers.howitz]
+handlers = ["debug", "wsgi"]
