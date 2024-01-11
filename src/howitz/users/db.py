@@ -65,7 +65,11 @@ class UserDB:
 
     def update(self, user: User):
         querystring = "REPLACE INTO user (username, password, token) values (?, ?, ?)"
-        params = (user.username, user.password, user.token)
+        password = user.password
+        # Do not reencrypt
+        if not password.startswith(('scrypt:', 'pbkdf2:')):
+            password = user.encode_password(password)
+        params = (user.username, password, user.token)
         return self.change_and_return_user(user.username, querystring, params)
 
     def remove(self, username):
@@ -74,3 +78,13 @@ class UserDB:
             username = username.username  # User-object sent in
         params = (username,)
         return self.change_and_return_user(username, querystring, params)
+
+    def get_all(self):
+        querystring = "SELECT username, password, token from user"
+        connection = self.connect()
+        query = connection.execute(querystring)
+        result = query.fetchall()
+        connection.close()
+        if not result:
+            return None
+        return result

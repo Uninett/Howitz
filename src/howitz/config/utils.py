@@ -42,3 +42,10 @@ def validate_config(config_dict):
     if not missing_keys:
         return True
     return False
+
+
+def load_config(app):
+    config_filename = "howitz.toml"
+    app = set_config(app, config_filename)
+    validate_config(app.config)
+    return app

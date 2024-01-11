@@ -47,6 +47,56 @@ See https://flask.palletsprojects.com/en/3.0.x/deploying/ for more options and
 additional details, and the respective server's docs for server-specific
 details.
 
+User management
+===============
+
+Users are by default stored in the file "./howitz.sqlite3", this can be changed
+in the configuration file.
+
+While it is possible to use an sqlite3-client to alter the database, setting
+the password should be done via the command line, to ensure that the password
+is hashed correctly.
+
+Get a list of the possible commands by running::
+
+    $ flask --app howitz user
+    Usage: flask user [OPTIONS] COMMAND [ARGS]...
+
+    Options:
+      --help  Show this message and exit.
+
+    Commands:
+      create
+      delete
+      list
+      update
+
+Get help for each sub-command with appending "--help", for instance::
+
+    $ flask -A howitz user update --help
+    Usage: flask user update [OPTIONS] USERNAME
+
+    Options:
+      -p, --password TEXT
+      -t, --token TEXT
+      --help               Show this message and exit.
+
+All available commands
+----------------------
+
+``create``
+    creates a user, the username needs to be unique
+
+``delete``
+    removes an existing user
+
+``list``
+    shows all known usernames
+
+``update``
+    is used to change the web password or zino token for an existing user
+
+
 Configuration
 =============
 
@@ -70,7 +120,7 @@ Directly via environment variables::
     HOWITZ_SECRET_KEY="long string!" HOWITZ_ZINO1_SERVER="some.server.tld"
 
 All config options can be overruled by environment variables. Prefix with
-"HOWITZ_" for Flask-specific options and "HOWITZ_ZINO1_" for Zino-specific
+"HOWITZ\_" for Flask-specific options and "HOWITZ_ZINO1\_" for Zino-specific
 options. It is also possible to override logging by setting "HOWITZ_LOGGING" to
 a string of a python dict but we do not recommend it, use a config file instead.
 
