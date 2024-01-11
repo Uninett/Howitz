@@ -2,6 +2,7 @@ docs/build
 dist/
 .*
 *.sqlite3
+*.log
 
 !*.svg
 !.gitignore
