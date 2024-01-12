@@ -50,3 +50,17 @@ class UserDBTest(unittest.TestCase):
         user = User(**{'username': 'foo', 'password': 'bar', 'token': 'xux'})
         resuser = self.userdb.update(user)
         self.assertEqual(user, resuser)
+
+    def test_get_all_when_no_users_should_return_None(self):
+        result = self.userdb.get_all()
+        self.assertEqual(result, None)
+
+    def test_get_all_lists_all_usernames(self):
+        user1 = User(**{'username': 'foo', 'password': 'bar', 'token': 'xux'})
+        self.userdb.add(user1)
+        user2 = User(**{'username': 'bar', 'password': 'xux', 'token': 'gurba'})
+        self.userdb.add(user2)
+        results = self.userdb.get_all()
+        self.assertEqual(len(results), 2)
+        print(results)
+
