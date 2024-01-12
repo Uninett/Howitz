@@ -23,15 +23,16 @@ def make_flask_config_dict(raw_config_dict):
     return config_dict
 
 
-def set_config(app, config_filename):
-    try:
-        full_config_dict = parse_toml_config(config_filename)
-    except FileNotFoundError:
-        app.config.from_prefixed_env(prefix="HOWITZ")
-    else:
-        config_dict = make_flask_config_dict(full_config_dict)
-        app.config.from_mapping(**config_dict)
-        app.config.from_prefixed_env(prefix="HOWITZ")
+def set_config(app, config_filename, config=None):
+    if config is None:
+        try:
+            config = parse_toml_config(config_filename)
+        except FileNotFoundError:
+            app.config.from_prefixed_env(prefix="HOWITZ")
+            return app
+    config_dict = make_flask_config_dict(config)
+    app.config.from_mapping(**config_dict)
+    app.config.from_prefixed_env(prefix="HOWITZ")
     return app
 
 
@@ -44,8 +45,8 @@ def validate_config(config_dict):
     return False
 
 
-def load_config(app):
+def load_config(app, config=None):
     config_filename = "howitz.toml"
-    app = set_config(app, config_filename)
+    app = set_config(app, config_filename, config)
     validate_config(app.config)
     return app

@@ -29,7 +29,7 @@ def create_app(test_config=None):
     app.register_error_handler(HTTPException, handle_generic_http_exception)
 
     # load config
-    app = load_config(app)
+    app = load_config(app, test_config)
     zino_config = make_zino1_config(app.config)
     app.zino_config = zino_config
     howitz_config = make_howitz_config(app.config)
