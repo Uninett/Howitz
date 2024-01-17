@@ -39,3 +39,10 @@ def handle_generic_exception(e):
 
     return render_template('/components/popups/alerts/error/error-alert.html',
                            alert_id=alert_random_id, short_err_msg=short_err_msg)
+
+
+def handle_400(e):
+    current_app.logger.exception("400 Bad Request has occurred %s", e)
+
+    return render_template('/responses/400-generic.html',
+                           err_msg=e.description), 400
