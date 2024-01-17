@@ -10,6 +10,7 @@ Welcome to Howitz's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   install-on-debian
    endpoints-components
 
 
