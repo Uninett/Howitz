@@ -3,6 +3,7 @@
      aria-labelledby="modal-title"
      role="dialog"
      aria-modal="true"
+     hx-target-error="body"
 >
     <div
             class="modal-underlay inset-0 bg-gray-500 bg-opacity-50 transition-opacity"
@@ -74,6 +75,7 @@
                                         hx-target="#event-accordion-row-{{ id }}"
                                         hx-swap="outerHTML show:#ol-event-{{ id }}:bottom"
                                         hx-indicator="#bulk-update-indicator"
+                                        hx-target-400="#generic-400-error"
                                         class="mr-1 inline-flex items-center py-2.5 px-4 font-medium text-center text-white bg-primary-700 rounded-lg focus:ring-4 focus:ring-primary-200 dark:focus:ring-primary-900 hover:bg-primary-800 bg-blue-700 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
                                     Update event
                                 </button>
@@ -82,6 +84,9 @@
                                    class="flex-inline mt-2 animate-pulse text-white bulk-update-htmx-indicator">
                                     Updating event #{{ id }}...
                                 </p>
+
+                                <div id="generic-400-error"></div>
+
                             </form>
                         </div>
                     </div>

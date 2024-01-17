@@ -17,7 +17,8 @@ from flask_login import login_user, current_user, logout_user
 
 from datetime import datetime, timezone
 
-from zinolib.controllers.zino1 import Zino1EventManager, RetryError
+from werkzeug.exceptions import BadRequest
+from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState
 from zinolib.compat import StrEnum
 from zinolib.ritz import NotConnectedError
@@ -391,8 +392,12 @@ def update_event_status(event_id):
         new_state = request.form['event-state']
         new_history = request.form['event-history']
 
-        if not current_state == new_state:
-            set_state_res = current_app.event_manager.change_admin_state_for_id(event_id, AdmState(new_state))
+        try:
+            if not current_state == new_state:
+                set_state_res = current_app.event_manager.change_admin_state_for_id(event_id, AdmState(new_state))
+        except EventClosedError as closedErr:
+            current_app.logger.exception('EventClosedError %s', closedErr)
+            raise BadRequest(description=closedErr.args[0]) from closedErr
 
         if new_history:
             add_history_res = current_app.event_manager.add_history_entry_for_id(event_id, new_history)
@@ -423,8 +428,12 @@ def bulk_update_events_status():
 
     # Update each selected event with new values
     for event_id in selected_events:
-        if new_state:
-            set_state_res = current_app.event_manager.change_admin_state_for_id(int(event_id), AdmState(new_state))
+        try:
+            if new_state:
+                set_state_res = current_app.event_manager.change_admin_state_for_id(int(event_id), AdmState(new_state))
+        except EventClosedError as closedErr:
+            current_app.logger.exception('EventClosedError %s', closedErr)
+            raise BadRequest(description=closedErr.args[0]) from closedErr
 
         if new_history:
             add_history_res = current_app.event_manager.add_history_entry_for_id(int(event_id), new_history)
