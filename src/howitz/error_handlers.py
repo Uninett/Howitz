@@ -27,7 +27,10 @@ def handle_generic_exception(e):
 
     # now you're handling non-HTTP exceptions only
     alert_random_id = str(uuid.uuid4())
-    short_err_msg = 'An unexpected error has occurred'
+    try:
+        short_err_msg = e.args[0]
+    except IndexError:
+        short_err_msg = 'An unexpected error has occurred'
 
     if not "errors" in session:
         session["errors"] = dict()
@@ -37,4 +40,4 @@ def handle_generic_exception(e):
     current_app.logger.exception("An unexpected exception has occurred %s", e)
 
     return render_template('/components/popups/alerts/error/error-alert.html',
-                           alert_id=alert_random_id, short_err_msg=short_err_msg)
+                           alert_id=alert_random_id, short_err_msg=short_err_msg), 500
