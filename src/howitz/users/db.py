@@ -1,6 +1,10 @@
+import logging
 import sqlite3
 
 from .model import User
+
+
+logger = logging.getLogger("__name__")
 
 
 class UserDB:
@@ -29,6 +33,7 @@ class UserDB:
         connection.close()
 
     def connect(self):
+        logger.debug('Connecting to %s', self.database_file)
         connection = sqlite3.connect(self.database_file, check_same_thread=False)
         connection.row_factory = self.user_factory
         return connection
@@ -44,6 +49,7 @@ class UserDB:
         return self.get(username, connection)
 
     def get(self, username, connection=None):
+        logger.debug('Getting user %s', username)
         if not connection:
             connection = self.connect()
         querystring = "SELECT * from user where username=?"
@@ -52,8 +58,10 @@ class UserDB:
         result = query.fetchall()
         connection.close()
         if not result:
+            logger.warn('User %s not in database',  username)
             return None
         if len(result) > 1:
+            logger.error('Multiple %s in database!',  username)
             raise self.DBException("More than one with that username, b0rked database")
         return result[0]
 
