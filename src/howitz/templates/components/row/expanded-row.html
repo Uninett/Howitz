@@ -6,7 +6,6 @@
             hx-get="/events/{{ id }}/collapse_row"
             hx-trigger="dblclick"
             hx-swap="multi:#event-accordion-row-{{ id }}:outerHTML,#event-details-row-{{ id }}:delete"
-            hx-target-error="body"
     >
 
         {% with padding='px-3 py-2' %}

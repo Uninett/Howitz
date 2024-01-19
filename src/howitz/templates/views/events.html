@@ -2,7 +2,7 @@
 
 {% block page_title %} Events {% endblock %}
 
-{% block extensions %} class-tools, multi-swap, disable-element, loading-states, response-targets {% endblock %}
+{% block extensions %}class-tools, multi-swap, disable-element, loading-states, response-targets{% endblock %}
 
 
 {% block content %}
@@ -18,7 +18,6 @@
                 hx-trigger="load"
                 role="status"
                 class="htmx-indicator animate-pulse"
-                hx-target-error="body"
         >
 
             <span class="sr-only">Loading Table...</span>

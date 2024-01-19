@@ -20,7 +20,6 @@ def handle_generic_http_exception(e):
                            alert_id=alert_random_id, short_err_msg=short_err_msg))
 
     response.headers['HX-Reswap'] = 'beforeend'
-    response.headers['HX-Retarget'] = 'body'
 
     return response, e.code
 
@@ -48,6 +47,5 @@ def handle_generic_exception(e):
                            alert_id=alert_random_id, short_err_msg=short_err_msg))
 
     response.headers['HX-Reswap'] = 'beforeend'
-    response.headers['HX-Retarget'] = 'body'
 
     return response, 500
