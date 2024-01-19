@@ -1,6 +1,6 @@
 import uuid
 
-from flask import render_template, session, current_app
+from flask import render_template, session, current_app, make_response
 from werkzeug.exceptions import HTTPException
 
 from howitz.utils import serialize_exception
@@ -16,8 +16,13 @@ def handle_generic_http_exception(e):
     session.modified = True
     current_app.logger.debug('ERRORS %s', session["errors"])
 
-    return render_template('/components/popups/alerts/error/error-alert.html',
-                           alert_id=alert_random_id, short_err_msg=short_err_msg), e.code
+    response = make_response(render_template('/components/popups/alerts/error/error-alert.html',
+                           alert_id=alert_random_id, short_err_msg=short_err_msg))
+
+    response.headers['HX-Reswap'] = 'beforeend'
+    response.headers['HX-Retarget'] = 'body'
+
+    return response, e.code
 
 
 def handle_generic_exception(e):
@@ -39,5 +44,10 @@ def handle_generic_exception(e):
     current_app.logger.debug('ERRORS %s', session["errors"])
     current_app.logger.exception("An unexpected exception has occurred %s", e)
 
-    return render_template('/components/popups/alerts/error/error-alert.html',
-                           alert_id=alert_random_id, short_err_msg=short_err_msg), 500
+    response = make_response(render_template('/components/popups/alerts/error/error-alert.html',
+                           alert_id=alert_random_id, short_err_msg=short_err_msg))
+
+    response.headers['HX-Reswap'] = 'beforeend'
+    response.headers['HX-Retarget'] = 'body'
+
+    return response, 500
