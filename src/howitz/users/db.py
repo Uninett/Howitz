@@ -4,7 +4,7 @@ from .model import User
 
 
 class UserDB:
-    class Exception(Exception):
+    class DBException(Exception):
         pass
 
     def __init__(self, database_file: str):
@@ -54,7 +54,7 @@ class UserDB:
         if not result:
             return None
         if len(result) > 1:
-            raise Exception("More than one with that username, b0rked database")
+            raise self.DBException("More than one with that username, b0rked database")
         return result[0]
 
     def add(self, user: User):
