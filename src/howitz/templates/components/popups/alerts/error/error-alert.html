@@ -1,19 +1,19 @@
 <div id="error-alert-{{ alert_id }}"
-     class="fixed bottom-6 right-6 z-50 p-1 text-white bg-orange-800 rounded-lg shadow"
+     class="fixed bottom-0 right-0 z-50 p-1 m-6 text-white bg-orange-800 rounded-lg shadow max-h-screen max-w-screen overflow-hidden flex flex-col gap-1 justify-start flex-nowrap items-stretch"
      role="alert"
 >
     <div id="error-msg-{{ alert_id }}-minimized"
-         class="flex justify-between items-center gap-6 w-full max-w-screen h-12 p-3 text-white bg-orange-800">
+         class="flex justify-between items-center gap-6 w-full max-w-screen h-12 p-3 text-white bg-orange-800 shrink-0">
         <div class="flex flex-row no-wrap items-center">
             <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-orange-950 bg-orange-950 rounded-lg">
                 {% include "/components/popups/alerts/error/error-icon.svg" %}
                 <span class="sr-only">Error icon</span>
             </div>
             <div id="short-error-msg-{{ alert_id }}"
-                 class="ms-3 text-sm font-normal text-white">{{ short_err_msg }}</div>
+                 class="ms-3 text-sm font-normal text-white overflow-y-scroll overflow-x-scroll max-h-9">{{ short_err_msg }}</div>
         </div>
 
-        <div>
+        <div class="flex-shrink-0">
             <button id="toggle-error-alert-{{ alert_id }}"
                     type="button"
                     hx-get="/alert/{{ alert_id }}/show-maximized-error"

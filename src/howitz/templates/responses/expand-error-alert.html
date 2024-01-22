@@ -1,4 +1,10 @@
-<div id="error-msg-{{ alert_id }}-maximized" class="rounded-md text-white p-0 m-0 bg-orange-700"><code><pre class="p-4 m-0">{{ err_description }}</pre></code></div>
+<div id="error-msg-{{ alert_id }}-maximized"
+     class="rounded-md text-white p-0 m-3 bg-orange-700 overflow-y-scroll overflow-x-scroll max-h-[calc(100vh-9rem)] max-w-[calc(100vw-5rem)]">
+    <code>
+        <pre class="min-w-full p-4 m-0">{{ err_description }}</pre>
+    </code>
+</div>
+
 
 <button id="toggle-error-alert-{{ alert_id }}"
         hx-swap-oob="outerHTML"
