@@ -1,5 +1,4 @@
 import os
-import uuid
 
 from flask import (
     Blueprint,
@@ -24,7 +23,7 @@ from zinolib.compat import StrEnum
 from zinolib.ritz import NotConnectedError
 
 from howitz.users.utils import authenticate_user
-from .utils import login_check, serialize_exception
+from .utils import login_check
 
 main = Blueprint('main', __name__)
 
@@ -88,6 +87,7 @@ def get_current_events():
         if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
             current_app.logger.exception('Recurrent NotConnectedError %s', notConnErr)
             session["not_connected_counter"] += 1
+            raise
         else:  # This error is intermittent - increase counter and retry
             current_app.logger.exception('Intermittent NotConnectedError %s', notConnErr)
             session["not_connected_counter"] += 1
