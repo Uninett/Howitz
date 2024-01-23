@@ -12,6 +12,8 @@ def handle_generic_http_exception(e):
     alert_random_id = str(uuid.uuid4())
     short_err_msg = f"{e.code} {e.name}: {e.description}"
 
+    if not "errors" in session:
+        session["errors"] = dict()
     session["errors"][str(alert_random_id)] = serialize_exception(e)
     session.modified = True
     current_app.logger.debug('ERRORS %s', session["errors"])
