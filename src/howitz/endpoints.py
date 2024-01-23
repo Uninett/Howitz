@@ -16,7 +16,7 @@ from flask_login import login_user, current_user, logout_user
 
 from datetime import datetime, timezone
 
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import BadRequest, Forbidden
 from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState
 from zinolib.compat import StrEnum
@@ -63,7 +63,8 @@ def auth_handler(username, password):
                 session["errors"] = {}
                 session["not_connected_counter"] = 0
                 return user
-    return None
+        else:
+            raise Forbidden('Not authenticated')
 
 
 def logout_handler():

@@ -1,5 +1,6 @@
 import hashlib
 
+from werkzeug.exceptions import Forbidden
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -14,7 +15,8 @@ def authenticate_user(database, username: str, password: str):
     user = database.get(username)
     if user and user.authenticate(password):
         return user
-    return None
+    else:
+        raise Forbidden('Wrong username or password')
 
 
 def encode_password(password: str):
