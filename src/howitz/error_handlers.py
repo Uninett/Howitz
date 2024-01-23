@@ -7,7 +7,7 @@ from howitz.utils import serialize_exception
 
 
 def handle_generic_http_exception(e):
-    current_app.logger.exception("An unexpected HTTP exception has occurred %s", e)
+    current_app.logger.exception(e)
 
     alert_random_id = str(uuid.uuid4())
     short_err_msg = f"{e.code} {e.name}: {e.description}"
@@ -16,7 +16,6 @@ def handle_generic_http_exception(e):
         session["errors"] = dict()
     session["errors"][str(alert_random_id)] = serialize_exception(e)
     session.modified = True
-    current_app.logger.debug('ERRORS %s', session["errors"])
 
     response = make_response(render_template('/components/popups/alerts/error/error-alert.html',
                            alert_id=alert_random_id, short_err_msg=short_err_msg))
@@ -42,8 +41,7 @@ def handle_generic_exception(e):
         session["errors"] = dict()
     session["errors"][str(alert_random_id)] = serialize_exception(e)
     session.modified = True
-    current_app.logger.debug('ERRORS %s', session["errors"])
-    current_app.logger.exception("An unexpected exception has occurred %s", e)
+    current_app.logger.exception(e)
 
     response = make_response(render_template('/components/popups/alerts/error/error-alert.html',
                            alert_id=alert_random_id, short_err_msg=short_err_msg))
