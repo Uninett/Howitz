@@ -7,12 +7,12 @@ from flask import Flask, g, redirect, url_for, current_app
 from flask.logging import default_handler
 from flask_assets import Bundle, Environment
 from flask_login import LoginManager, logout_user
-from werkzeug.exceptions import HTTPException, BadRequest
+from werkzeug.exceptions import HTTPException, BadRequest, NotFound
 
 from howitz.config.utils import load_config
 from howitz.config.zino1 import make_zino1_config
 from howitz.config.howitz import make_howitz_config
-from howitz.error_handlers import handle_generic_exception, handle_generic_http_exception, handle_400
+from howitz.error_handlers import handle_generic_exception, handle_generic_http_exception, handle_400, handle_404
 from howitz.users.db import UserDB
 from howitz.users.commands import user_cli
 from zinolib.controllers.zino1 import Zino1EventManager
@@ -28,6 +28,7 @@ def create_app(test_config=None):
     app.register_error_handler(Exception, handle_generic_exception)
     app.register_error_handler(HTTPException, handle_generic_http_exception)
     app.register_error_handler(BadRequest, handle_400)
+    app.register_error_handler(NotFound, handle_404)
 
     # load config
     app = load_config(app, test_config)
