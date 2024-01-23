@@ -51,3 +51,10 @@ def handle_generic_exception(e):
     response.headers['HX-Reswap'] = 'beforeend'
 
     return response, 500
+
+
+def handle_400(e):
+    current_app.logger.exception("400 Bad Request has occurred %s", e)
+
+    return render_template('/responses/400-generic.html',
+                           err_msg=e.description), 400
