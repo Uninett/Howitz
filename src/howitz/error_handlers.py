@@ -64,3 +64,14 @@ def handle_404(e):
         current_app.logger.warn('Path not found: %s', request.path)
     return render_template('/responses/404-not-found.html',
                            err_msg=e.description), 404
+
+
+def handle_403(e):
+    current_app.logger.exception("403 Forbidden has occurred %s", e)
+
+    response = make_response(render_template('/responses/403.html',
+                                             err_msg=e.description))
+
+    response.headers['HX-Trigger'] = 'htmx:responseError'
+
+    return response, 403
