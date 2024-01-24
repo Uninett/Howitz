@@ -20,7 +20,7 @@ from werkzeug.exceptions import BadRequest
 from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState
 from zinolib.compat import StrEnum
-from zinolib.ritz import NotConnectedError
+from zinolib.ritz import NotConnectedError, AuthenticationError
 
 from howitz.users.utils import authenticate_user
 from .utils import login_check
@@ -41,30 +41,30 @@ def auth_handler(username, password):
     # check user credentials in database
     with current_app.app_context():
         user = authenticate_user(current_app.database, username, password)
-        if user:  # is registered in database
-            current_app.logger.debug('User %s', user)
+        current_app.logger.debug('User %s', user)
 
-            if not current_app.event_manager.is_connected:
-                current_app.event_manager = Zino1EventManager.configure(current_app.zino_config)
-                current_app.event_manager.connect()
-                current_app.logger.info('Connected to Zino %s', current_app.event_manager.is_connected)
+        if not current_app.event_manager.is_connected:
+            current_app.event_manager = Zino1EventManager.configure(current_app.zino_config)
+            current_app.event_manager.connect()
+            current_app.logger.info('Connected to Zino %s', current_app.event_manager.is_connected)
 
-            if not current_app.event_manager.is_authenticated:
-                current_app.event_manager.authenticate(username=user.username, password=user.token)
-                current_app.logger.info('Authenticated in Zino %s', current_app.event_manager.is_authenticated)
+        if not current_app.event_manager.is_authenticated:
+            current_app.event_manager.authenticate(username=user.username, password=user.token)
+            current_app.logger.info('Authenticated in Zino %s', current_app.event_manager.is_authenticated)
 
-            if current_app.event_manager.is_authenticated:  # is zino authenticated
-                current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
-                current_app.logger.debug('HOWITZ CONFIG %s', current_app.howitz_config)
-                login_user(user, remember=True)
-                flash('Logged in successfully.')
-                session["selected_events"] = []
-                session["expanded_events"] = {}
-                session["errors"] = {}
-                session["not_connected_counter"] = 0
-                return user
-    return None
+        if current_app.event_manager.is_authenticated:  # is zino authenticated
+            current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
+            current_app.logger.debug('HOWITZ CONFIG %s', current_app.howitz_config)
+            login_user(user, remember=True)
+            flash('Logged in successfully.')
+            session["selected_events"] = []
+            session["expanded_events"] = {}
+            session["errors"] = {}
+            session["not_connected_counter"] = 0
+            return user
 
+        raise AuthenticationError('Unexpected error on Zino authentication')
+    
 
 def logout_handler():
     with current_app.app_context():
