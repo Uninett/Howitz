@@ -1,6 +1,8 @@
 from pathlib import Path
 import unittest
 
+from werkzeug.exceptions import Forbidden
+
 from howitz.users.db import UserDB
 from howitz.users.model import User
 from howitz.users.utils import authenticate_user
@@ -23,8 +25,8 @@ class UserUtilsTest(unittest.TestCase):
         result = authenticate_user(self.userdb, 'foo', 'bar')
         self.assertTrue(result)
 
-    def test_autenticate_user_with_wromg_password_returns_false(self):
+    def test_autenticate_user_with_wrong_password_raises_exception(self):
         user = User(**{'username': 'foo', 'password': 'bar', 'token': 'xux'})
         resuser = self.userdb.add(user)
-        result = authenticate_user(self.userdb, 'foo', 'blbl')
-        self.assertFalse(result)
+        with self.assertRaises(Forbidden):
+            authenticate_user(self.userdb, 'foo', 'blbl')
