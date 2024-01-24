@@ -20,7 +20,7 @@ from werkzeug.exceptions import BadRequest
 from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState
 from zinolib.compat import StrEnum
-from zinolib.ritz import NotConnectedError
+from zinolib.ritz import NotConnectedError, AuthenticationError
 
 from howitz.users.utils import authenticate_user
 from .utils import login_check
@@ -63,6 +63,8 @@ def auth_handler(username, password):
             session["not_connected_counter"] = 0
             return user
 
+        raise AuthenticationError('Unexpected error on Zino authentication')
+    
 
 def logout_handler():
     with current_app.app_context():
