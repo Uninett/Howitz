@@ -13,13 +13,13 @@
                     class="flex flex-row-reverse grow-0 gap-5 justify-evenly"
             >
                 <div class="flex flex-col basis-4/12">
-                    {% include "/components/accordion/event-actions-buttons.html" %}
                     {% with event_attr=event_attr %}
                         {% include "/components/accordion/event-attributes.html" %}
                     {% endwith %}
                 </div>
 
                 <div class="flex flex-col basis-8/12">
+                    {% include "/components/accordion/event-actions-buttons.html" %}
                     {% with id=id, event_msgs=event_msgs %}
                         {% include "/components/accordion/event-messages-block.html" %}
                     {% endwith %}
