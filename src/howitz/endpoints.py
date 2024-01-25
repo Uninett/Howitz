@@ -155,7 +155,7 @@ def create_table_event(event):
         common["age"] = str(age)[:-10]
 
         if event.type == Event.Type.PORTSTATE:
-            common["downtime"] = event.get_downtime()
+            common["downtime"] = ":".join(str(event.get_downtime()).split(":")[:-1])  # some values have only seconds, some both seconds and microseconds
         else:
             common["downtime"] = ""
     except Exception:
