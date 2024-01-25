@@ -1,0 +1,33 @@
+<td colspan="100">
+
+    <div
+            id="accordion-body-{{ id }}"
+            aria-labelledby="event-accordion-row-{{ id }}"
+            class="p-2 border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
+
+        <div
+                class="grid grid-cols-1 content-between"
+        >
+
+            {% with id=id %}
+                {% include "/components/accordion/event-actions-buttons.html" %}
+            {% endwith %}
+
+            <div
+                    class="flex grow-0 gap-5 justify-evenly"
+            >
+                <div class="flex flex-col basis-4/12">
+                    {% with event_attr=event_attr %}
+                        {% include "/components/accordion/event-attributes.html" %}
+                    {% endwith %}
+                </div>
+
+                <div class="flex flex-col basis-8/12">
+                    {% with id=id, event_msgs=event_msgs %}
+                        {% include "/components/accordion/event-messages-block.html" %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+</td>
