@@ -8,6 +8,7 @@ dist/
 !.gitignore
 !.github
 !.pre-commit-config.yaml
+!.readthedocs.yml
 
 
 ### Python ###
