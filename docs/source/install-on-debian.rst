@@ -186,7 +186,7 @@ instead of a local file, be it via a ``logging.StreamHandler`` or something
 else. Remember to activate the handler in ``[logging.loggers.*]``. Also, don't
 forget to install any 3rd party handlers you wish to use into the venv.
 
-Any further tips for logging is way beyond scope for this howto.
+Any further tips for logging are way beyond scope for this howto.
 
 Set up the web server
 =====================
@@ -240,7 +240,7 @@ You **will** need a SSL/TLS certificate in order to run securely. You can pay
 for a certificate or get a free one from `letsencrypt
 <https://letsencrypt.org/>`_.
 
-How to get and install a third-party cerificate will not be described in this
+How to get and install a third-party certificate will not be described in this
 howto.
 
 Create a certificate with Certbot
@@ -267,7 +267,7 @@ More documentation at `Certbot Documentation <https://eff-certbot.readthedocs.io
 
    If it is the first time running certbot on this server, you will be prompted
    to enter an email address and agree to the terms of service. Make sure that
-   the email address is one that is actually read.
+   the email address is one that is regularly in use.
 
    Then, certbot will contact the letsencrypt server in order to create the
    certificate. The letsencrypt server will in turn contact MYDOMAIN on port
@@ -300,7 +300,9 @@ Configure nginx
     ends with ``}``. All you'll change is inside this block.
 
 #. Inside the block you found above, find the block starting with
-   ``location / {`` and ending with another ``}``. Replace the entire block with::
+   ``location / {`` and ending with another ``}``. Replace the entire block with:
+
+    ::
 
         location / {
             include proxy_params;
