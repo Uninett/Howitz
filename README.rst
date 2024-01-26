@@ -131,6 +131,11 @@ Poll interval values represented seconds and must be integers. The default value
 Debugging can be turned on either by adding ``DEBUG = true`` to the
 ``[flask]``-section or setting the environment variable ``HOWITZ_DEBUG`` to ``1``.
 
+Default timezone for timestamps is ``UTC``. Timezone information can be changed by adding ``timezone = "LOCAL"`` to
+the ``[howitz]``-section or setting the environment variable ``HOWITZ_TIMEZONE`` to ``LOCAL``. Timezone values other
+than ``LOCAL`` and ``UTC`` provided in config will be ignored and fall back to ``UTC``.
+
+
 Example config-file for development
 -----------------------------------
 
