@@ -18,12 +18,12 @@ from datetime import datetime, timezone
 
 from werkzeug.exceptions import BadRequest
 from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError
-from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState
+from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState, LogEntry, HistoryEntry
 from zinolib.compat import StrEnum
 from zinolib.ritz import NotConnectedError, AuthenticationError
 
 from howitz.users.utils import authenticate_user
-from .utils import login_check
+from .utils import login_check, date_str_without_timezone
 
 main = Blueprint('main', __name__)
 
@@ -218,9 +218,34 @@ def get_event_attributes(id, res_format=dict):
     }[res_format]
 
 
+def format_dt_event_attrs(event: dict):
+    if event["lasttrans"]:
+        event.update(lasttrans=date_str_without_timezone(event["lasttrans"]))
+
+    if event["opened"]:
+        event.update(opened=date_str_without_timezone(event["opened"]))
+
+    if event["updated"]:
+        event.update(updated=date_str_without_timezone(event["updated"]))
+
+    return event
+
+
+def format_dt_message_entries(messages: list):
+    res = []
+    for m in messages:
+        if type(m) == LogEntry:
+            res.append(LogEntry(date=date_str_without_timezone(m.date), log=m.log))
+        elif type(m) == HistoryEntry:
+            res.append(HistoryEntry(date=date_str_without_timezone(m.date), log=m.log, user=m.user))
+
+    return res
+
+
 def get_event_details(id):
     try:
         event_attr = vars(current_app.event_manager.create_event_from_id(int(id)))
+        format_dt_event_attrs(event_attr)
     except RetryError as retryErr:  # Intermittent error in Zino
         current_app.logger.exception('RetryError when fetching event details %s', retryErr)
         raise
@@ -228,7 +253,7 @@ def get_event_details(id):
     event_logs = current_app.event_manager.get_log_for_id(int(id))
     event_history = current_app.event_manager.get_history_for_id(int(id))
 
-    event_msgs = event_logs + event_history
+    event_msgs = format_dt_message_entries(event_logs + event_history)
 
     return event_attr, event_logs, event_history, event_msgs
 
