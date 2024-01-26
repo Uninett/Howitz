@@ -31,3 +31,6 @@ dev = [
     "ruff",
     "pip-tools",
 ]
+
+[tool.flit.sdist]
+exclude = ["src/howitz/static/.webassets-cache"]
