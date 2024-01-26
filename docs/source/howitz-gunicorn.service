@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance to serve howitz
+After=network.target
+
+[Service]
+User=howitz
+Group=www-data
+WorkingDirectory=/home/howitz/.venv
+Environment="PATH=/home/howitz/.venv/bin"
+ExecStart=/home/howitz/.venv/bin/gunicorn --workers 3 --bind unix:howitz.sock -m 007 "howitz:create_app()"
+
+[Install]
+WantedBy=multi-user.target
