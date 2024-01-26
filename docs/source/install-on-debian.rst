@@ -48,7 +48,7 @@ Preparations
    directory "/home/howitz". The user has (and needs) no password and the shell
    is set to bash. The "howitz"-user should NOT have root/sudo-access.
 
-#. Become howitz and create a venv:
+#. Become howitz and create a virtual environment with ``venv``:
 
     .. code-block:: console
 
@@ -66,7 +66,6 @@ Preparations
         (.venv) howitz@myserver:~$
 
    Now only the python libraries installed in the venv are easily available.
-
 
 Get the source code and dependencies
 ====================================
@@ -152,19 +151,23 @@ Set up the configuration file
         (.venv) howitz@myserver:~$ cp Howitz/dev-howitz.toml .howitz.toml
         (.venv) howitz@myserver:~$
 
-#. In the config-file, set ``[flask] SECRET_KEY`` to a long string, remember to
-   quote it.
-#. In the config-file, set ``[zino.connections.default] server`` to the server
-   name of the Zino 1 master server. Remember to quote it.
-#. In the config-file, set ``[howitz] devmode`` to ``false``, no quotes.
+#. In the config-file, set the ``SECRET_KEY`` in the ``[flask]`` section to
+   a long string, remember to quote it.
+#. In the config-file, set ``server`` in the ``[zino.connections.default]``
+   section to the server name of the Zino 1 master server. Remember to quote
+   it.
+#. In the config-file, set ``devmode`` in the ``[howitz]`` section to
+   ``false``, no quotes.
 #. Eventually you will probably wish to lower the log-level. In the
-   config-file, set ``[logging.root] level`` to ``"INFO"``, note the quotes.
+   config-file, set ``level`` in the ``[logging.root]`` section to ``"INFO"``,
+   note the quotes.
 
 User database
 -------------
 
-Change ``[howitz] storage`` to ``/home/howitz/howitz.sqlite3``. Then ensure
-that only the howitz-user has access.
+Set ``storage`` in the ``[howitz]`` section to
+``/home/howitz/howitz.sqlite3``. Then ensure that only the howitz-user has
+access.
 
 #. If the file does not exist, create it by running:
 
@@ -237,7 +240,7 @@ We recommend storing the debug-log in ``/var/log/howitz/debug.log``.
         $ sudo mkdir var/log/howitz
         $
 
-#. Change ``[logging.handlers.debug] filename`` to
+#. Set the ``filename`` in the ``[logging.handlers.debug]`` section to
     ``/var/log/howitz/debug.log`` in the howitz config file.
 
     You might want to change the handler to an ordinary ``logging.FileHandler``
@@ -399,8 +402,9 @@ I get a "500 Server Error" page instead of the howitz landing page!
 -------------------------------------------------------------------
 
 Did you remember to configure howitz? Double-check that you've set the
-``[flask] SECRET_KEY`` and ``[zino.connection.default] server``. The values are
-both strings so remember to quote them.
+``SECRET_KEY`` in the ``[flask]`` section and ``server`` in the
+``[zino.connection.default]`` section. The values are both strings so remember
+to quote them.
 
 You'll need to restart gunicorn and nginx after any changes to this file, like
 so:
