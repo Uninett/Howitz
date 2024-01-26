@@ -37,7 +37,7 @@ Preparations
         .. output ..
         $
 
-#. Create a user for howitz:
+#. Create an OS user for howitz:
 
     .. code-block:: console
 
@@ -137,7 +137,28 @@ TBD
 Configure howitz
 ================
 
-See howitz's README.rst for how to configure howitz and create a user.
+In the source code of howitz there is included a config-file to be adapted for
+development purposes, ``dev-howitz.toml``. This can be used as a start point
+for a production configuration as well.
+
+Set up the configuration file
+-----------------------------
+
+#. Copy ``dev-howitz.toml`` to the howitz-user's home directory and the correct
+   filename.
+
+    .. code-block:: console
+
+        (.venv) howitz@myserver:~$ cp Howitz/dev-howitz.toml .howitz.toml
+        (.venv) howitz@myserver:~$
+
+#. In the config-file, set ``[flask] SECRET_KEY`` to a long string, remember to
+   quote it.
+#. In the config-file, set ``[zino.connections.default] server`` to the server
+   name of the Zino 1 master server. Remember to quote it.
+#. In the config-file, set ``[howitz] devmode`` to ``false``, no quotes.
+#. Eventually you will probably wish to lower the log-level. In the
+   config-file, set ``[logging.root] level`` to ``"INFO"``, note the quotes.
 
 User database
 -------------
@@ -162,6 +183,47 @@ that only the howitz-user has access.
 
 You can store the canonical user database somewhere else and copy it in to the
 server after a change. Then the mode can be "400" instead of "600".
+
+Add users to the user database
+------------------------------
+
+To use howitz against a server using Zino protocol 1, a Zino token is needed
+per user. The user database maps a web user with a web password to a zino user
+with a zino token. This is to protect the token since it cannot be hashed.
+A token should not be stored by a password manager. In the database, the
+password is stored hashed while the token is stored in the clear.
+
+There is a command-line command to manipulate the user database.
+
+Get a list of the possible commands by running:
+
+    .. code-block:: console
+
+        $(.venv) howitz@myserver:~$ flask -A howitz user
+        Usage: flask user [OPTIONS] COMMAND [ARGS]...
+
+        Options:
+          --help  Show this message and exit.
+
+        Commands:
+          create
+          delete
+          list
+          update
+        $(.venv) howitz@myserver:~$
+
+To add a user there is the flag `create`:
+
+    .. code-block:: console
+
+        (.venv) howitz@myserver:~$  flask -A howitz user create USERNAME -p PASSWORD -t TOKEN
+        (.venv) howitz@myserver:~$
+
+USERNAME is the same username that is stored with the Zino 1 server, TOKEN is
+the token from the zino 1 server.
+
+(Note the extra space before `flask`, this hides the command from your shell
+history so that neither password nor token is stored in it.)
 
 Logging
 -------
