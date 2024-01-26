@@ -131,7 +131,15 @@ This is the only way to install the locked dependencies.
 Install via pip
 ---------------
 
-TBD
+.. code-block:: console
+
+        (.venv) howitz@myserver:~$ pip install howitz
+        (.venv) howitz@myserver:~$
+
+This will not install dependencies from the frozen list so there might be some
+annoying dependency surprises.
+
+The example config-file is also not distributed via this method.
 
 Configure howitz
 ================
