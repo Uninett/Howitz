@@ -40,7 +40,6 @@ def utc_to_local(dt: datetime):
 def set_correct_timezone(dt: datetime):
     if current_app.howitz_config["timezone"] == 'LOCAL':
         res = utc_to_local(dt)
-        current_app.logger.debug('UTC_TO_LOCAL %s', res)
     # fixme is this else statement even needed? this makes sure that datetime is aware in Howitz
     else:
         res = dt.replace(
@@ -52,5 +51,4 @@ def set_correct_timezone(dt: datetime):
 
 def date_str_without_timezone(dt: datetime):
     dt_aware = set_correct_timezone(dt)
-    current_app.logger.debug('AWARE DATETIME %s', dt_aware)
     return dt_aware.strftime("%Y-%m-%d %H:%M:%S")
