@@ -268,7 +268,6 @@ def index():
 
 
 @main.get('/footer.html')
-@login_check()
 def footer():
     tz = current_app.howitz_config["timezone"]  # Get raw string from config. Accepted values are 'UTC' or 'LOCAL'.
     if tz == 'LOCAL':  # Change to a specific timezone name if 'LOCAL'
