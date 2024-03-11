@@ -23,6 +23,8 @@ from zinolib.compat import StrEnum
 from zinolib.ritz import NotConnectedError, AuthenticationError
 
 from howitz.users.utils import authenticate_user
+
+from .config.models import DEFAULT_TIMEZONE
 from .utils import login_check, date_str_without_timezone
 
 main = Blueprint('main', __name__)
@@ -262,7 +264,20 @@ def get_event_details(id):
 @main.route('/events')
 @login_check()
 def index():
-    return render_template('/views/events.html', poll_interval=current_app.howitz_config["poll_interval"])
+    return render_template('/views/events.html')
+
+
+@main.get('/footer.html')
+@login_check()
+def footer():
+    tz = current_app.howitz_config["timezone"]  # Get raw string from config. Accepted values are 'UTC' or 'LOCAL'.
+    if tz == 'LOCAL':  # Change to a specific timezone name if 'LOCAL'
+        tz = datetime.now(timezone.utc).astimezone().tzinfo
+    elif not tz == DEFAULT_TIMEZONE:  # Fall back to default if invalid value is provided
+        tz = f"{DEFAULT_TIMEZONE} (default)"
+
+    return render_template('/components/footer/footer.html', poll_interval=current_app.howitz_config["poll_interval"],
+                           timezone=tz)
 
 
 @main.route('/login')
