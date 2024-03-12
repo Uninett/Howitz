@@ -50,6 +50,29 @@ details.
 User management
 ===============
 
+Due to how Zino protocol 1 does logins, the password (here called token) needs
+to be stored in plain text in every client. For security-reasons it is not
+desirable to ever store this token in a cookie or otherwise in a browser, so
+instead the token is stored where the browser cannot get to it, in a user
+database local to the frontend server.
+
+When logging in to Howitz a user uses a normal password (not the token) which
+is used to safely fetch the token for connecting to the zino protocol 1 server.
+This password can be treated like any other password and be put in a vault or
+a password-manager.
+
+The mapping from websafe password to legacy token is done via a user database.
+The Zino backend server admin creates a token and username. The frontend server
+admin creates a local user with the backend username and token, and a password
+preferrably chosen by the users themselves.
+
+We are planning to allow users to change the frontend password eventually but
+we do not wish for the backend token to ever be seen by a browser in any
+fashion.
+
+Managing the user database
+--------------------------
+
 Users are by default stored in the file "./howitz.sqlite3", this can be changed
 in the configuration file.
 
