@@ -42,21 +42,16 @@ class EventColor(StrEnum):
 
 # Inspired by https://stackoverflow.com/a/54732120
 class EventSorting(Enum):
-    # ENUM = "value from config", "event attribute it depends on", "is reversed"
+    AGE = "age", "opened", True  # Newest events first
+    AGE_REV = "age-rev", "opened", False  # Oldest events first
+    UPD = "upd", "updated", False  # Events with the oldest update date first
+    UPD_REV = "upd-rev", "updated", True  # Events with the most recent update date first
+    DOWN = "down", "get_downtime", True  # Longest downtime first
+    DOWN_REV = "down-rev", "get_downtime", False  # Shortest/none downtime first
 
-    # # AGE = {
-    # #     "config-value": "age",
-    # #     "attribute": "opened",
-    # #     "reversed": False
-    # # }
-    # AGE = SortingDict(config_value="age", attribute="opened", reversed=False)
-    AGE = "age", "opened", True
-    AGE_REV = "age-rev", "opened", False
-    UPD = "upd", "updated", True
-    UPD_REV = "upd-rev", "updated", False
-    DOWN = "down", "get_downtime", True
-    DOWN_REV = "down-rev", "get_downtime", False
-    DEFAULT = "default", "", True
+    LASTTRANS = "lasttrans", "updated", True  # Newest transaction first, all IGNORED at the bottom. Default sorting at SSC
+    SEVERITY = "severity", "", True  # Events of same color grouped together. The most severe (red) at the top and ignored at the bottom
+    DEFAULT = "default", "", None  # Unchanged order in which Zino server sends events (by ID ascending)
 
     def __new__(cls, *args, **kwds):
         obj = object.__new__(cls)
@@ -106,7 +101,7 @@ def auth_handler(username, password):
             return user
 
         raise AuthenticationError('Unexpected error on Zino authentication')
-    
+
 
 def logout_handler():
     with current_app.app_context():
@@ -139,12 +134,9 @@ def get_current_events():
     events = current_app.event_manager.events
 
     with current_app.app_context():
-        sort_method = EventSorting(current_app.config.get("ZINO1_SORTBY", "default"))
+        sort_method = EventSorting(current_app.howitz_config.get("sort_by", "default"))
 
-    current_app.logger.debug("Sortby %s", sort_method)
-    # events_sorted = sort_events(events, sort_by=sort_method)
-    events_sorted = sort_events(events, sort_by=EventSorting.DOWN)
-
+    events_sorted = sort_events(events, sort_by=sort_method)
 
     table_events = []
     for c in events_sorted.values():
@@ -185,32 +177,36 @@ def poll_current_events():
     return poll_events
 
 
-def sort_events(events_dict, sort_by=EventSorting.DEFAULT):
+def sort_events(events_dict, sort_by: EventSorting = EventSorting.DEFAULT):
+    current_app.logger.debug("SORTING BY %s", sort_by)
+
     if sort_by == EventSorting.DEFAULT:
+        return events_dict
+    elif sort_by == EventSorting.LASTTRANS:
+        events_sorted = {k: events_dict[k] for k in
+                         reversed(
+                             sorted(events_dict,
+                                    key=lambda k: (
+                                        0 if events_dict[k].adm_state == AdmState.IGNORED else 1,
+                                        getattr(events_dict[k], sort_by.attribute),
+                                    ), ))
+                         }
+    elif sort_by == EventSorting.SEVERITY:
         events_sorted = {k: events_dict[k] for k in sorted(events_dict,
                                                            key=lambda k: (
-                                                               # 0 if (events_dict[k].adm_state == AdmState.OPEN and events_dict[k].op_state == "down") else
-                                                               # 1 if (events_dict[k].adm_state == AdmState.WAITING or events_dict[k].adm_state == AdmState.WORKING) and events_dict[k].op_state == "down" else
-                                                               # 2 if not (events_dict[k].adm_state == AdmState.IGNORED or events_dict[k].adm_state == AdmState.CLOSED) else
-                                                               # 3 if events_dict[k].adm_state == AdmState.IGNORED else 4,
                                                                get_priority(events_dict[k]),
-                                                               # getattr(events_dict[k], field),
                                                                events_dict[k].type,
                                                            ), reverse=sort_by.reversed)}
     elif sort_by == EventSorting.DOWN or sort_by == EventSorting.DOWN_REV:
         events_sorted = {k: events_dict[k] for k in sorted(events_dict,
                                                            key=lambda k: (
-                                                               0 if not getattr(events_dict[k], sort_by.attribute,
-                                                                                timedelta)() == timedelta() else 1,
-                                                               # 0 if events_dict[k].adm_state == AdmState.IGNORED else 1,
-                                                               # events_dict[k].field,
+                                                               timedelta() if not hasattr(events_dict[k], sort_by.attribute) else
+                                                               events_dict[k].get_downtime(),
                                                            ), reverse=sort_by.reversed)}
     else:
         events_sorted = {k: events_dict[k] for k in sorted(events_dict,
                                                            key=lambda k: (
                                                                getattr(events_dict[k], sort_by.attribute),
-                                                               # 0 if events_dict[k].adm_state == AdmState.IGNORED else 1,
-                                                               # events_dict[k].field,
                                                            ), reverse=sort_by.reversed)}
 
     return events_sorted
@@ -231,6 +227,8 @@ def get_priority(event):
             return 4
         elif event.adm_state in [AdmState.WORKING, AdmState.WAITING]:
             return 3
+    elif event.adm_state in [AdmState.WORKING, AdmState.WAITING]:
+        return 3
     else:
         return 2
 
