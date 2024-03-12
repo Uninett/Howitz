@@ -98,6 +98,7 @@ def auth_handler(username, password):
             session["expanded_events"] = {}
             session["errors"] = {}
             session["not_connected_counter"] = 0
+            session["sort_by"] = current_app.howitz_config.get("sort_by", "default")
             return user
 
         raise AuthenticationError('Unexpected error on Zino authentication')
@@ -114,6 +115,7 @@ def logout_handler():
         session.pop('selected_events', [])
         session.pop('errors', {})
         session.pop('not_connected_counter', 0)
+        session.pop('sort_by', "default")
         current_app.logger.info("Logged out successfully.")
 
 
@@ -133,10 +135,7 @@ def get_current_events():
 
     events = current_app.event_manager.events
 
-    with current_app.app_context():
-        sort_method = EventSorting(current_app.howitz_config.get("sort_by", "default"))
-
-    events_sorted = sort_events(events, sort_by=sort_method)
+    events_sorted = sort_events(events, sort_by=EventSorting(session["sort_by"]))
 
     table_events = []
     for c in events_sorted.values():
@@ -163,11 +162,7 @@ def poll_current_events():
 
     events = current_app.event_manager.events
 
-    events_sorted = {k: events[k] for k in sorted(events,
-                                                  key=lambda k: (
-                                                      0 if events[k].adm_state == AdmState.IGNORED else 1,
-                                                      events[k].updated,
-                                                  ), reverse=True)}
+    events_sorted = sort_events(events, sort_by=EventSorting(session["sort_by"]))
 
     poll_events = []
     for c in events_sorted.values():
