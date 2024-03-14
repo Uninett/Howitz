@@ -70,8 +70,8 @@ We are planning to allow users to change the frontend password eventually but
 we do not wish for the backend token to ever be seen by a browser in any
 fashion.
 
-Managing the user database
---------------------------
+Managing the Howitz user database
+---------------------------------
 
 Users are by default stored in the file "./howitz.sqlite3", this can be changed
 in the configuration file.
