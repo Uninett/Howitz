@@ -6,6 +6,7 @@ DEBUG = true
 storage = "./howitz.sqlite3"
 devmode = true
 poll_interval = 30
+timezone='LOCAL'
 
 [zino.connections.default]
 server =

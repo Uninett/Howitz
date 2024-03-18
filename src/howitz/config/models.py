@@ -5,6 +5,7 @@ from pydantic.networks import IPvAnyAddress
 
 
 DEFAULT_STORAGE = "./howitz.sqlite3"
+DEFAULT_TIMEZONE = 'UTC'
 
 
 class ServerConfig(BaseModel):
@@ -28,10 +29,10 @@ class DevStorageConfig(StorageConfig):
 class HowitzConfig(ServerConfig, StorageConfig):
     devmode: bool = Literal[False]
     poll_interval: int = 60
-    timezone: str = 'UTC'
+    timezone: str = DEFAULT_TIMEZONE
 
 
 class DevHowitzConfig(DevServerConfig, DevStorageConfig):
     devmode: bool = Literal[True]
     poll_interval: int = 30
-    timezone: str = 'UTC'
+    timezone: str = DEFAULT_TIMEZONE
