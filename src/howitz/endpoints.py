@@ -16,7 +16,7 @@ from flask_login import login_user, current_user, logout_user
 
 from datetime import datetime, timezone
 
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import BadRequest, MethodNotAllowed
 from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState, LogEntry, HistoryEntry
 from zinolib.compat import StrEnum
@@ -499,6 +499,25 @@ def select_event(i):
 
     return render_template('/responses/toggle-select.html', id=i, is_checked=True,
                            is_menu=len(session["selected_events"]) > 0)
+
+
+@main.route('/event/<i>/clear-flapping', methods=["POST"])
+def clear_flapping(i):
+    selected_events = session.get("selected_events", [])
+    event_id = int(i)
+
+    flapping_res = current_app.event_manager.clear_flapping(event_id)
+
+    if flapping_res:
+        event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
+        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+
+        return render_template('/responses/update-event-response.html', event=event, id=event_id, event_attr=event_attr,
+                               event_logs=event_logs,
+                               event_history=event_history, event_msgs=event_msgs,
+                               is_selected=str(event_id) in selected_events)
+    else:
+        raise MethodNotAllowed(description='Cant clear flapping on a non-port event.')
 
 
 @main.route('/navbar/show-user-menu', methods=["GET"])
