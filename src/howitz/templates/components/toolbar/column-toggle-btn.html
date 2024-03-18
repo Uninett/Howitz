@@ -2,6 +2,7 @@
     <button class="block bg-gray-600/90 hover:bg-gray-500 rounded-md m-1.5 size-9 focus:ring-2 focus:outline-none focus:ring-teal-300"
             hx-on:mouseenter="htmx.removeClass(htmx.find('#toggle-popover'), 'invisible')"
             hx-on:mouseleave="htmx.addClass(htmx.find('#toggle-popover'), 'invisible')"
+            hx-on:click="htmx.removeClass(htmx.find('#column-toggle-menu-dropdown'), 'invisible')"
             aria-describedby="toggle-popover"
     >
         <svg class="fill-teal-300/90 hover:fill-teal-300 p-1.5 size-full"
@@ -12,10 +13,13 @@
         </svg>
     </button>
 
-
     <p id="toggle-popover" role="tooltip"
        class="absolute -top-4 h-fit z-40 invisible flow-root w-fit text-xs font-semibold text-nowrap text-teal-900 transition-opacity duration-300 bg-teal-300 rounded-md px-1 py-0.5"
     >
         Toggle columns
     </p>
+
+    {% with modal_id='column-toggle-menu-dropdown', modal_title='Toggle columns' %}
+        {% include "/components/popups/modals/table-operation-modal.html" %}
+    {% endwith %}
 </div>

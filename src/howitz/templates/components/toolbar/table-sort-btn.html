@@ -2,6 +2,7 @@
     <button class="block bg-gray-600/90 hover:bg-gray-500 rounded-md m-1.5 size-9 focus:ring-2 focus:outline-none focus:ring-teal-300"
             hx-on:mouseenter="htmx.removeClass(htmx.find('#sort-popover'), 'invisible')"
             hx-on:mouseleave="htmx.addClass(htmx.find('#sort-popover'), 'invisible')"
+            hx-on:click="htmx.removeClass(htmx.find('#sort-menu-dropdown'), 'invisible')"
             aria-describedby="sort-popover"
     >
         <svg class="fill-teal-300/90 hover:fill-teal-300 p-1.5 size-full"
@@ -17,5 +18,8 @@
     >
         Sort events
     </p>
-    </div>
+
+    {% with modal_id='sort-menu-dropdown', modal_title='Sort events' %}
+        {% include "/components/popups/modals/table-operation-modal.html" %}
+    {% endwith %}
 </div>
