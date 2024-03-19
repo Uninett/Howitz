@@ -485,8 +485,11 @@ def unselect_event(i):
     except ValueError:
         pass
 
+    show_clear_flapping = all(event == 'portstate' for event in session.get("selected_events", dict(k='v')).values())
+
     return render_template('/responses/toggle-select.html', id=i, is_checked=False,
-                           is_menu=len(session["selected_events"]) > 0, event_type=event_type, show_clear_flapping=True)
+                           is_menu=len(session["selected_events"]) > 0, event_type=event_type,
+                           show_clear_flapping=show_clear_flapping)
 
 
 @main.route('/event/<i>/select', methods=["GET"])
@@ -499,8 +502,11 @@ def select_event(i):
     except ValueError:
         pass
 
+    show_clear_flapping = all(event == 'portstate' for event in session.get("selected_events", dict(k='v')).values())
+
     return render_template('/responses/toggle-select.html', id=i, is_checked=True,
-                           is_menu=len(session["selected_events"]) > 0, event_type=event_type, show_clear_flapping=True)
+                           is_menu=len(session["selected_events"]) > 0, event_type=event_type,
+                           show_clear_flapping=show_clear_flapping)
 
 
 @main.route('/event/bulk_clear_flapping', methods=['POST'])
