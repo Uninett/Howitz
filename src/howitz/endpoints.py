@@ -498,7 +498,31 @@ def select_event(i):
         pass
 
     return render_template('/responses/toggle-select.html', id=i, is_checked=True,
-                           is_menu=len(session["selected_events"]) > 0)
+                           is_menu=len(session["selected_events"]) > 0, show_clear_flapping=True)
+
+
+@main.route('/event/bulk_clear_flapping', methods=['POST'])
+def bulk_clear_flapping():
+    selected_events = session.get("selected_events", [])
+    expanded_events = session.get("expanded_events", [])
+    current_app.logger.debug('SELECTED EVENTS %s', selected_events)
+    current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
+
+    # Update each selected event with new values
+    for event_id in selected_events:
+        flapping_res = current_app.event_manager.clear_flapping(int(event_id))
+
+        if not flapping_res:
+            raise MethodNotAllowed(description='Cant clear flapping on a non-port event.')
+
+    # Clear selected events
+    session["selected_events"] = []
+    session.modified = True  # Necessary when modifying arrays/dicts/etc in flask session
+    current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
+
+    # Rerender whole events table
+    poll_events_list = poll_current_events()  # Calling poll events method is needed to preserve info about which events are expanded
+    return render_template('/responses/bulk-update-events-status.html', poll_event_list=poll_events_list)
 
 
 @main.route('/event/<i>/clear-flapping', methods=["POST"])
