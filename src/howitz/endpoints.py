@@ -477,6 +477,7 @@ def show_update_events_status_modal():
 
 @main.route('/event/<i>/unselect', methods=["GET"])
 def unselect_event(i):
+    event_type = request.args.get('eventtype', '')
     try:
         session["selected_events"].pop(str(i), None)
         session.modified = True
@@ -485,20 +486,21 @@ def unselect_event(i):
         pass
 
     return render_template('/responses/toggle-select.html', id=i, is_checked=False,
-                           is_menu=len(session["selected_events"]) > 0, show_clear_flapping=True)
+                           is_menu=len(session["selected_events"]) > 0, event_type=event_type, show_clear_flapping=True)
 
 
 @main.route('/event/<i>/select', methods=["GET"])
 def select_event(i):
+    event_type = request.args.get('eventtype', '')
     try:
-        session["selected_events"][str(i)] = ""
+        session["selected_events"][str(i)] = event_type
         session.modified = True
         current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
     except ValueError:
         pass
 
     return render_template('/responses/toggle-select.html', id=i, is_checked=True,
-                           is_menu=len(session["selected_events"]) > 0, show_clear_flapping=True)
+                           is_menu=len(session["selected_events"]) > 0, event_type=event_type, show_clear_flapping=True)
 
 
 @main.route('/event/bulk_clear_flapping', methods=['POST'])

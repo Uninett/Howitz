@@ -6,7 +6,7 @@
                    type="checkbox"
                    class="w-4 h-4 text-white rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-offset-gray-800 focus:ring-2 bg-gray-700 border-gray-500"
                    checked
-                   hx-get="/event/{{ id }}/unselect"
+                   hx-get="/event/{{ id }}/unselect?eventtype={{ event.type }}"
                    hx-trigger='click from:#unselect-event-{{ id }}, dblclick from:#unselect-event-{{ id }} consume'
                    hx-target="#checked-box-{{ id }}"
                    hx-swap="outerHTML"
@@ -23,7 +23,7 @@
                    type="checkbox"
                    class="w-4 h-4 text-white rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-offset-gray-800 focus:ring-2 bg-gray-700 border-gray-500"
                    checked
-                   hx-get="/event/{{ id }}/unselect"
+                   hx-get="/event/{{ id }}/unselect?eventtype={{ event.type }}"
                    hx-trigger='click from:#unselect-event-{{ id }}, dblclick from:#unselect-event-{{ id }} consume'
                    hx-target="#checked-box-{{ id }}"
                    hx-swap="outerHTML"
