@@ -59,7 +59,7 @@ def auth_handler(username, password):
             current_app.logger.debug('HOWITZ CONFIG %s', current_app.howitz_config)
             login_user(user, remember=True)
             flash('Logged in successfully.')
-            session["selected_events"] = []
+            session["selected_events"] = {}
             session["expanded_events"] = {}
             session["errors"] = {}
             session["not_connected_counter"] = 0
@@ -76,7 +76,7 @@ def logout_handler():
         current_app.logger.debug("Zino session was disconnected")
         flash('Logged out successfully.')
         session.pop('expanded_events', {})
-        session.pop('selected_events', [])
+        session.pop('selected_events', {})
         session.pop('errors', {})
         session.pop('not_connected_counter', 0)
         current_app.logger.info("Logged out successfully.")
@@ -355,7 +355,7 @@ def expand_event_row(event_id):
         pass
 
     event_id = int(event_id)
-    selected_events = session.get("selected_events") or []
+    selected_events = session.get("selected_events") or {}
 
     event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
     try:
@@ -385,7 +385,7 @@ def collapse_event_row(event_id):
         pass
 
     event_id = int(event_id)
-    selected_events = session.get("selected_events") or []
+    selected_events = session.get("selected_events") or {}
 
     try:
         eventobj = current_app.event_manager.create_event_from_id(event_id)
@@ -409,7 +409,7 @@ def update_event_status(event_id):
     current_state = event.adm_state
 
     if request.method == 'POST':
-        selected_events = session.get("selected_events", [])
+        selected_events = session.get("selected_events", {})
 
         new_state = request.form['event-state']
         new_history = request.form['event-history']
@@ -439,8 +439,8 @@ def update_event_status(event_id):
 
 @main.route('/event/bulk_update_status', methods=['POST'])
 def bulk_update_events_status():
-    selected_events = session.get("selected_events", [])
-    expanded_events = session.get("expanded_events", [])
+    selected_events = session.get("selected_events", {})
+    expanded_events = session.get("expanded_events", {})
     current_app.logger.debug('SELECTED EVENTS %s', selected_events)
     current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
@@ -461,7 +461,7 @@ def bulk_update_events_status():
             add_history_res = current_app.event_manager.add_history_entry_for_id(int(event_id), new_history)
 
     # Clear selected events
-    session["selected_events"] = []
+    session["selected_events"] = {}
     session.modified = True  # Necessary when modifying arrays/dicts/etc in flask session
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
@@ -478,7 +478,7 @@ def show_update_events_status_modal():
 @main.route('/event/<i>/unselect', methods=["GET"])
 def unselect_event(i):
     try:
-        session["selected_events"].remove(i)
+        session["selected_events"].pop(str(i), None)
         session.modified = True
         current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
     except ValueError:
@@ -491,7 +491,7 @@ def unselect_event(i):
 @main.route('/event/<i>/select', methods=["GET"])
 def select_event(i):
     try:
-        session["selected_events"].append(i)
+        session["selected_events"][str(i)] = ""
         session.modified = True
         current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
     except ValueError:
@@ -503,8 +503,8 @@ def select_event(i):
 
 @main.route('/event/bulk_clear_flapping', methods=['POST'])
 def bulk_clear_flapping():
-    selected_events = session.get("selected_events", [])
-    expanded_events = session.get("expanded_events", [])
+    selected_events = session.get("selected_events", {})
+    expanded_events = session.get("expanded_events", {})
     current_app.logger.debug('SELECTED EVENTS %s', selected_events)
     current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
@@ -516,7 +516,7 @@ def bulk_clear_flapping():
             raise MethodNotAllowed(description='Cant clear flapping on a non-port event.')
 
     # Clear selected events
-    session["selected_events"] = []
+    session["selected_events"] = {}
     session.modified = True  # Necessary when modifying arrays/dicts/etc in flask session
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
@@ -527,7 +527,7 @@ def bulk_clear_flapping():
 
 @main.route('/event/<i>/clear-flapping', methods=["POST"])
 def clear_flapping(i):
-    selected_events = session.get("selected_events", [])
+    selected_events = session.get("selected_events", {})
     event_id = int(i)
 
     flapping_res = current_app.event_manager.clear_flapping(event_id)
