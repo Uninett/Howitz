@@ -485,7 +485,7 @@ def unselect_event(i):
         pass
 
     return render_template('/responses/toggle-select.html', id=i, is_checked=False,
-                           is_menu=len(session["selected_events"]) > 0)
+                           is_menu=len(session["selected_events"]) > 0, show_clear_flapping=True)
 
 
 @main.route('/event/<i>/select', methods=["GET"])
