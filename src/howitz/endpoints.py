@@ -267,7 +267,7 @@ def index():
     return render_template('/views/events.html')
 
 
-@main.get('/footer.html')
+@main.get('/footer')
 def footer():
     tz = current_app.howitz_config["timezone"]  # Get raw string from config. Accepted values are 'UTC' or 'LOCAL'.
     if tz == 'LOCAL':  # Change to a specific timezone name if 'LOCAL'
@@ -275,7 +275,7 @@ def footer():
     elif not tz == DEFAULT_TIMEZONE:  # Fall back to default if invalid value is provided
         tz = f"{DEFAULT_TIMEZONE} (default)"
 
-    return render_template('/components/footer/footer.html', poll_interval=current_app.howitz_config["poll_interval"],
+    return render_template('/components/footer/footer-info.html', poll_interval=current_app.howitz_config["poll_interval"],
                            timezone=tz)
 
 
