@@ -12,6 +12,8 @@
     <h1 class="sr-only">Events table</h1>
     <main class="relative shadow-md sm:rounded-lg">
 
+    {% include "/components/toolbar/table-toolbar.html"%}
+
         <div
                 hx-get="events-table.html"
                 hx-swap="outerHTML"

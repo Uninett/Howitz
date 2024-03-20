@@ -1,0 +1,25 @@
+<div class="relative flex flex-col items-center">
+    <button class="block bg-gray-600/90 hover:bg-gray-500 rounded-md m-1.5 size-9 focus:ring-2 focus:outline-none focus:ring-teal-300"
+            hx-on:mouseenter="htmx.removeClass(htmx.find('#toggle-popover'), 'invisible')"
+            hx-on:mouseleave="htmx.addClass(htmx.find('#toggle-popover'), 'invisible')"
+            hx-on:click="htmx.removeClass(htmx.find('#column-toggle-menu-dropdown'), 'invisible')"
+            aria-describedby="toggle-popover"
+    >
+        <svg class="fill-teal-300/90 hover:fill-teal-300 p-1.5 size-full"
+             xmlns="http://www.w3.org/2000/svg"
+             viewBox="0 0 576 512">
+            <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+            <path d="M384 128c70.7 0 128 57.3 128 128s-57.3 128-128 128H192c-70.7 0-128-57.3-128-128s57.3-128 128-128H384zM576 256c0-106-86-192-192-192H192C86 64 0 150 0 256S86 448 192 448H384c106 0 192-86 192-192zM192 352a96 96 0 1 0 0-192 96 96 0 1 0 0 192z"/>
+        </svg>
+    </button>
+
+    <p id="toggle-popover" role="tooltip"
+       class="absolute -top-4 h-fit z-40 invisible flow-root w-fit text-xs font-semibold text-nowrap text-teal-900 transition-opacity duration-300 bg-teal-300 rounded-md px-1 py-0.5"
+    >
+        Toggle columns
+    </p>
+
+    {% with modal_id='column-toggle-menu-dropdown', modal_title='Toggle columns' %}
+        {% include "/components/popups/modals/table-operation-modal.html" %}
+    {% endwith %}
+</div>
