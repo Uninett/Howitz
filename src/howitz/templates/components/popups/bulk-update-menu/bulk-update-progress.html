@@ -1,0 +1,15 @@
+<div role="status" id="bulk-clear-flapping-indicator"
+     class="htmx-indicator lg:absolute flex flex-nowrap items-center gap-1 text-lg font-medium text-white">
+    {% with color='white' %}
+        {% include "/components/feedback/spinner/spinner.svg" %}
+    {% endwith %}
+    Clearing flapping...
+</div>
+
+<div role="status" id="bulk-poll-indicator"
+     class="htmx-indicator lg:absolute flex flex-nowrap items-center gap-1 text-lg font-medium text-white">
+    {% with color='white' %}
+        {% include "/components/feedback/spinner/spinner.svg" %}
+    {% endwith %}
+    Polling...
+</div>

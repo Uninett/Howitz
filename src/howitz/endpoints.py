@@ -16,7 +16,7 @@ from flask_login import login_user, current_user, logout_user
 
 from datetime import datetime, timezone
 
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import BadRequest, MethodNotAllowed
 from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState, LogEntry, HistoryEntry
 from zinolib.compat import StrEnum
@@ -59,7 +59,7 @@ def auth_handler(username, password):
             current_app.logger.debug('HOWITZ CONFIG %s', current_app.howitz_config)
             login_user(user, remember=True)
             flash('Logged in successfully.')
-            session["selected_events"] = []
+            session["selected_events"] = {}
             session["expanded_events"] = {}
             session["errors"] = {}
             session["not_connected_counter"] = 0
@@ -76,7 +76,7 @@ def logout_handler():
         current_app.logger.debug("Zino session was disconnected")
         flash('Logged out successfully.')
         session.pop('expanded_events', {})
-        session.pop('selected_events', [])
+        session.pop('selected_events', {})
         session.pop('errors', {})
         session.pop('not_connected_counter', 0)
         current_app.logger.info("Logged out successfully.")
@@ -355,7 +355,7 @@ def expand_event_row(event_id):
         pass
 
     event_id = int(event_id)
-    selected_events = session.get("selected_events") or []
+    selected_events = session.get("selected_events") or {}
 
     event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
     try:
@@ -385,7 +385,7 @@ def collapse_event_row(event_id):
         pass
 
     event_id = int(event_id)
-    selected_events = session.get("selected_events") or []
+    selected_events = session.get("selected_events") or {}
 
     try:
         eventobj = current_app.event_manager.create_event_from_id(event_id)
@@ -409,7 +409,7 @@ def update_event_status(event_id):
     current_state = event.adm_state
 
     if request.method == 'POST':
-        selected_events = session.get("selected_events", [])
+        selected_events = session.get("selected_events", {})
 
         new_state = request.form['event-state']
         new_history = request.form['event-history']
@@ -439,8 +439,8 @@ def update_event_status(event_id):
 
 @main.route('/event/bulk_update_status', methods=['POST'])
 def bulk_update_events_status():
-    selected_events = session.get("selected_events", [])
-    expanded_events = session.get("expanded_events", [])
+    selected_events = session.get("selected_events", {})
+    expanded_events = session.get("expanded_events", {})
     current_app.logger.debug('SELECTED EVENTS %s', selected_events)
     current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
@@ -461,7 +461,7 @@ def bulk_update_events_status():
             add_history_res = current_app.event_manager.add_history_entry_for_id(int(event_id), new_history)
 
     # Clear selected events
-    session["selected_events"] = []
+    session["selected_events"] = {}
     session.modified = True  # Necessary when modifying arrays/dicts/etc in flask session
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
@@ -477,28 +477,79 @@ def show_update_events_status_modal():
 
 @main.route('/event/<i>/unselect', methods=["GET"])
 def unselect_event(i):
+    event_type = request.args.get('eventtype', '')
     try:
-        session["selected_events"].remove(i)
+        session["selected_events"].pop(str(i), None)
         session.modified = True
         current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
     except ValueError:
         pass
 
+    show_clear_flapping = all(event == 'portstate' for event in session.get("selected_events", dict(k='v')).values())
+
     return render_template('/responses/toggle-select.html', id=i, is_checked=False,
-                           is_menu=len(session["selected_events"]) > 0)
+                           is_menu=len(session["selected_events"]) > 0, event_type=event_type,
+                           show_clear_flapping=show_clear_flapping)
 
 
 @main.route('/event/<i>/select', methods=["GET"])
 def select_event(i):
+    event_type = request.args.get('eventtype', '')
     try:
-        session["selected_events"].append(i)
+        session["selected_events"][str(i)] = event_type
         session.modified = True
         current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
     except ValueError:
         pass
 
+    show_clear_flapping = all(event == 'portstate' for event in session.get("selected_events", dict(k='v')).values())
+
     return render_template('/responses/toggle-select.html', id=i, is_checked=True,
-                           is_menu=len(session["selected_events"]) > 0)
+                           is_menu=len(session["selected_events"]) > 0, event_type=event_type,
+                           show_clear_flapping=show_clear_flapping)
+
+
+@main.route('/event/bulk_clear_flapping', methods=['POST'])
+def bulk_clear_flapping():
+    selected_events = session.get("selected_events", {})
+    expanded_events = session.get("expanded_events", {})
+    current_app.logger.debug('SELECTED EVENTS %s', selected_events)
+    current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
+
+    # Update each selected event with new values
+    for event_id in selected_events:
+        flapping_res = current_app.event_manager.clear_flapping(int(event_id))
+
+        if not flapping_res:
+            raise MethodNotAllowed(description='Cant clear flapping on a non-port event.')
+
+    # Clear selected events
+    session["selected_events"] = {}
+    session.modified = True  # Necessary when modifying arrays/dicts/etc in flask session
+    current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
+
+    # Rerender whole events table
+    poll_events_list = poll_current_events()  # Calling poll events method is needed to preserve info about which events are expanded
+    return render_template('/responses/bulk-update-events-status.html', poll_event_list=poll_events_list)
+
+
+@main.route('/event/<i>/clear-flapping', methods=["POST"])
+def clear_flapping(i):
+    selected_events = session.get("selected_events", {})
+    event_id = int(i)
+
+    flapping_res = current_app.event_manager.clear_flapping(event_id)
+
+    if flapping_res:
+        event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
+        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+
+        return render_template('/responses/update-event-response.html', event=event, id=event_id, event_attr=event_attr,
+                               event_logs=event_logs,
+                               event_history=event_history, event_msgs=event_msgs,
+                               is_selected=str(event_id) in selected_events)
+    else:
+        raise MethodNotAllowed(description='Cant clear flapping on a non-port event.')
 
 
 @main.route('/navbar/show-user-menu', methods=["GET"])
