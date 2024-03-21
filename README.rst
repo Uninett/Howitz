@@ -26,14 +26,14 @@ Tip:
 Run in development-mode
 -----------------------
 
-You need to have either a minimal configuration file or set two environment varibles, see `Configuration`_.
-
+You need to have either a minimal configuration file or set two environment variables, see `Configuration`_.
 Tip for quickly setting up an extensive config file for dev:
 
     Check out the `Example config-file for development`_ section.
 
 
-Either of::
+After both installation (see `Install safely`_) and `Configuration`_ are done, you can run Howitz by running
+either::
 
     $ python3 -m howitz
 
@@ -41,8 +41,14 @@ or::
 
     $ flask --app howitz run
 
-should get you a server running on http://127.0.0.1:5000/ The database is by
-default put in the current directory.
+This will get you a web interface running on http://127.0.0.1:5000/.
+The database (see `User management`_) is by default put in the current directory.
+
+**NB!**:
+
+    If you get an error when attempting to log in for the first time, make sure you have created a user in the Howitz
+    database, see `Managing the Howitz user database`_.
+
 
 Run in production
 -----------------
