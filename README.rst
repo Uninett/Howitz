@@ -159,11 +159,11 @@ Via configuration file::
     SECRET_KEY = "long string!"
 
     [zino.connections.default]
-    server = "some.server.tld"
+    server = "zino.server.domain"
 
 Directly via environment variables::
 
-    HOWITZ_SECRET_KEY="long string!" HOWITZ_ZINO1_SERVER="some.server.tld"
+    HOWITZ_SECRET_KEY="long string!" HOWITZ_ZINO1_SERVER="zino.server.domain"
 
 All config options can be overruled by environment variables. Prefix with
 "HOWITZ\_" for Flask-specific options and "HOWITZ_ZINO1\_" for Zino-specific
