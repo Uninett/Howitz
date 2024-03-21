@@ -28,6 +28,11 @@ Run in development-mode
 
 You need to have either a minimal configuration file or set two environment varibles, see `Configuration`_.
 
+Tip for quickly setting up an extensive config file for dev:
+
+    Check out the `Example config-file for development`_ section.
+
+
 Either of::
 
     $ python3 -m howitz
