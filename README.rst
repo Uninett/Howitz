@@ -53,6 +53,14 @@ The database (see `User management`_) is by default put in the current directory
 Run in production
 -----------------
 
+You need to have either a minimal configuration file or set two environment variables, see `Configuration`_.
+
+Tip for quickly setting up an extensive config file:
+
+    Check out the `Example config-file for development`_ section. Make sure config file is appropriate for production,
+    see `Config file for production`_.
+
+
 Always use an installed howitz.
 
 * gunicorn: ``gunicorn 'howitz:create_app()'``
