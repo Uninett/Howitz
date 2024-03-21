@@ -10,8 +10,8 @@ Install safely
 
 Make and activate a virtualenv, install dependencies in that virtualenv::
 
-    $ python3 -m venv howitz
-    $ source howitz/bin/activate
+    $ python3 -m venv howitzvenv
+    $ source howitzvenv/bin/activate
     $ pip install -e .
 
 Howitz is deeply dependent on the library ``zinolib``. When developing Howitz,
