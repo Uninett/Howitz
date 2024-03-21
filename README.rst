@@ -151,9 +151,9 @@ listen-address (127.0.0.1), port (5000) and storage location
 (./howitz.sqlite3). However, at minimum you also need to pass in a SECRET_KEY
 for Flask and a zino server to fetch events from.
 
-These can be passed via a configuration file, ".howitz.toml" (in the current directory or user home directory) or via environment variables.
+These can be passed via a configuration file, ".howitz.toml" (stored in the current directory or user home directory) or via environment variables.
 
-Via configuration file::
+Via ".howitz.toml" configuration file::
 
     [flask]
     SECRET_KEY = "long string!"
