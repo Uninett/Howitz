@@ -14,10 +14,14 @@ Make and activate a virtualenv, install dependencies in that virtualenv::
     $ source howitzvenv/bin/activate
     $ pip install -e .
 
-Howitz is deeply dependent on the library ``zinolib``. When developing Howitz,
-it might be prudent to add zinolib manually to the virtualenv by downloading
-the source, entering the directory and running ``pip install -e .``. This will
-make it very easy to switch between versions and branches of zinolib.
+
+Tip:
+
+    Howitz is deeply dependent on the library ``zinolib``. When developing Howitz,
+    it might be prudent to add zinolib manually to the virtualenv by downloading
+    the source, entering the directory and running ``pip install -e .``. This will
+    make it very easy to switch between versions and branches of zinolib.
+
 
 Run in development-mode
 -----------------------
