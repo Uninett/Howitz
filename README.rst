@@ -127,6 +127,23 @@ Get help for each sub-command with appending "--help", for instance::
       -t, --token TEXT
       --help               Show this message and exit.
 
+About username, password and token values
+-----------------------------------------
+
+When running `commands <All available commands>`_ to Howitz user database, you may need to provide all or some of the options.
+
+``USERNAME``
+    an **existing** username on your Zino server. **You will need to provide it when logging in to Howitz on web.**
+
+``TOKEN``
+    token assigned to a given username on on your Zino server. In the original Zino protocol this value is referred to as a *Secret*.
+    Store it in the Howitz database once and forget about it when logging in to Howitz on web.
+
+``PASSWORD``
+    a password of your choice. This one is purely Howitz-specific. **You will need to provide it when logging in to Howitz on web.**
+
+
+
 All available commands
 ----------------------
 
