@@ -59,19 +59,19 @@ class EventSorting(Enum):
         return obj
 
     def __init__(self, _: str, attribute: str = None, reversed: bool = None):
-        self._attribute_ = attribute
-        self._reversed_ = reversed
+        self._attribute = attribute
+        self._reversed = reversed
 
     def __str__(self):
         return self.value
 
     @property
     def attribute(self):
-        return self._attribute_
+        return self._attribute
 
     @property
     def reversed(self):
-        return self._reversed_
+        return self._reversed
 
 
 def auth_handler(username, password):
