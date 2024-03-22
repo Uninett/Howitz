@@ -11,8 +11,8 @@ timezone='LOCAL'
 [zino.connections.default]
 server =
 
-[zino.connections.other]
-server =
+#[zino.connections.other]
+#server =
 
 [logging]
 version = 1
