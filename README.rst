@@ -2,6 +2,57 @@
 Howitz - Zino web client with HTMx and Flask
 ============================================
 
+
+Running Howitz step-by-step overview
+====================================
+
+1. Preparation step:
+    1. Make sure you have ``python3``, ``pip`` and ``git`` installed.
+    2. Download `Howitz from the GitHub repo <https://github.com/Uninett/Howitz>`_.
+
+2. Installation step:
+    1. Activate `venv`, from the project root folder run::
+
+        $ python3 -m venv howitzvenv
+        $ source howitzvenv/bin/activate
+
+    2. Install dependencies, from the project root folder run::
+
+        $ pip install -e .
+
+    Read more about installation in the `Install safely`_ section.
+
+3. Configuration step:
+    The easiest way to configure Howitz is via ``toml`` file.
+
+    1. Create empty ``.howitz.toml`` file in the project root folder.
+    2. Copy values from the example config file ``dev-howitz.toml`` to the ``.howitz.toml``.
+    3. Open ``.howitz.toml`` file and fill out 2 of the required config values: ``SECRET_KEY`` and ``server``. Those values are left empty in the example config file.
+    4. Play around with the config values in `.howitz.toml`` file if desired.
+
+    Read more about other configuration methods, and different configurations options and variables in the `Configuration`_ section.
+
+4. User management step:
+    1. Check if you have an existing user in the Howitz database, from the project root folder run::
+
+        $ flask --app howitz user list
+
+    2. Create a new user if you do not have one already, from the project root folder run::
+
+        $ flask --app howitz user create USERNAME PASSWORD TOKEN
+
+    Read more about user management and other commands in the `User management`_ section.
+
+5. Run Howitz:
+    1. Start Howitz as a flask app, from the project root folder run::
+
+        $ python3 -m howitz
+
+    2. Open Howitz in browser. By default in dev, Howitz will be accessible on  http://127.0.0.1:5000.
+
+    Read more about running Howitz in the `Play around`_ section.
+
+
 Play around
 ===========
 
