@@ -2,6 +2,57 @@
 Howitz - Zino web client with HTMx and Flask
 ============================================
 
+
+Running Howitz step-by-step overview
+====================================
+
+1. Preparation step:
+    1. Make sure you have ``python3``, ``pip`` and ``git`` installed.
+    2. Download `Howitz from the GitHub repo <https://github.com/Uninett/Howitz>`_.
+
+2. Installation step:
+    1. Activate `venv`, from the project root folder run::
+
+        $ python3 -m venv howitzvenv
+        $ source howitzvenv/bin/activate
+
+    2. Install dependencies, from the project root folder run::
+
+        $ pip install -e .
+
+    Read more about installation in the `Install safely`_ section.
+
+3. Configuration step:
+    The easiest way to configure Howitz is via ``toml`` file.
+
+    1. Create empty ``.howitz.toml`` file in the project root folder.
+    2. Copy values from the example config file ``dev-howitz.toml`` to the ``.howitz.toml``.
+    3. Open ``.howitz.toml`` file and fill out 2 of the required config values: ``SECRET_KEY`` and ``server``. Those values are left empty in the example config file.
+    4. Play around with the config values in `.howitz.toml`` file if desired.
+
+    Read more about other configuration methods, and different configurations options and variables in the `Configuration`_ section.
+
+4. User management step:
+    1. Check if you have an existing user in the Howitz database, from the project root folder run::
+
+        $ flask --app howitz user list
+
+    2. Create a new user if you do not have one already, from the project root folder run::
+
+        $ flask --app howitz user create USERNAME PASSWORD TOKEN
+
+    Read more about user management and other commands in the `User management`_ section.
+
+5. Run Howitz:
+    1. Start Howitz as a flask app, from the project root folder run::
+
+        $ python3 -m howitz
+
+    2. Open Howitz in browser. By default in dev, Howitz will be accessible on  http://127.0.0.1:5000.
+
+    Read more about running Howitz in the `Play around`_ section.
+
+
 Play around
 ===========
 
@@ -10,21 +61,30 @@ Install safely
 
 Make and activate a virtualenv, install dependencies in that virtualenv::
 
-    $ python3 -m venv howitz
-    $ source howitz/bin/activate
+    $ python3 -m venv howitzvenv
+    $ source howitzvenv/bin/activate
     $ pip install -e .
 
-Howitz is deeply dependent on the library ``zinolib``. When developing Howitz,
-it might be prudent to add zinolib manually to the virtualenv by downloading
-the source, entering the directory and running ``pip install -e .``. This will
-make it very easy to switch between versions and branches of zinolib.
+
+Tip:
+
+    Howitz is deeply dependent on the library ``zinolib``. When developing Howitz,
+    it might be prudent to add zinolib manually to the virtualenv by downloading
+    the source, entering the directory and running ``pip install -e .``. This will
+    make it very easy to switch between versions and branches of zinolib.
+
 
 Run in development-mode
 -----------------------
 
-You need to have either a minimal configuration file or set two environment varibles, see `Configuration`_.
+You need to have either a minimal configuration file or set two environment variables, see `Configuration`_.
+Tip for quickly setting up an extensive config file for dev:
 
-Either of::
+    Check out the `Example config-file for development`_ section.
+
+
+After both installation (see `Install safely`_) and `Configuration`_ are done, you can run Howitz by running
+either::
 
     $ python3 -m howitz
 
@@ -32,11 +92,25 @@ or::
 
     $ flask --app howitz run
 
-should get you a server running on http://127.0.0.1:5000/ The database is by
-default put in the current directory.
+This will get you a web interface running on http://127.0.0.1:5000/.
+The database (see `User management`_) is by default put in the current directory.
+
+**NB!**:
+
+    If you get an error when attempting to log in for the first time, make sure you have created a user in the Howitz
+    database, see `Managing the Howitz user database`_.
+
 
 Run in production
 -----------------
+
+You need to have either a minimal configuration file or set two environment variables, see `Configuration`_.
+
+Tip for quickly setting up an extensive config file:
+
+    Check out the `Example config-file for development`_ section. Make sure config file is appropriate for production,
+    see `Config file for production`_.
+
 
 Always use an installed howitz.
 
@@ -104,6 +178,23 @@ Get help for each sub-command with appending "--help", for instance::
       -t, --token TEXT
       --help               Show this message and exit.
 
+About username, password and token values
+-----------------------------------------
+
+When running `commands <All available commands>`_ to Howitz user database, you may need to provide all or some of the options.
+
+``USERNAME``
+    an **existing** username on your Zino server. **You will need to provide it when logging in to Howitz on web.**
+
+``TOKEN``
+    token assigned to a given username on on your Zino server. In the original Zino protocol this value is referred to as a *Secret*.
+    Store it in the Howitz database once and forget about it when logging in to Howitz on web.
+
+``PASSWORD``
+    a password of your choice. This one is purely Howitz-specific. **You will need to provide it when logging in to Howitz on web.**
+
+
+
 All available commands
 ----------------------
 
@@ -128,19 +219,19 @@ listen-address (127.0.0.1), port (5000) and storage location
 (./howitz.sqlite3). However, at minimum you also need to pass in a SECRET_KEY
 for Flask and a zino server to fetch events from.
 
-These can be passed via a configuration file, ".howitz.toml" (in the current directory or user home directory) or via environment variables.
+These can be passed via a configuration file, ".howitz.toml" (stored in the current directory or user home directory) or via environment variables.
 
-Via configuration file::
+Via ".howitz.toml" configuration file::
 
     [flask]
     SECRET_KEY = "long string!"
 
     [zino.connections.default]
-    server = "some.server.tld"
+    server = "zino.server.domain"
 
 Directly via environment variables::
 
-    HOWITZ_SECRET_KEY="long string!" HOWITZ_ZINO1_SERVER="some.server.tld"
+    HOWITZ_SECRET_KEY="long string!" HOWITZ_ZINO1_SERVER="zino.server.domain"
 
 All config options can be overruled by environment variables. Prefix with
 "HOWITZ\_" for Flask-specific options and "HOWITZ_ZINO1\_" for Zino-specific
