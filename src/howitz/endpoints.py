@@ -122,6 +122,20 @@ def get_current_events():
     return table_events
 
 
+def update_events():
+    updated_ids = set()
+
+    while True:
+        updated = current_app.updater.get_event_update()
+        if updated:
+            updated_ids.add(updated)
+            continue
+        if updated is False:
+            break
+
+    return updated_ids
+
+
 def poll_current_events():
     try:
         current_app.event_manager.get_events()
