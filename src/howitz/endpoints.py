@@ -17,7 +17,7 @@ from flask_login import login_user, current_user, logout_user
 from datetime import datetime, timezone
 
 from werkzeug.exceptions import BadRequest
-from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError
+from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError, UpdateHandler
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState, LogEntry, HistoryEntry
 from zinolib.compat import StrEnum
 from zinolib.ritz import NotConnectedError, AuthenticationError
@@ -55,6 +55,9 @@ def auth_handler(username, password):
             current_app.logger.info('Authenticated in Zino %s', current_app.event_manager.is_authenticated)
 
         if current_app.event_manager.is_authenticated:  # is zino authenticated
+            current_app.updater = UpdateHandler(current_app.event_manager)
+            current_app.logger.debug('UpdateHandler %s', current_app.updater)
+
             current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
             current_app.logger.debug('HOWITZ CONFIG %s', current_app.howitz_config)
             login_user(user, remember=True)
