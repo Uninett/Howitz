@@ -137,33 +137,32 @@ def update_events():
 
 
 def poll_current_events():
-    try:
-        current_app.event_manager.get_events()
-    except NotConnectedError as notConnErr:
-        if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
-            current_app.logger.exception('Recurrent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
-            raise
-        else:  # This error is intermittent - increase counter and retry
-            current_app.logger.exception('Intermittent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
-            current_app.event_manager.get_events()
-            pass
+    event_ids = update_events()
+    current_app.logger.debug('UPDATED EVENT IDS %s', event_ids)
 
-    events = current_app.event_manager.events
+    removed_events = []
+    refreshed_events = []
+    added_events = []
+    removed = current_app.event_manager.removed_ids
+    existing = session["event_ids"]
+    for i in event_ids:
+        if i in removed:
+            removed_events.append(i)
+            existing.remove(i)
+        elif i not in existing:
+            c = current_app.event_manager.create_event_from_id(int(i))
+            added_events.append(create_polled_event(create_table_event(c), expanded=False, selected=False))
+            existing.insert(0, int(i))
+        else:
+            c = current_app.event_manager.create_event_from_id(int(i))
+            refreshed_events.append(create_polled_event(create_table_event(c),
+                                                        expanded=str(c.id) in session["expanded_events"],
+                                                        selected=str(c.id) in session["selected_events"]))
 
-    events_sorted = {k: events[k] for k in sorted(events,
-                                                  key=lambda k: (
-                                                      0 if events[k].adm_state == AdmState.IGNORED else 1,
-                                                      events[k].updated,
-                                                  ), reverse=True)}
+    session["event_ids"] = existing
+    session.modified = True
 
-    poll_events = []
-    for c in events_sorted.values():
-        poll_events.append(create_polled_event(create_table_event(c), expanded=str(c.id) in session["expanded_events"],
-                                               selected=str(c.id) in session["selected_events"]))
-
-    return poll_events
+    return removed_events, refreshed_events, added_events
 
 
 # todo remove all use of helpers from curitz
