@@ -17,7 +17,7 @@ from flask_login import login_user, current_user, logout_user
 from datetime import datetime, timezone
 
 from werkzeug.exceptions import BadRequest
-from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError
+from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError, UpdateHandler
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState, LogEntry, HistoryEntry
 from zinolib.compat import StrEnum
 from zinolib.ritz import NotConnectedError, AuthenticationError
@@ -55,6 +55,9 @@ def auth_handler(username, password):
             current_app.logger.info('Authenticated in Zino %s', current_app.event_manager.is_authenticated)
 
         if current_app.event_manager.is_authenticated:  # is zino authenticated
+            current_app.updater = UpdateHandler(current_app.event_manager)
+            current_app.logger.debug('UpdateHandler %s', current_app.updater)
+
             current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
             current_app.logger.debug('HOWITZ CONFIG %s', current_app.howitz_config)
             login_user(user, remember=True)
@@ -63,6 +66,7 @@ def auth_handler(username, password):
             session["expanded_events"] = {}
             session["errors"] = {}
             session["not_connected_counter"] = 0
+            session["event_ids"] = []
             return user
 
         raise AuthenticationError('Unexpected error on Zino authentication')
@@ -79,6 +83,7 @@ def logout_handler():
         session.pop('selected_events', [])
         session.pop('errors', {})
         session.pop('not_connected_counter', 0)
+        session.pop('event_ids', [])
         current_app.logger.info("Logged out successfully.")
 
 
@@ -104,6 +109,10 @@ def get_current_events():
                                                       events[k].updated,
                                                   ), reverse=True)}
 
+    # Save current events' IDs
+    session["event_ids"] = list(events_sorted.keys())
+    session.modified = True
+
     table_events = []
     for c in events_sorted.values():
         table_events.append(create_table_event(c))
@@ -113,34 +122,47 @@ def get_current_events():
     return table_events
 
 
+def update_events():
+    updated_ids = set()
+
+    while True:
+        updated = current_app.updater.get_event_update()
+        if updated:
+            updated_ids.add(updated)
+            continue
+        if updated is False:
+            break
+
+    return updated_ids
+
+
 def poll_current_events():
-    try:
-        current_app.event_manager.get_events()
-    except NotConnectedError as notConnErr:
-        if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
-            current_app.logger.exception('Recurrent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
-            raise
-        else:  # This error is intermittent - increase counter and retry
-            current_app.logger.exception('Intermittent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
-            current_app.event_manager.get_events()
-            pass
+    event_ids = update_events()
+    current_app.logger.debug('UPDATED EVENT IDS %s', event_ids)
 
-    events = current_app.event_manager.events
+    removed_events = []
+    refreshed_events = []
+    added_events = []
+    removed = current_app.event_manager.removed_ids
+    existing = session["event_ids"]
+    for i in event_ids:
+        if i in removed:
+            removed_events.append(i)
+            existing.remove(i)
+        elif i not in existing:
+            c = current_app.event_manager.create_event_from_id(int(i))
+            added_events.append(create_polled_event(create_table_event(c), expanded=False, selected=False))
+            existing.insert(0, int(i))
+        else:
+            c = current_app.event_manager.create_event_from_id(int(i))
+            refreshed_events.append(create_polled_event(create_table_event(c),
+                                                        expanded=str(c.id) in session["expanded_events"],
+                                                        selected=str(c.id) in session["selected_events"]))
 
-    events_sorted = {k: events[k] for k in sorted(events,
-                                                  key=lambda k: (
-                                                      0 if events[k].adm_state == AdmState.IGNORED else 1,
-                                                      events[k].updated,
-                                                  ), reverse=True)}
+    session["event_ids"] = existing
+    session.modified = True
 
-    poll_events = []
-    for c in events_sorted.values():
-        poll_events.append(create_polled_event(create_table_event(c), expanded=str(c.id) in session["expanded_events"],
-                                               selected=str(c.id) in session["selected_events"]))
-
-    return poll_events
+    return removed_events, refreshed_events, added_events
 
 
 # todo remove all use of helpers from curitz
@@ -340,9 +362,10 @@ def get_events():
 
 @main.route('/poll_events')
 def poll_events():
-    poll_events_list = poll_current_events()
+    removed_events, refreshed_events, added_events = poll_current_events()
 
-    return render_template('/components/poll/poll-rows.html', poll_event_list=poll_events_list)
+    return render_template('/responses/updated-rows.html', poll_event_list=refreshed_events,
+                           removed_event_list=removed_events, added_event_list=added_events)
 
 
 @main.route('/events/<event_id>/expand_row', methods=["GET"])

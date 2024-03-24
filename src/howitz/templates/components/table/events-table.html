@@ -22,10 +22,9 @@
     <tbody
             id="eventlist-list"
             hx-get="/poll_events"
-            hx-swap="innerHTML"
+            hx-swap="afterbegin"
             hx-target="#eventlist-list"
             hx-trigger="every {{ poll_interval }}s"
-
     >
     {% for n in range(30) %}
         {% include "/components/row/table-row-skeleton.html" %}
