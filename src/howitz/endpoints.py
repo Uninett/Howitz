@@ -66,6 +66,7 @@ def auth_handler(username, password):
             session["expanded_events"] = {}
             session["errors"] = {}
             session["not_connected_counter"] = 0
+            session["event_ids"] = []
             return user
 
         raise AuthenticationError('Unexpected error on Zino authentication')
@@ -82,6 +83,7 @@ def logout_handler():
         session.pop('selected_events', [])
         session.pop('errors', {})
         session.pop('not_connected_counter', 0)
+        session.pop('event_ids', [])
         current_app.logger.info("Logged out successfully.")
 
 
@@ -106,6 +108,10 @@ def get_current_events():
                                                       0 if events[k].adm_state == AdmState.IGNORED else 1,
                                                       events[k].updated,
                                                   ), reverse=True)}
+
+    # Save current events' IDs
+    session["event_ids"] = list(events_sorted.keys())
+    session.modified = True
 
     table_events = []
     for c in events_sorted.values():
