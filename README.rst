@@ -11,7 +11,7 @@ Running Howitz step-by-step overview
     2. Download Howitz from the `GitHub repo <https://github.com/Uninett/Howitz>`_.
 
 2. Installation step:
-    1. Activate `venv`, from the project root folder run::
+    1. Create and activate `venv`, from the project root folder run::
 
         $ python3 -m venv howitzvenv
         $ source howitzvenv/bin/activate
@@ -27,10 +27,10 @@ Running Howitz step-by-step overview
 
     1. Create an empty ``.howitz.toml`` file in the project root folder.
     2. Copy the values from the example config file ``dev-howitz.toml`` to ``.howitz.toml``.
-    3. Open ``.howitz.toml`` file and fill out 2 of the required config values: ``SECRET_KEY`` and ``server``. Those values are left empty in the example config file.
-    4. Play around with the config values in `.howitz.toml`` file if desired.
+    3. Open ``.howitz.toml`` and fill out at least the config values: ``SECRET_KEY`` and ``server``. Those values are left empty in the example config file.
+    4. Play around with the config values in ``.howitz.toml``, if desired.
 
-    Read more about other configuration methods, and different configurations options and variables in the `Configuration`_ section.
+    Read more about other configuration methods, different configurations options and variables in the `Configuration`_ section.
 
 4. User management step:
     1. Check if you have an existing user in the Howitz database, from the project root folder run::
@@ -59,7 +59,7 @@ Play around
 Install safely
 --------------
 
-Make and activate a virtualenv, install dependencies in that virtualenv::
+Create and activate a virtualenv, install dependencies in that virtualenv::
 
     $ python3 -m venv howitzvenv
     $ source howitzvenv/bin/activate
@@ -217,7 +217,7 @@ Configuration
 Howitz *can* run without a configuration file. Default values will be used for
 listen-address (127.0.0.1), port (5000) and storage location
 (./howitz.sqlite3). However, at minimum you also need to pass in a SECRET_KEY
-for Flask and a zino server to fetch events from.
+for Flask and a zino server address to fetch events from.
 
 These can be passed via a configuration file, ".howitz.toml" (stored in the current directory or user home directory) or via environment variables.
 
@@ -240,7 +240,7 @@ a string of a python dict but we do not recommend it, use a config file instead.
 
 The poll interval for the events table can be changed by adding for example ``poll_interval = 30`` to
 the ``[howitz]``-section or setting the environment variable ``HOWITZ_POLL_INTERVAL`` to a new value.
-Poll interval values represented seconds and must be integers. The default value is ``60`` seconds.
+Poll interval values are in seconds and must be integers. The default value is ``60`` seconds.
 
 Debugging can be turned on either by adding ``DEBUG = true`` to the
 ``[flask]``-section or setting the environment variable ``HOWITZ_DEBUG`` to ``1``.
@@ -256,11 +256,11 @@ Example config-file for development
 For development, copy the contents of the included file ``dev-howitz.toml`` to ``.howitz.toml`` in the same directory.
 
 1. Set ``[flask] -> SECRET_KEY`` to some long string.
-2. Set ``[zino.connections.default] -> server`` to a Zino 1 server.
-3. Optionally set ``[zino.connections.other] -> server`` to a fallback Zino
+2. Set ``[zino.connections.default] -> server`` to the address of a Zino 1 server.
+3. Optionally set ``[zino.connections.other] -> server`` to the address of a fallback Zino
    1 server. If the default server stops working you can swap "other" with
    "default" in the config-file and keep on working. If you don't set it to
-   anything, comment it out/remove it.
+   anything, keep it commented out or remove it.
 
 There's a handler "debug" that will copy everything DEBUG or higher to a file
 ``debug.log``, you might want to use this handler for your code.
