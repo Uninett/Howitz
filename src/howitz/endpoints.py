@@ -494,6 +494,29 @@ def poll(i):
         raise InternalServerError(description=f"Unexpected error when polling event #{event_id}")
 
 
+@main.route('/event/bulk_poll', methods=['POST'])
+def bulk_poll():
+    selected_events = session.get("selected_events", [])
+    expanded_events = session.get("expanded_events", [])
+    current_app.logger.debug('SELECTED EVENTS %s', selected_events)
+    current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
+
+    # Update each selected event with new values
+    for event_id in selected_events:
+        poll_res = current_app.event_manager.poll(int(event_id))
+
+        if not poll_res:
+            raise InternalServerError(description=f"Unexpected error when polling event #{event_id}")
+
+    # Clear selected events
+    session["selected_events"] = []
+    session.modified = True  # Necessary when modifying arrays/dicts/etc in flask session
+    current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
+
+    # Rerender whole events table
+    poll_events_list = poll_current_events()  # Calling poll events method is needed to preserve info about which events are expanded
+    return render_template('/responses/bulk-update-events-status.html', poll_event_list=poll_events_list)
+
 
 @main.route('/event/<i>/unselect', methods=["GET"])
 def unselect_event(i):
