@@ -480,9 +480,7 @@ def poll(i):
     selected_events = session.get("selected_events", [])
     event_id = int(i)
 
-    event = current_app.event_manager.create_event_from_id(event_id)
-
-    poll_res = current_app.event_manager.poll(event)
+    poll_res = current_app.event_manager.poll(event_id)
 
     if poll_res:
         event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
