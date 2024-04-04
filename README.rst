@@ -112,7 +112,7 @@ Tip for quickly setting up an extensive config file:
     production, see `Config file for production`_.
 
 
-Always use an installed howitz.
+Always use an installed Howitz.
 
 * gunicorn: ``gunicorn 'howitz:create_app()'``
 * waitress: ``waitress-serve --call howitz:create_app``
@@ -131,7 +131,7 @@ instead the token is stored where the browser cannot get to it, in a user
 database local to the frontend server.
 
 When logging in to Howitz a user uses a normal password (not the token) which
-is used to safely fetch the token for connecting to the zino protocol 1 server.
+is used to safely fetch the token for connecting to the Zino protocol 1 server.
 This password can be treated like any other password and be put in a vault or
 a password manager.
 
@@ -208,7 +208,7 @@ All available commands
     shows all known usernames
 
 ``update``
-    is used to change the web password or zino token for an existing user
+    is used to change the web password or Zino token for an existing user
 
 
 Configuration
@@ -217,7 +217,7 @@ Configuration
 Howitz *can* run without a configuration file. Default values will be used for
 listen-address (127.0.0.1), port (5000) and storage location
 (./howitz.sqlite3). However, at minimum you also need to pass in a SECRET_KEY
-for Flask and a zino server address to fetch events from.
+for Flask and a Zino server address to fetch events from.
 
 These can be passed via a configuration file, ".howitz.toml" (stored in the current directory or user home directory) or via environment variables.
 
@@ -236,7 +236,7 @@ Directly via environment variables::
 All config options can be overruled by environment variables. Prefix them with
 "HOWITZ\_" for Flask-specific options and "HOWITZ_ZINO1\_" for Zino-specific
 options. It is also possible to override logging by setting "HOWITZ_LOGGING" to
-a string of a python dict but we do not recommend it, use a config file instead.
+a string of a Python dict but we do not recommend it, use a config file instead.
 
 The poll interval for the events table can be changed by adding for example ``poll_interval = 30`` to
 the ``[howitz]``-section or setting the environment variable ``HOWITZ_POLL_INTERVAL`` to a new value.
