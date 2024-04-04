@@ -23,10 +23,10 @@ Running Howitz step-by-step overview
     Read more about installation in the `Install safely`_ section.
 
 3. Configuration step:
-    The easiest way to configure Howitz is via ``toml`` file.
+    The easiest way to configure Howitz is via a ``toml`` file.
 
-    1. Create empty ``.howitz.toml`` file in the project root folder.
-    2. Copy values from the example config file ``dev-howitz.toml`` to the ``.howitz.toml``.
+    1. Create an empty ``.howitz.toml`` file in the project root folder.
+    2. Copy the values from the example config file ``dev-howitz.toml`` to ``.howitz.toml``.
     3. Open ``.howitz.toml`` file and fill out 2 of the required config values: ``SECRET_KEY`` and ``server``. Those values are left empty in the example config file.
     4. Play around with the config values in `.howitz.toml`` file if desired.
 
@@ -48,7 +48,7 @@ Running Howitz step-by-step overview
 
         $ python3 -m howitz
 
-    2. Open Howitz in browser. By default in dev, Howitz will be accessible on  http://127.0.0.1:5000.
+    2. Open Howitz in the browser. By default in dev, Howitz will be accessible at http://127.0.0.1:5000.
 
     Read more about running Howitz in the `Play around`_ section.
 
@@ -92,7 +92,7 @@ or::
 
     $ flask --app howitz run
 
-This will get you a web interface running on http://127.0.0.1:5000/.
+This will get you a web interface running at http://127.0.0.1:5000/.
 The database (see `User management`_) is by default put in the current directory.
 
 **NB!**:
@@ -108,8 +108,8 @@ You need to have either a minimal configuration file or set two environment vari
 
 Tip for quickly setting up an extensive config file:
 
-    Check out the `Example config-file for development`_ section. Make sure config file is appropriate for production,
-    see `Config file for production`_.
+    Check out the `Example config-file for development`_ section. Make sure the config file is appropriate for
+    production, see `Config file for production`_.
 
 
 Always use an installed howitz.
@@ -125,7 +125,7 @@ User management
 ===============
 
 Due to how Zino protocol 1 does logins, the password (here called token) needs
-to be stored in plain text in every client. For security-reasons it is not
+to be stored in plain text in every client. For security reasons it is not
 desirable to ever store this token in a cookie or otherwise in a browser, so
 instead the token is stored where the browser cannot get to it, in a user
 database local to the frontend server.
@@ -133,7 +133,7 @@ database local to the frontend server.
 When logging in to Howitz a user uses a normal password (not the token) which
 is used to safely fetch the token for connecting to the zino protocol 1 server.
 This password can be treated like any other password and be put in a vault or
-a password-manager.
+a password manager.
 
 The mapping from websafe password to legacy token is done via a user database.
 The Zino backend server admin creates a token and username. The frontend server
@@ -187,7 +187,7 @@ When running `commands <All available commands>`_ to Howitz user database, you m
     an **existing** username on your Zino server. **You will need to provide it when logging in to Howitz on web.**
 
 ``TOKEN``
-    token assigned to a given username on on your Zino server. In the original Zino protocol this value is referred to as a *Secret*.
+    token assigned to a given username on your Zino server. In the original Zino protocol this value is referred to as a *Secret*.
     Store it in the Howitz database once and forget about it when logging in to Howitz on web.
 
 ``PASSWORD``
@@ -221,7 +221,7 @@ for Flask and a zino server to fetch events from.
 
 These can be passed via a configuration file, ".howitz.toml" (stored in the current directory or user home directory) or via environment variables.
 
-Via ".howitz.toml" configuration file::
+Via a ".howitz.toml" configuration file::
 
     [flask]
     SECRET_KEY = "long string!"
@@ -233,19 +233,19 @@ Directly via environment variables::
 
     HOWITZ_SECRET_KEY="long string!" HOWITZ_ZINO1_SERVER="zino.server.domain"
 
-All config options can be overruled by environment variables. Prefix with
+All config options can be overruled by environment variables. Prefix them with
 "HOWITZ\_" for Flask-specific options and "HOWITZ_ZINO1\_" for Zino-specific
 options. It is also possible to override logging by setting "HOWITZ_LOGGING" to
 a string of a python dict but we do not recommend it, use a config file instead.
 
-Poll interval for events table can be changed by adding for example ``poll_interval = 30`` to
+The poll interval for the events table can be changed by adding for example ``poll_interval = 30`` to
 the ``[howitz]``-section or setting the environment variable ``HOWITZ_POLL_INTERVAL`` to a new value.
 Poll interval values represented seconds and must be integers. The default value is ``60`` seconds.
 
 Debugging can be turned on either by adding ``DEBUG = true`` to the
 ``[flask]``-section or setting the environment variable ``HOWITZ_DEBUG`` to ``1``.
 
-Default timezone for timestamps is ``UTC``. Timezone information can be changed by adding ``timezone = "LOCAL"`` to
+The default timezone for timestamps is ``UTC``. Timezone information can be changed by adding ``timezone = "LOCAL"`` to
 the ``[howitz]``-section or setting the environment variable ``HOWITZ_TIMEZONE`` to ``LOCAL``. Timezone values other
 than ``LOCAL`` and ``UTC`` provided in config will be ignored and fall back to ``UTC``.
 
