@@ -147,7 +147,7 @@ fashion.
 Managing the Howitz user database
 ---------------------------------
 
-Users are by default stored in the file "./howitz.sqlite3", this can be changed
+Users are by default stored in the file ``./howitz.sqlite``, this can be changed
 in the configuration file.
 
 While it is possible to use an sqlite3-client to alter the database, setting
@@ -219,9 +219,10 @@ listen-address (127.0.0.1), port (5000) and storage location
 (./howitz.sqlite3). However, at minimum you also need to pass in a SECRET_KEY
 for Flask and a Zino server address to fetch events from.
 
-These can be passed via a configuration file, ".howitz.toml" (stored in the current directory or user home directory) or via environment variables.
+These can be passed via a configuration file, ``.howitz.toml`` (stored in the current directory or user home
+directory) or via environment variables.
 
-Via a ".howitz.toml" configuration file::
+Via a ``.howitz.toml`` configuration file::
 
     [flask]
     SECRET_KEY = "long string!"
@@ -262,7 +263,7 @@ For development, copy the contents of the included file ``dev-howitz.toml`` to `
    "default" in the config-file and keep on working. If you don't set it to
    anything, keep it commented out or remove it.
 
-There's a handler "debug" that will copy everything DEBUG or higher to a file
+There's a handler ``debug`` that will copy everything DEBUG or higher to a file
 ``debug.log``, you might want to use this handler for your code.
 
 The handler ``error`` will likewise put everything WARNING or higher in the
