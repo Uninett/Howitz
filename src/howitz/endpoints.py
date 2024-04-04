@@ -25,7 +25,7 @@ from zinolib.ritz import NotConnectedError, AuthenticationError
 
 from howitz.users.utils import authenticate_user
 
-from .config.models import DEFAULT_TIMEZONE
+from .config.defaults import DEFAULT_TIMEZONE
 from .utils import login_check, date_str_without_timezone
 
 main = Blueprint('main', __name__)
