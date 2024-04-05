@@ -8,7 +8,7 @@ Running Howitz step-by-step overview
 
 1. Preparation step:
     1. Make sure you have ``python3``, ``pip`` and ``git`` installed.
-    2. Download Howitz from the `GitHub repo <https://github.com/Uninett/Howitz>`_.
+    2. Download `Howitz from the GitHub repo <https://github.com/Uninett/Howitz>`_.
 
 2. Installation step:
     1. Create and activate `venv`, from the project root folder run::
