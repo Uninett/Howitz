@@ -483,7 +483,11 @@ def unselect_event(event_id):
     session.modified = True
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
-    show_clear_flapping = all(event == 'portstate' for event in session.get("selected_events", dict(k='v')).values())
+    show_clear_flapping = False
+    selected_event_types = session["selected_events"].values()
+    if bool(selected_event_types):  # selected events dict contains event types
+        # Allow bulk clear flapping only if all of selected events are confirmed portstate events
+        show_clear_flapping = all(event_type == 'portstate' for event_type in selected_event_types)
 
     return render_template('/responses/toggle-select.html', id=event_id, is_checked=False,
                            is_menu=len(session["selected_events"]) > 0, event_type=event_type,
@@ -499,7 +503,12 @@ def select_event(event_id):
     session.modified = True
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
-    show_clear_flapping = all(event == 'portstate' for event in session.get("selected_events", dict(k='v')).values())
+    selected_event_types = session["selected_events"].values()
+    if not selected_event_types:  # selected events dict is empty, should not happen
+        raise RuntimeError(f"Event {event_id} was not selected. Please try again.")
+
+    # Allow bulk clear flapping only if all of selected events are confirmed portstate events
+    show_clear_flapping = all(event_type == 'portstate' for event_type in selected_event_types)
 
     return render_template('/responses/toggle-select.html', id=event_id, is_checked=True,
                            is_menu=len(session["selected_events"]) > 0, event_type=event_type,
