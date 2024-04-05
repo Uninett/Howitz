@@ -477,7 +477,7 @@ def show_update_events_status_modal():
 
 @main.route('/event/<event_id>/unselect', methods=["GET"])
 def unselect_event(event_id):
-    event_type = request.args.get('eventtype', '')
+    event_type = request.args.get('eventtype', None)
     try:
         session["selected_events"].pop(str(event_id), None)
         session.modified = True
@@ -494,7 +494,7 @@ def unselect_event(event_id):
 
 @main.route('/event/<event_id>/select', methods=["GET"])
 def select_event(event_id):
-    event_type = request.args.get('eventtype', '')
+    event_type = request.args.get('eventtype', None)
     try:
         session["selected_events"][str(event_id)] = event_type
         session.modified = True
