@@ -2,10 +2,11 @@
     <input id="select-event-{{ id }}"
            type="checkbox"
            class="w-4 h-4 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-offset-gray-800 focus:ring-2 bg-gray-700 border-gray-500"
-           hx-get="/event/{{ id }}/select?eventtype={{ event_type }}"
+           hx-post="/event/{{ id }}/select"
            hx-trigger='click from:#select-event-{{ id }}, dblclick from:#select-event-{{ id }} consume'
            hx-target="closest div"
            hx-swap="outerHTML"
+           hx-include="#event-{{ id }}-type"
     />
     <label for="select-event-{{ id }}" class="sr-only">checkbox event {{ id }}</label>
 </div>

@@ -475,10 +475,8 @@ def show_update_events_status_modal():
     return render_template('/components/popups/modals/update-event-status-modal.html', current_state='open')
 
 
-@main.route('/event/<event_id>/unselect', methods=["GET"])
+@main.route('/event/<event_id>/unselect', methods=["POST"])
 def unselect_event(event_id):
-    event_type = request.args.get('eventtype', None)
-
     session["selected_events"].pop(str(event_id), None)
     session.modified = True
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
@@ -490,13 +488,12 @@ def unselect_event(event_id):
         show_clear_flapping = all(event_type == 'portstate' for event_type in selected_event_types)
 
     return render_template('/responses/toggle-select.html', id=event_id, is_checked=False,
-                           is_menu=len(session["selected_events"]) > 0, event_type=event_type,
-                           show_clear_flapping=show_clear_flapping)
+                           is_menu=len(session["selected_events"]) > 0, show_clear_flapping=show_clear_flapping)
 
 
-@main.route('/event/<event_id>/select', methods=["GET"])
+@main.route('/event/<event_id>/select', methods=["POST"])
 def select_event(event_id):
-    event_type = request.args.get('eventtype', None)
+    event_type = request.form.get('eventtype')
 
     # Store selected event id and its type in session
     session["selected_events"][str(event_id)] = event_type
@@ -511,8 +508,7 @@ def select_event(event_id):
     show_clear_flapping = all(event_type == 'portstate' for event_type in selected_event_types)
 
     return render_template('/responses/toggle-select.html', id=event_id, is_checked=True,
-                           is_menu=len(session["selected_events"]) > 0, event_type=event_type,
-                           show_clear_flapping=show_clear_flapping)
+                           is_menu=len(session["selected_events"]) > 0, show_clear_flapping=show_clear_flapping)
 
 
 @main.route('/event/bulk_clear_flapping', methods=['POST'])
