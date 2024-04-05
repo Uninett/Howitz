@@ -475,11 +475,11 @@ def show_update_events_status_modal():
     return render_template('/components/popups/modals/update-event-status-modal.html', current_state='open')
 
 
-@main.route('/event/<i>/unselect', methods=["GET"])
-def unselect_event(i):
+@main.route('/event/<event_id>/unselect', methods=["GET"])
+def unselect_event(event_id):
     event_type = request.args.get('eventtype', '')
     try:
-        session["selected_events"].pop(str(i), None)
+        session["selected_events"].pop(str(event_id), None)
         session.modified = True
         current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
     except ValueError:
@@ -487,16 +487,16 @@ def unselect_event(i):
 
     show_clear_flapping = all(event == 'portstate' for event in session.get("selected_events", dict(k='v')).values())
 
-    return render_template('/responses/toggle-select.html', id=i, is_checked=False,
+    return render_template('/responses/toggle-select.html', id=event_id, is_checked=False,
                            is_menu=len(session["selected_events"]) > 0, event_type=event_type,
                            show_clear_flapping=show_clear_flapping)
 
 
-@main.route('/event/<i>/select', methods=["GET"])
-def select_event(i):
+@main.route('/event/<event_id>/select', methods=["GET"])
+def select_event(event_id):
     event_type = request.args.get('eventtype', '')
     try:
-        session["selected_events"][str(i)] = event_type
+        session["selected_events"][str(event_id)] = event_type
         session.modified = True
         current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
     except ValueError:
@@ -504,7 +504,7 @@ def select_event(i):
 
     show_clear_flapping = all(event == 'portstate' for event in session.get("selected_events", dict(k='v')).values())
 
-    return render_template('/responses/toggle-select.html', id=i, is_checked=True,
+    return render_template('/responses/toggle-select.html', id=event_id, is_checked=True,
                            is_menu=len(session["selected_events"]) > 0, event_type=event_type,
                            show_clear_flapping=show_clear_flapping)
 
