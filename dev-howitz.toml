@@ -11,6 +11,7 @@ timezone='LOCAL'
 [zino.connections.default]
 server =
 
+## Comment out and fill out in order to configure another Zino server profile
 #[zino.connections.other]
 #server =
 
