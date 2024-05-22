@@ -477,7 +477,7 @@ def show_update_events_status_modal():
 
 @main.route('/event/<event_id>/unselect', methods=["POST"])
 def unselect_event(event_id):
-    session["selected_events"].pop(str(event_id), None)
+    session["selected_events"].pop(event_id, None)
     session.modified = True
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
@@ -496,7 +496,7 @@ def select_event(event_id):
     event_type = request.form.get('eventtype')
 
     # Store selected event id and its type in session
-    session["selected_events"][str(event_id)] = event_type
+    session["selected_events"][event_id] = event_type
     session.modified = True
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
