@@ -166,6 +166,35 @@ def poll_current_events():
     return poll_events
 
 
+def refresh_current_events():
+    event_ids = update_events()
+    current_app.logger.debug('UPDATED EVENT IDS %s', event_ids)
+
+    removed_events = []
+    refreshed_events = []
+    added_events = []
+    removed = current_app.event_manager.removed_ids
+    existing = session["event_ids"]
+    for i in event_ids:
+        if i in removed:
+            removed_events.append(i)
+            existing.remove(i)
+        elif i not in existing:
+            c = current_app.event_manager.create_event_from_id(int(i))
+            added_events.append(create_polled_event(create_table_event(c), expanded=False, selected=False))
+            existing.insert(0, int(i))
+        else:
+            c = current_app.event_manager.create_event_from_id(int(i))
+            refreshed_events.append(create_polled_event(create_table_event(c),
+                                                        expanded=str(c.id) in session["expanded_events"],
+                                                        selected=str(c.id) in session["selected_events"]))
+
+    session["event_ids"] = existing
+    session.modified = True
+
+    return removed_events, refreshed_events, added_events
+
+
 # todo remove all use of helpers from curitz
 def create_table_event(event):
     common = {}
