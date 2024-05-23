@@ -182,8 +182,8 @@ def poll_current_events():
 
     poll_events = []
     for c in events_sorted.values():
-        poll_events.append(create_polled_event(create_table_event(c), expanded=str(c.id) in session["expanded_events"],
-                                               selected=str(c.id) in session["selected_events"]))
+        poll_events.append(create_table_event(c, expanded=str(c.id) in session["expanded_events"],
+                                              selected=str(c.id) in session["selected_events"]))
 
     return poll_events
 
@@ -203,13 +203,13 @@ def refresh_current_events():
             existing.remove(i)
         elif i not in existing:
             c = current_app.event_manager.create_event_from_id(int(i))
-            added_events.append(create_polled_event(create_table_event(c), expanded=False, selected=False))
+            added_events.append(create_table_event(c, expanded=False, selected=False))
             existing.insert(0, int(i))
         else:
             c = current_app.event_manager.create_event_from_id(int(i))
-            refreshed_events.append(create_polled_event(create_table_event(c),
-                                                        expanded=str(c.id) in session["expanded_events"],
-                                                        selected=str(c.id) in session["selected_events"]))
+            refreshed_events.append(create_table_event(c,
+                                                       expanded=str(c.id) in session["expanded_events"],
+                                                       selected=str(c.id) in session["selected_events"]))
 
     session["event_ids"] = existing
     session.modified = True
