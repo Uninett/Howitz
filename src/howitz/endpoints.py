@@ -133,7 +133,15 @@ def update_events():
     updated_ids = set()
 
     while True:
-        updated = current_app.updater.get_event_update()
+        try:
+            updated = current_app.updater.get_event_update()
+        except RetryError as retryErr:  # Intermittent error in Zino
+            current_app.logger.exception('RetryError when NTIE refreshing current events %s', retryErr)
+            try:
+                updated = current_app.updater.get_event_update()
+            except RetryError as retryErr:  # Intermittent error in Zino
+                current_app.logger.exception('RetryError when NTIE refreshing current events after retry, %s', retryErr)
+                raise
         if updated:
             updated_ids.add(updated)
             continue
