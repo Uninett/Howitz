@@ -510,8 +510,8 @@ def bulk_update_events_status():
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
     # Rerender whole events table
-    poll_events_list = get_current_events()
-    return render_template('/responses/bulk-update-events-status.html', poll_event_list=poll_events_list)
+    event_list = get_current_events()
+    return render_template('/responses/bulk-update-events-status.html', event_list=event_list)
 
 
 @main.route('/show_update_status_modal', methods=['GET'])
