@@ -157,7 +157,7 @@ def refresh_current_events():
     current_app.logger.debug('UPDATED EVENT IDS %s', event_ids)
 
     removed_events = []
-    refreshed_events = []
+    modified_events = []
     added_events = []
     removed = current_app.event_manager.removed_ids
     existing = session["event_ids"]
@@ -171,14 +171,14 @@ def refresh_current_events():
             existing.insert(0, int(i))
         else:
             c = current_app.event_manager.create_event_from_id(int(i))
-            refreshed_events.append(create_table_event(c,
-                                                       expanded=str(c.id) in session["expanded_events"],
-                                                       selected=str(c.id) in session["selected_events"]))
+            modified_events.append(create_table_event(c,
+                                                      expanded=str(c.id) in session["expanded_events"],
+                                                      selected=str(c.id) in session["selected_events"]))
 
     session["event_ids"] = existing
     session.modified = True
 
-    return removed_events, refreshed_events, added_events
+    return removed_events, modified_events, added_events
 
 
 # todo remove all use of helpers from curitz
@@ -383,9 +383,9 @@ def get_events():
 
 @main.route('/refresh_events')
 def refresh_events():
-    removed_events, refreshed_events, added_events = refresh_current_events()
+    removed_events, modified_events, added_events = refresh_current_events()
 
-    return render_template('/responses/updated-rows.html', modified_event_list=refreshed_events,
+    return render_template('/responses/updated-rows.html', modified_event_list=modified_events,
                            removed_event_list=removed_events, added_event_list=added_events)
 
 
