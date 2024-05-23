@@ -392,9 +392,10 @@ def get_events():
 
 @main.route('/poll_events')
 def poll_events():
-    poll_events_list = poll_current_events()
+    removed_events, refreshed_events, added_events = refresh_current_events()
 
-    return render_template('/components/poll/poll-rows.html', poll_event_list=poll_events_list)
+    return render_template('/responses/updated-rows.html', poll_event_list=refreshed_events,
+                           removed_event_list=removed_events, added_event_list=added_events)
 
 
 @main.route('/events/<event_id>/expand_row', methods=["GET"])
