@@ -90,6 +90,13 @@ def logout_handler():
 def get_current_events():
     try:
         current_app.event_manager.get_events()
+    except RetryError as retryErr:  # Intermittent error in Zino
+        current_app.logger.exception('RetryError when fetching current events %s', retryErr)
+        try:
+            current_app.event_manager.get_events()
+        except RetryError as retryErr:  # Intermittent error in Zino
+            current_app.logger.exception('RetryError when fetching current events after retry, %s', retryErr)
+            raise
     except NotConnectedError as notConnErr:
         if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
             current_app.logger.exception('Recurrent NotConnectedError %s', notConnErr)
@@ -139,6 +146,13 @@ def update_events():
 def poll_current_events():
     try:
         current_app.event_manager.get_events()
+    except RetryError as retryErr:  # Intermittent error in Zino
+        current_app.logger.exception('RetryError when polling current events %s', retryErr)
+        try:
+            current_app.event_manager.get_events()
+        except RetryError as retryErr:  # Intermittent error in Zino
+            current_app.logger.exception('RetryError when polling current events after retry, %s', retryErr)
+            raise
     except NotConnectedError as notConnErr:
         if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
             current_app.logger.exception('Recurrent NotConnectedError %s', notConnErr)
@@ -260,7 +274,11 @@ def get_event_attributes(id, res_format=dict):
         event = current_app.event_manager.create_event_from_id(int(id))
     except RetryError as retryErr:  # Intermittent error in Zino
         current_app.logger.exception('RetryError when fetching event attributes %s', retryErr)
-        raise
+        try:
+            event = current_app.event_manager.create_event_from_id(int(id))
+        except RetryError as retryErr:  # Intermittent error in Zino
+            current_app.logger.exception('RetryError when fetching event attributes after retry, %s', retryErr)
+            raise
 
     event_dict = vars(event)
     attr_list = [f"{k}:{v}" for k, v in event_dict.items()]
@@ -302,7 +320,12 @@ def get_event_details(id):
         format_dt_event_attrs(event_attr)
     except RetryError as retryErr:  # Intermittent error in Zino
         current_app.logger.exception('RetryError when fetching event details %s', retryErr)
-        raise
+        try:
+            event_attr = vars(current_app.event_manager.create_event_from_id(int(id)))
+            format_dt_event_attrs(event_attr)
+        except RetryError as retryErr:  # Intermittent error in Zino
+            current_app.logger.exception('RetryError when fetching event details after retry, %s', retryErr)
+            raise
 
     event_logs = current_app.event_manager.get_log_for_id(int(id))
     event_history = current_app.event_manager.get_history_for_id(int(id))
