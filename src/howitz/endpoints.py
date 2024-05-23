@@ -218,7 +218,7 @@ def refresh_current_events():
 
 
 # todo remove all use of helpers from curitz
-def create_table_event(event):
+def create_table_event(event, expanded=False, selected=False):
     common = {}
 
     try:
@@ -238,8 +238,18 @@ def create_table_event(event):
         raise
 
     common.update(vars(event))
+    table_event = {
+        "event": common
+    }
+    if expanded:
+        table_event["event_attr"], table_event["event_logs"], table_event["event_history"], table_event["event_msgs"] = (
+            get_event_details(int(event.id)))
+        table_event["expanded"] = expanded
 
-    return common
+    if selected:
+        table_event["selected"] = selected
+
+    return table_event
 
 
 def create_polled_event(table_event, expanded=False, selected=False):
