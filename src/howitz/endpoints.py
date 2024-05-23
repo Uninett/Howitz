@@ -122,7 +122,7 @@ def get_current_events():
 
     table_events = []
     for c in events_sorted.values():
-        table_events.append(create_table_event(c))
+        table_events.append(create_table_event(c)["event"])
 
     current_app.logger.debug('TABLE EVENTS %s', table_events[0])
 
@@ -462,7 +462,7 @@ def expand_event_row(event_id):
         except RetryError as retryErr:  # Intermittent error in Zino
             current_app.logger.exception('RetryError on row expand after retry, %s', retryErr)
             raise
-    event = create_table_event(eventobj)
+    event = create_table_event(eventobj)["event"]
 
     return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                            event_logs=event_logs,
@@ -491,7 +491,7 @@ def collapse_event_row(event_id):
         except RetryError as retryErr:  # Intermittent error in Zino
             current_app.logger.exception('RetryError on row collapse %s', retryErr)
             raise
-    event = create_table_event(eventobj)
+    event = create_table_event(eventobj)["event"]
 
     return render_template('/responses/collapse-row.html', event=event, id=event_id,
                            is_selected=str(event_id) in selected_events)
@@ -520,7 +520,7 @@ def update_event_status(event_id):
             add_history_res = current_app.event_manager.add_history_entry_for_id(event_id, new_history)
 
         event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
-        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))["event"]
 
         return render_template('/responses/update-event-response.html', event=event, id=event_id, event_attr=event_attr,
                                event_logs=event_logs,
