@@ -24,7 +24,7 @@
             hx-get="/poll_events"
             hx-swap="afterbegin"
             hx-target="#eventlist-list"
-            hx-trigger="every {{ poll_interval }}s"
+            hx-trigger="every {{ refresh_interval }}s"
     >
     {% for n in range(30) %}
         {% include "/components/row/table-row-skeleton.html" %}

@@ -327,7 +327,8 @@ def footer():
     elif not tz == DEFAULT_TIMEZONE:  # Fall back to default if invalid value is provided
         tz = f"{DEFAULT_TIMEZONE} (default)"
 
-    return render_template('/components/footer/footer-info.html', poll_interval=current_app.howitz_config["poll_interval"],
+    return render_template('/components/footer/footer-info.html',
+                           refresh_interval=current_app.howitz_config["refresh_interval"],
                            timezone=tz)
 
 
@@ -380,7 +381,7 @@ def auth():
 @main.route('/events-table.html')
 def events_table():
     return render_template('/components/table/events-table.html',
-                           poll_interval=current_app.howitz_config["poll_interval"])
+                           refresh_interval=current_app.howitz_config["refresh_interval"])
 
 
 @main.route('/get_events')
