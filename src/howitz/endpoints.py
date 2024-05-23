@@ -87,7 +87,7 @@ def logout_handler():
         current_app.logger.info("Logged out successfully.")
 
 
-def get_current_events(extended_event_format=False):
+def get_current_events():
     try:
         current_app.event_manager.get_events()
     except RetryError as retryErr:  # Intermittent error in Zino
@@ -122,11 +122,8 @@ def get_current_events(extended_event_format=False):
 
     table_events = []
     for c in events_sorted.values():
-        if extended_event_format:
-            table_events.append(create_table_event(c, expanded=str(c.id) in session["expanded_events"],
-                                                   selected=str(c.id) in session["selected_events"]))
-        else:
-            table_events.append(create_table_event(c)["event"])
+        table_events.append(create_table_event(c, expanded=str(c.id) in session["expanded_events"],
+                                               selected=str(c.id) in session["selected_events"]))
 
     current_app.logger.debug('TABLE EVENTS %s', table_events[0])
 
@@ -513,7 +510,7 @@ def bulk_update_events_status():
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
     # Rerender whole events table
-    poll_events_list = get_current_events(extended_event_format=True)
+    poll_events_list = get_current_events()
     return render_template('/responses/bulk-update-events-status.html', poll_event_list=poll_events_list)
 
 
