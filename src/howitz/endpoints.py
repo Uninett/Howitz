@@ -381,11 +381,11 @@ def get_events():
     return render_template('/components/table/event-rows.html', event_list=table_events)
 
 
-@main.route('/poll_events')
-def poll_events():
+@main.route('/refresh_events')
+def refresh_events():
     removed_events, refreshed_events, added_events = refresh_current_events()
 
-    return render_template('/responses/updated-rows.html', poll_event_list=refreshed_events,
+    return render_template('/responses/updated-rows.html', modified_event_list=refreshed_events,
                            removed_event_list=removed_events, added_event_list=added_events)
 
 

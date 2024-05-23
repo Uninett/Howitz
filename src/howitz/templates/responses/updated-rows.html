@@ -1,9 +1,9 @@
 {% block content %}
 
 {% if added_event_list|length>0 %}
-    {% for poll_event in added_event_list %}
+    {% for event in added_event_list %}
 
-        {% with id=poll_event.event.id, event=poll_event.event, is_selected=poll_event.selected %}
+        {% with id=event.event.id, event=event.event, is_selected=event.selected %}
             <tr
                     class="bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                     id="event-accordion-row-{{ id }}"
@@ -39,14 +39,14 @@
     {% endfor %}
 {% endif %}
 
-{% if poll_event_list|length>0 %}
-    {% for poll_event in poll_event_list %}
+{% if modified_event_list|length>0 %}
+    {% for event in modified_event_list %}
 
-        {% if poll_event.expanded==True %}
-            {% with id=poll_event.event.id, event=poll_event.event, event_attr=poll_event.event_attr,
-                           event_logs=poll_event.event_logs,
-                           event_history=poll_event.event_history, event_msgs=poll_event.event_msgs,
-                           is_selected=poll_event.selected %}
+        {% if event.expanded==True %}
+            {% with id=event.event.id, event=event.event, event_attr=event.event_attr,
+                           event_logs=event.event_logs,
+                           event_history=event.event_history, event_msgs=event.event_msgs,
+                           is_selected=event.selected %}
 
 
                 <tr
@@ -91,7 +91,7 @@
 
             {% endwith %}
         {% else %}
-            {% with id=poll_event.event.id, event=poll_event.event, is_selected=poll_event.selected %}
+            {% with id=event.event.id, event=event.event, is_selected=event.selected %}
 
 
                 <tr
