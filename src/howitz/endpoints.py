@@ -155,43 +155,6 @@ def update_events():
     return updated_ids
 
 
-def poll_current_events():
-    try:
-        current_app.event_manager.get_events()
-    except RetryError as retryErr:  # Intermittent error in Zino
-        current_app.logger.exception('RetryError when polling current events %s', retryErr)
-        try:
-            current_app.event_manager.get_events()
-        except RetryError as retryErr:  # Intermittent error in Zino
-            current_app.logger.exception('RetryError when polling current events after retry, %s', retryErr)
-            raise
-    except NotConnectedError as notConnErr:
-        if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
-            current_app.logger.exception('Recurrent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
-            raise
-        else:  # This error is intermittent - increase counter and retry
-            current_app.logger.exception('Intermittent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
-            current_app.event_manager.get_events()
-            pass
-
-    events = current_app.event_manager.events
-
-    events_sorted = {k: events[k] for k in sorted(events,
-                                                  key=lambda k: (
-                                                      0 if events[k].adm_state == AdmState.IGNORED else 1,
-                                                      events[k].updated,
-                                                  ), reverse=True)}
-
-    poll_events = []
-    for c in events_sorted.values():
-        poll_events.append(create_table_event(c, expanded=str(c.id) in session["expanded_events"],
-                                              selected=str(c.id) in session["selected_events"]))
-
-    return poll_events
-
-
 def refresh_current_events():
     event_ids = update_events()
     current_app.logger.debug('UPDATED EVENT IDS %s', event_ids)
