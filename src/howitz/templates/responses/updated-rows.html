@@ -1,5 +1,3 @@
-{% block content %}
-
 {% with event_list=added_event_list %}
     {% include "/components/table/event-rows.html" %}
 {% endwith %}
@@ -15,5 +13,3 @@
         {% include "/components/row/removed-event-row.html" %}
     {% endfor %}
 {% endif %}
-
-{% endblock content %}
