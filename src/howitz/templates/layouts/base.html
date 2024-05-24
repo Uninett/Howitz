@@ -27,6 +27,7 @@
         hx-ext="{% block extensions %}{% endblock %}"
         class="h-full"
         hx-target-error="body"
+        hx-sync="this:drop"
 >
 {% block content %} {% endblock content %}
 
