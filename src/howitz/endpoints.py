@@ -56,6 +56,7 @@ def auth_handler(username, password):
 
         if current_app.event_manager.is_authenticated:  # is zino authenticated
             current_app.updater = UpdateHandler(current_app.event_manager)
+            current_app.updater.connect()
             current_app.logger.debug('UpdateHandler %s', current_app.updater)
 
             current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
