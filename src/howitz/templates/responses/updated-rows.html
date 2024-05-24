@@ -1,43 +1,8 @@
 {% block content %}
 
-{% if added_event_list|length>0 %}
-    {% for event in added_event_list %}
-
-        {% with id=event.event.id, event=event.event, is_selected=event.selected %}
-            <tr
-                    class="bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                    id="event-accordion-row-{{ id }}"
-                    hx-get="/events/{{ id }}/expand_row"
-                    hx-trigger="dblclick"
-                    hx-target="#event-accordion-row-{{ id }}"
-                    hx-swap="outerHTML"
-            >
-                {% with padding='px-2 py-1' %}
-
-                    {% with color=event.color if event.color %}
-                        {% if is_selected %}
-                            {% include "/components/row/event-checked-box.html" %}
-                        {% else %}
-                            {% include "/components/row/event-unchecked-box.html" %}
-                        {% endif %}
-                    {% endwith %}
-
-                    {% with event=event %}
-                        {% include "/components/row/data-cells.html" %}
-                    {% endwith %}
-
-                    {% with id=id, color=event.color %}
-                        {% include "/components/row/expand-btn.html" %}
-                    {% endwith %}
-
-                {% endwith %}
-
-            </tr>
-
-        {% endwith %}
-
-    {% endfor %}
-{% endif %}
+{% with event_list=added_event_list %}
+    {% include "/components/table/event-rows.html" %}
+{% endwith %}
 
 {% if modified_event_list|length>0 %}
     {% for event in modified_event_list %}
