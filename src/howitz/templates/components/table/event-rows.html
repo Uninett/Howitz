@@ -1,18 +1,16 @@
-{% if event_list|length>0 %}
-    {% for event in event_list %}
+{% for event in event_list %}
 
-        {% if event.expanded==True %}
-            {% with id=event.event.id, event=event.event, event_attr=event.event_attr,
+    {% if event.expanded==True %}
+        {% with id=event.event.id, event=event.event, event_attr=event.event_attr,
                            event_logs=event.event_logs,
                            event_history=event.event_history, event_msgs=event.event_msgs,
                            is_selected=event.selected %}
-                {% include "/components/row/expanded-row.html" %}
-            {% endwith %}
-        {% else %}
-            {% with id=event.event.id, event=event.event, is_selected=event.selected %}
-                {% include "/components/row/event-row.html" %}
-            {% endwith %}
-        {% endif %}
+            {% include "/components/row/expanded-row.html" %}
+        {% endwith %}
+    {% else %}
+        {% with id=event.event.id, event=event.event, is_selected=event.selected %}
+            {% include "/components/row/event-row.html" %}
+        {% endwith %}
+    {% endif %}
 
-    {% endfor %}
-{% endif %}
+{% endfor %}

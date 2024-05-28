@@ -2,14 +2,10 @@
     {% include "/components/table/event-rows.html" %}
 {% endwith %}
 
-{% if modified_event_list|length>0 %}
-    {% for event in modified_event_list %}
-        {% include "/components/row/modified-event-row.html" %}
-    {% endfor %}
-{% endif %}
+{% for event in modified_event_list %}
+    {% include "/components/row/modified-event-row.html" %}
+{% endfor %}
 
-{% if removed_event_list|length>0 %}
-    {% for id in removed_event_list %}
-        {% include "/components/row/removed-event-row.html" %}
-    {% endfor %}
-{% endif %}
+{% for id in removed_event_list %}
+    {% include "/components/row/removed-event-row.html" %}
+{% endfor %}
