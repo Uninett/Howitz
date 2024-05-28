@@ -144,11 +144,9 @@ def update_events():
             except RetryError as retryErr:  # Intermittent error in Zino
                 current_app.logger.exception('RetryError when NTIE refreshing current events after retry, %s', retryErr)
                 raise
-        if updated:
-            updated_ids.add(updated)
-            continue
-        if updated is False:
+        if not updated:
             break
+        updated_ids.add(updated)
 
     return updated_ids
 
