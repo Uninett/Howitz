@@ -147,9 +147,9 @@ All config options can be overruled by environment variables. Prefix with
 options. It is also possible to override logging by setting "HOWITZ_LOGGING" to
 a string of a python dict but we do not recommend it, use a config file instead.
 
-Refresh interval for events table can be changed by adding for example ``refresh_interval = 30`` to
+Refresh interval for events table can be changed by adding for example ``refresh_interval = 10`` to
 the ``[howitz]``-section or setting the environment variable ``HOWITZ_REFRESH_INTERVAL`` to a new value.
-Refresh interval values represented seconds and must be integers. The default value is ``60`` seconds.
+Refresh interval values represented seconds and must be integers. The default value is ``5`` seconds.
 
 Debugging can be turned on either by adding ``DEBUG = true`` to the
 ``[flask]``-section or setting the environment variable ``HOWITZ_DEBUG`` to ``1``.
