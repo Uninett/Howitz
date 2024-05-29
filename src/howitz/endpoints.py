@@ -483,7 +483,7 @@ def unselect_event(event_id):
 
     show_clear_flapping = False
     selected_event_types = session["selected_events"].values()
-    if bool(selected_event_types):  # selected events dict contains event types
+    if selected_event_types:  # selected events dict contains event types
         # Allow bulk clear flapping only if all of selected events are confirmed portstate events
         show_clear_flapping = all(event_type == 'portstate' for event_type in selected_event_types)
 
