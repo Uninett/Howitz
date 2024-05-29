@@ -203,23 +203,6 @@ def color_code_event(event):
         return EventColor.DEFAULT
 
 
-def get_event_attributes(id, res_format=dict):
-    try:
-        event = current_app.event_manager.create_event_from_id(int(id))
-    except RetryError as retryErr:  # Intermittent error in Zino
-        current_app.logger.exception('RetryError when fetching event attributes %s', retryErr)
-        raise
-
-    event_dict = vars(event)
-    attr_list = [f"{k}:{v}" for k, v in event_dict.items()]
-
-    # fixme is there a better way to do switch statements in Python?
-    return {
-        list: attr_list,
-        dict: event_dict,
-    }[res_format]
-
-
 def format_dt_event_attrs(event: dict):
     if event["lasttrans"]:
         event.update(lasttrans=date_str_without_timezone(event["lasttrans"]))
