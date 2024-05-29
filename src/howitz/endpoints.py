@@ -355,7 +355,7 @@ def expand_event_row(event_id):
         pass
 
     event_id = int(event_id)
-    selected_events = session.get("selected_events") or {}
+    selected_events = session.get("selected_events", {})
 
     event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
     try:
@@ -385,7 +385,7 @@ def collapse_event_row(event_id):
         pass
 
     event_id = int(event_id)
-    selected_events = session.get("selected_events") or {}
+    selected_events = session.get("selected_events", {})
 
     try:
         eventobj = current_app.event_manager.create_event_from_id(event_id)
