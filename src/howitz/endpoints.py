@@ -82,6 +82,15 @@ def logout_handler():
         current_app.logger.info("Logged out successfully.")
 
 
+def clear_ui_state():
+    session["selected_events"] = []
+    session["expanded_events"] = {}
+    session["errors"] = {}
+    session["event_ids"] = []
+
+    session.modified = True
+
+
 def get_current_events():
     try:
         current_app.event_manager.get_events()
