@@ -263,7 +263,7 @@ For development, copy the contents of the included file ``dev-howitz.toml`` to `
    "default" in the config-file and keep on working. If you don't set it to
    anything, keep it commented out or remove it.
 
-There's a handler ``debug`` that will copy everything DEBUG or higher to a file
+As for logging, there is a handler ``debug`` that will copy everything DEBUG or higher to a file
 ``debug.log``, you might want to use this handler for your code.
 
 The handler ``error`` will likewise put everything WARNING or higher in the
