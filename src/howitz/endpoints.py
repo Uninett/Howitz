@@ -273,6 +273,7 @@ def get_event_details(id):
 @main.route('/events')
 @login_check()
 def index():
+    clear_ui_state()
     return render_template('/views/events.html')
 
 
