@@ -54,6 +54,10 @@ def create_app(test_config=None):
     app.event_manager = event_manager
     app.logger.debug('Zino1EventManager %s', event_manager)
 
+    # set up placeholder for UpdateHandler
+    app.updater = None
+    app.logger.debug('UpdateHandler is None')
+
     # set up user database
     database = UserDB(app.config["HOWITZ_STORAGE"])
     database.initdb()
