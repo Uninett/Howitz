@@ -19,7 +19,7 @@ server =
 version = 1
 
 [logging.root]
-level = "ERROR"
+level = "DEBUG"
 
 # Tweak in order to configure desired logging level
 [logging.formatters.default]
