@@ -26,7 +26,7 @@ Running Howitz step-by-step overview
     The easiest way to configure Howitz is via a ``toml`` file.
 
     1. Create an empty ``.howitz.toml`` file in the project root folder.
-    2. Copy the values from the preferred example config file ``howitz.*.toml.example`` to ``.howitz.toml``. Here using the ``howitz.min.toml.example``::
+    2. Copy the values from the preferred example config file ``howitz.*.example`` to ``.howitz.toml``. Here using the ``howitz.min.toml.example``::
 
         $ cp howitz.min.toml.example .howitz.toml
 
@@ -257,7 +257,7 @@ than ``LOCAL`` and ``UTC`` provided in config will be ignored and fall back to `
 Example config-file for development
 -----------------------------------
 
-For development, copy the contents of the included file ``howitz.dev.toml.example`` to ``.howitz.toml`` in the same directory.
+For development, copy the contents of the included file ``howitz.toml.example`` to ``.howitz.toml`` in the same directory.
 
 1. Set ``[flask] -> SECRET_KEY`` to some long string.
 2. Set ``[zino.connections.default] -> server`` to the address of a Zino 1 server.
