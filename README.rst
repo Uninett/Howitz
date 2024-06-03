@@ -83,7 +83,7 @@ Run in development-mode
 You need to have either a minimal configuration file or set two environment variables, see `Configuration`_.
 Tip for quickly setting up an extensive config file for dev:
 
-    Check out the `Example config-file for development`_ section.
+    Check out the `Example config-file (for development)`_ section.
 
 
 After both installation (see `Install safely`_) and `Configuration`_ are done, you can run Howitz by running
@@ -111,7 +111,7 @@ You need to have either a minimal configuration file or set two environment vari
 
 Tip for quickly setting up an extensive config file:
 
-    Check out the `Example config-file for development`_ section. Make sure the config file is appropriate for
+    Check out the `Example config-file (for development)`_ section. Make sure the config file is appropriate for
     production, see `Config file for production`_.
 
 
@@ -254,7 +254,7 @@ the ``[howitz]``-section or setting the environment variable ``HOWITZ_TIMEZONE``
 than ``LOCAL`` and ``UTC`` provided in config will be ignored and fall back to ``UTC``.
 
 
-Example config-file for development
+Example config-file (for development)
 -----------------------------------
 
 For development, copy the contents of the included file ``howitz.toml.example`` to ``.howitz.toml`` in the same directory.
