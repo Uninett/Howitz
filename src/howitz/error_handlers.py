@@ -1,8 +1,10 @@
 import uuid
 
 from flask import render_template, session, current_app, make_response, request
+from flask_login import current_user
 from werkzeug.exceptions import HTTPException
 
+from howitz.endpoints import connect_to_zino
 from howitz.utils import serialize_exception
 
 
@@ -75,3 +77,18 @@ def handle_403(e):
     response.headers['HX-Trigger'] = 'htmx:responseError'
 
     return response, 403
+
+
+def handle_lost_connection(e):
+    if isinstance(e, BrokenPipeError):
+        current_app.logger.exception(msg=f"{e.code} {e.name}: {e.description}")
+    else:
+        current_app.logger.exception("Lost connection to Zino server %s", e)
+
+    if current_app.event_manager.is_connected:
+        current_app.event_manager.disconnect()
+
+    connect_to_zino(current_user.username, current_user.password, current_user.token)
+
+    # FIXME
+    return "", 200
