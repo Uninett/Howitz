@@ -283,6 +283,8 @@ file.
 ``[flask] -> DEBUG`` should be ``false``. You can still override it via an
 environment variable.
 
+``[howitz] -> devmode`` should be ``false``.
+
 ``[logging]`` will need adjustments. Increase the level of the ``wsgi``-handler
 or only use the ``error`` handler. Change the error-handler to ship its log
 somewhere else, via syslog or Sentry or similar.
