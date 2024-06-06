@@ -280,7 +280,7 @@ It is better to control ``[flask] -> SECRET_KEY`` and
 hardcoding them in the config file. It's best to delete them from the config
 file.
 
-``[flask] -> DEBUG`` should be ``false``. You can stil override it via an
+``[flask] -> DEBUG`` should be ``false``. You can still override it via an
 environment variable.
 
 ``[logging]`` will need adjustments. Increase the level of the ``wsgi``-handler
