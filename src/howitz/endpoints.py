@@ -89,7 +89,7 @@ def get_current_events():
         if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
             current_app.logger.exception('Recurrent NotConnectedError %s', notConnErr)
             session["not_connected_counter"] += 1
-            raise
+            raise notConnErr
         else:  # This error is intermittent - increase counter and retry
             current_app.logger.exception('Intermittent NotConnectedError %s', notConnErr)
             session["not_connected_counter"] += 1
@@ -120,7 +120,7 @@ def poll_current_events():
         if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
             current_app.logger.exception('Recurrent NotConnectedError %s', notConnErr)
             session["not_connected_counter"] += 1
-            raise
+            raise notConnErr
         else:  # This error is intermittent - increase counter and retry
             current_app.logger.exception('Intermittent NotConnectedError %s', notConnErr)
             session["not_connected_counter"] += 1
