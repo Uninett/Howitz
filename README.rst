@@ -35,6 +35,10 @@ Running Howitz step-by-step overview
 
     Read more about other configuration methods, different configurations options and variables in the `Configuration`_ section.
 
+    **NB!**:
+
+        When configuring for production, make sure that ``.howitz.toml`` is appropriately adjusted as described in the `Config file for production`_ section.
+
 4. User management step:
     1. Check if you have an existing user in the Howitz database, from the project root folder run::
 
