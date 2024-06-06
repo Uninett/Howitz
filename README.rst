@@ -246,8 +246,8 @@ All config options can be overruled by environment variables. Prefix them with
 options. It is also possible to override logging by setting "HOWITZ_LOGGING" to
 a string of a Python dict but we do not recommend it, use a config file instead.
 
-The refresh interval for the events table can be changed by adding for example ``refresh_interval = 10`` to
-the ``[howitz]``-section or setting the environment variable ``HOWITZ_REFRESH_INTERVAL`` to a new value.
+The refresh interval value specifies the frequency with which Howitz checks the Zino server for updates on events in the table. This value can be modified by adding, for example, ``refresh_interval = 10`` to
+the ``[howitz]``-section, or by setting the environment variable ``HOWITZ_REFRESH_INTERVAL`` to a new value.
 Refresh interval values are in seconds and must be integers. The default value is ``5`` seconds.
 
 Debugging can be turned on either by adding ``DEBUG = true`` to the
