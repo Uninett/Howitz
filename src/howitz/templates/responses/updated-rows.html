@@ -1,0 +1,11 @@
+{% with event_list=added_event_list %}
+    {% include "/components/table/event-rows.html" %}
+{% endwith %}
+
+{% for event in modified_event_list %}
+    {% include "/components/row/modified-event-row.html" %}
+{% endfor %}
+
+{% for id in removed_event_list %}
+    {% include "/components/row/removed-event-row.html" %}
+{% endfor %}
