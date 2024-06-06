@@ -1,20 +1,20 @@
-<div class="p-5 bg-white border border-gray-200 rounded-2xl shadow sm:p-5 dark:bg-gray-800 dark:border-gray-700">
+<div class="p-5 border rounded-2xl shadow sm:p-5 bg-gray-800 border-gray-700">
     <div class="mb-3">
-        <h5 class="text-center text-lg font-bold leading-none text-gray-900 dark:text-white">Attributes</h5>
+        <h5 class="text-center text-lg font-bold leading-none text-white">Attributes</h5>
     </div>
     <div class="flow-root">
-        <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+        <ul role="list" class="divide-y divide-gray-700">
             {% for attr_key in event_attr.keys() %}
 
             {% if event_attr.get(attr_key) %}
             <li class="py-1 sm:py-1">
                 <div class="flex items-center space-x-6">
                     <div class="flex-1">
-                        <p class="uppercase text-xs text-gray-900 dark:text-white">
+                        <p class="uppercase text-xs text-white">
                             {{ attr_key }}
                         </p>
                     </div>
-                    <div class="whitespace-normal break-all inline-flex items-center text-xs font-medium text-gray-900 dark:text-white">
+                    <div class="whitespace-normal break-all inline-flex items-center text-xs font-medium text-white">
                         {{ event_attr.get(attr_key) }}
                     </div>
                 </div>

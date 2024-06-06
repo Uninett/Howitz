@@ -17,7 +17,6 @@ from howitz.users.db import UserDB
 from howitz.users.commands import user_cli
 from zinolib.controllers.zino1 import Zino1EventManager
 
-
 __all__ = ["create_app"]
 
 
@@ -53,6 +52,10 @@ def create_app(test_config=None):
     event_manager = Zino1EventManager.configure(zino_config)
     app.event_manager = event_manager
     app.logger.debug('Zino1EventManager %s', event_manager)
+
+    # set up placeholder for UpdateHandler
+    app.updater = None
+    app.logger.debug('UpdateHandler is None')
 
     # set up user database
     database = UserDB(app.config["HOWITZ_STORAGE"])
