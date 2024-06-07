@@ -1,8 +1,10 @@
 import uuid
 
 from flask import render_template, session, current_app, make_response, request
+from flask_login import current_user
 from werkzeug.exceptions import HTTPException
 
+from howitz.endpoints import connect_to_zino
 from howitz.utils import serialize_exception
 
 
@@ -75,3 +77,36 @@ def handle_403(e):
     response.headers['HX-Trigger'] = 'htmx:responseError'
 
     return response, 403
+
+
+def handle_lost_connection(e):
+    if isinstance(e, BrokenPipeError):
+        current_app.logger.exception("Lost connection to Zino server: %s", e)
+    else:
+        current_app.logger.error("Lost connection to Zino server: %s", e.args[0])
+
+    if current_user.is_authenticated:  # Re-connect to Zino with existing credentials and inform user that there was an error via alert pop-up
+        if current_app.event_manager.is_connected:
+            current_app.event_manager.disconnect()
+
+        connect_to_zino(current_user.username, current_user.token)
+
+        alert_random_id = str(uuid.uuid4())
+        try:
+            short_err_msg = e.args[0]
+        except IndexError:
+            short_err_msg = 'Temporarily lost connection to Zino server'
+
+        if not "errors" in session:
+            session["errors"] = dict()
+        session["errors"][str(alert_random_id)] = serialize_exception(e)
+        session.modified = True
+
+        response = make_response(render_template('/components/popups/alerts/error/error-alert.html',
+                                                 alert_id=alert_random_id, short_err_msg=short_err_msg))
+        response.headers['HX-Reswap'] = 'beforeend'
+        return response, 503
+    else:  # Redirect to /login for complete re-authentication
+        res = make_response()
+        res.headers['HX-Redirect'] = '/login'
+        return res

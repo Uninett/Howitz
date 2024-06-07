@@ -1,5 +1,5 @@
 <tr
-        class="bg-white dark:bg-gray-800 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
+        class="bg-gray-800 border-gray-600 hover:bg-gray-600"
         id="event-accordion-row-{{ id }}"
         hx-get="/events/{{ id }}/collapse_row"
         hx-trigger="dblclick"
@@ -34,7 +34,7 @@
 <tr
         id="event-details-row-{{ id }}"
         hx-swap-oob="outerHTML"
-        class="bg-white border-b dark:bg-gray-900 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+        class="border-b bg-gray-900 border-gray-700 hover:bg-gray-600"
 
 >
     {% include "/components/accordion/event-details-content.html" %}
