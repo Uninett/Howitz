@@ -121,3 +121,7 @@
 .error-input input {
     box-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) #f87171;
 }
+
+tr.checked {
+    background-color: rgb(4 47 46);
+}
