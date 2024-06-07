@@ -88,6 +88,15 @@ def logout_handler():
         current_app.logger.info("Logged out successfully.")
 
 
+def clear_ui_state():
+    session["selected_events"] = []
+    session["expanded_events"] = {}
+    session["errors"] = {}
+    session["event_ids"] = []
+
+    session.modified = True
+
+
 def get_current_events():
     try:
         current_app.event_manager.get_events()
@@ -284,6 +293,7 @@ def get_event_details(id):
 @main.route('/events')
 @login_check()
 def index():
+    clear_ui_state()
     return render_template('/views/events.html')
 
 
