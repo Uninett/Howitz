@@ -2,29 +2,96 @@
 Howitz - Zino web client with HTMx and Flask
 ============================================
 
+
+Running Howitz step-by-step overview
+====================================
+
+1. Preparation step:
+    1. Make sure you have ``python3``, ``pip`` and ``git`` installed.
+    2. Download `Howitz from the GitHub repo <https://github.com/Uninett/Howitz>`_.
+
+2. Installation step:
+    1. Create and activate `venv`, from the project root folder run::
+
+        $ python3 -m venv howitzvenv
+        $ source howitzvenv/bin/activate
+
+    2. Install dependencies, from the project root folder run::
+
+        $ pip install -e .
+
+    Read more about installation in the `Install safely`_ section.
+
+3. Configuration step:
+    The easiest way to configure Howitz is via a ``toml`` file.
+
+    1. Create an empty ``.howitz.toml`` file in the project root folder.
+    2. Copy the values from the preferred example config file ``howitz.*.example`` to ``.howitz.toml``. Here using the ``howitz.min.toml.example``::
+
+        $ cp howitz.min.toml.example .howitz.toml
+
+    3. Open ``.howitz.toml`` and fill out at least the config values: ``SECRET_KEY`` and ``server``. Those values are left empty in the example config file.
+    4. Play around with the config values in ``.howitz.toml``, if desired.
+
+    Read more about other configuration methods, different configurations options and variables in the `Configuration`_ section.
+
+    **NB!**:
+
+        When configuring for production, make sure that ``.howitz.toml`` is appropriately adjusted as described in the `Config file for production`_ section.
+
+4. User management step:
+    1. Check if you have an existing user in the Howitz database, from the project root folder run::
+
+        $ flask --app howitz user list
+
+    2. Create a new user if you do not have one already, from the project root folder run::
+
+        $ flask --app howitz user create USERNAME PASSWORD TOKEN
+
+    Read more about user management and other commands in the `User management`_ section.
+
+5. Run Howitz:
+    1. Start Howitz as a flask app, from the project root folder run::
+
+        $ python3 -m howitz
+
+    2. Open Howitz in the browser. By default in dev, Howitz will be accessible at http://127.0.0.1:5000.
+
+    Read more about running Howitz in the `Play around`_ section.
+
+
 Play around
 ===========
 
 Install safely
 --------------
 
-Make and activate a virtualenv, install dependencies in that virtualenv::
+Create and activate a virtualenv, install dependencies in that virtualenv::
 
-    $ python3 -m venv howitz
-    $ source howitz/bin/activate
+    $ python3 -m venv howitzvenv
+    $ source howitzvenv/bin/activate
     $ pip install -e .
 
-Howitz is deeply dependent on the library ``zinolib``. When developing Howitz,
-it might be prudent to add zinolib manually to the virtualenv by downloading
-the source, entering the directory and running ``pip install -e .``. This will
-make it very easy to switch between versions and branches of zinolib.
+
+Tip:
+
+    Howitz is deeply dependent on the library ``zinolib``. When developing Howitz,
+    it might be prudent to add zinolib manually to the virtualenv by downloading
+    the source, entering the directory and running ``pip install -e .``. This will
+    make it very easy to switch between versions and branches of zinolib.
+
 
 Run in development-mode
 -----------------------
 
-You need to have either a minimal configuration file or set two environment varibles, see `Configuration`_.
+You need to have either a minimal configuration file or set two environment variables, see `Configuration`_.
+Tip for quickly setting up an extensive config file for dev:
 
-Either of::
+    Check out the `Example config-file (for development)`_ section.
+
+
+After both installation (see `Install safely`_) and `Configuration`_ are done, you can run Howitz by running
+either::
 
     $ python3 -m howitz
 
@@ -32,13 +99,27 @@ or::
 
     $ flask --app howitz run
 
-should get you a server running on http://127.0.0.1:5000/ The database is by
-default put in the current directory.
+This will get you a web interface running at http://127.0.0.1:5000/.
+The database (see `User management`_) is by default put in the current directory.
+
+**NB!**:
+
+    If you get an error when attempting to log in for the first time, make sure you have created a user in the Howitz
+    database, see `Managing the Howitz user database`_.
+
 
 Run in production
 -----------------
 
-Always use an installed howitz.
+You need to have either a minimal configuration file or set two environment variables, see `Configuration`_.
+
+Tip for quickly setting up an extensive config file:
+
+    Check out the `Example config-file (for development)`_ section. Make sure the config file is appropriate for
+    production, see `Config file for production`_.
+
+
+Always use an installed Howitz.
 
 * gunicorn: ``gunicorn 'howitz:create_app()'``
 * waitress: ``waitress-serve --call howitz:create_app``
@@ -51,15 +132,15 @@ User management
 ===============
 
 Due to how Zino protocol 1 does logins, the password (here called token) needs
-to be stored in plain text in every client. For security-reasons it is not
+to be stored in plain text in every client. For security reasons it is not
 desirable to ever store this token in a cookie or otherwise in a browser, so
 instead the token is stored where the browser cannot get to it, in a user
 database local to the frontend server.
 
 When logging in to Howitz a user uses a normal password (not the token) which
-is used to safely fetch the token for connecting to the zino protocol 1 server.
+is used to safely fetch the token for connecting to the Zino protocol 1 server.
 This password can be treated like any other password and be put in a vault or
-a password-manager.
+a password manager.
 
 The mapping from websafe password to legacy token is done via a user database.
 The Zino backend server admin creates a token and username. The frontend server
@@ -73,7 +154,7 @@ fashion.
 Managing the Howitz user database
 ---------------------------------
 
-Users are by default stored in the file "./howitz.sqlite3", this can be changed
+Users are by default stored in the file ``./howitz.sqlite``, this can be changed
 in the configuration file.
 
 While it is possible to use an sqlite3-client to alter the database, setting
@@ -104,6 +185,23 @@ Get help for each sub-command with appending "--help", for instance::
       -t, --token TEXT
       --help               Show this message and exit.
 
+About username, password and token values
+-----------------------------------------
+
+When running `commands <All available commands>`_ to Howitz user database, you may need to provide all or some of the options.
+
+``USERNAME``
+    an **existing** username on your Zino server. **You will need to provide it when logging in to Howitz on web.**
+
+``TOKEN``
+    token assigned to a given username on your Zino server. In the original Zino protocol this value is referred to as a *Secret*.
+    Store it in the Howitz database once and forget about it when logging in to Howitz on web.
+
+``PASSWORD``
+    a password of your choice. This one is purely Howitz-specific. **You will need to provide it when logging in to Howitz on web.**
+
+
+
 All available commands
 ----------------------
 
@@ -117,7 +215,7 @@ All available commands
     shows all known usernames
 
 ``update``
-    is used to change the web password or zino token for an existing user
+    is used to change the web password or Zino token for an existing user
 
 
 Configuration
@@ -126,52 +224,53 @@ Configuration
 Howitz *can* run without a configuration file. Default values will be used for
 listen-address (127.0.0.1), port (5000) and storage location
 (./howitz.sqlite3). However, at minimum you also need to pass in a SECRET_KEY
-for Flask and a zino server to fetch events from.
+for Flask and a Zino server address to fetch events from.
 
-These can be passed via a configuration file, ".howitz.toml" (in the current directory or user home directory) or via environment variables.
+These can be passed via a configuration file, ``.howitz.toml`` (stored in the current directory or user home
+directory) or via environment variables.
 
-Via configuration file::
+Via a ``.howitz.toml`` configuration file::
 
     [flask]
     SECRET_KEY = "long string!"
 
     [zino.connections.default]
-    server = "some.server.tld"
+    server = "zino.server.domain"
 
 Directly via environment variables::
 
-    HOWITZ_SECRET_KEY="long string!" HOWITZ_ZINO1_SERVER="some.server.tld"
+    HOWITZ_SECRET_KEY="long string!" HOWITZ_ZINO1_SERVER="zino.server.domain"
 
-All config options can be overruled by environment variables. Prefix with
+All config options can be overruled by environment variables. Prefix them with
 "HOWITZ\_" for Flask-specific options and "HOWITZ_ZINO1\_" for Zino-specific
 options. It is also possible to override logging by setting "HOWITZ_LOGGING" to
-a string of a python dict but we do not recommend it, use a config file instead.
+a string of a Python dict but we do not recommend it, use a config file instead.
 
-Refresh interval for events table can be changed by adding for example ``refresh_interval = 10`` to
-the ``[howitz]``-section or setting the environment variable ``HOWITZ_REFRESH_INTERVAL`` to a new value.
-Refresh interval values represented seconds and must be integers. The default value is ``5`` seconds.
+The refresh interval value specifies the frequency with which events are checked for updates, i.e., are synchronized. This value can be modified by adding, for example, ``refresh_interval = 10`` to
+the ``[howitz]``-section, or by setting the environment variable ``HOWITZ_REFRESH_INTERVAL`` to a new value.
+Refresh interval values are in seconds and must be integers. The default value is ``5`` seconds.
 
 Debugging can be turned on either by adding ``DEBUG = true`` to the
 ``[flask]``-section or setting the environment variable ``HOWITZ_DEBUG`` to ``1``.
 
-Default timezone for timestamps is ``UTC``. Timezone information can be changed by adding ``timezone = "LOCAL"`` to
+The default timezone for timestamps is ``UTC``. Timezone information can be changed by adding ``timezone = "LOCAL"`` to
 the ``[howitz]``-section or setting the environment variable ``HOWITZ_TIMEZONE`` to ``LOCAL``. Timezone values other
 than ``LOCAL`` and ``UTC`` provided in config will be ignored and fall back to ``UTC``.
 
 
-Example config-file for development
+Example config-file (for development)
 -----------------------------------
 
-For development, copy the contents of the included file ``dev-howitz.toml`` to ``.howitz.toml`` in the same directory.
+For development, copy the contents of the included file ``howitz.toml.example`` to ``.howitz.toml`` in the same directory.
 
 1. Set ``[flask] -> SECRET_KEY`` to some long string.
-2. Set ``[zino.connections.default] -> server`` to a Zino 1 server.
-3. Optionally set ``[zino.connections.other] -> server`` to a fallback Zino
+2. Set ``[zino.connections.default] -> server`` to the address of a Zino 1 server.
+3. Optionally set ``[zino.connections.other] -> server`` to the address of a fallback Zino
    1 server. If the default server stops working you can swap "other" with
    "default" in the config-file and keep on working. If you don't set it to
-   anything, comment it out/remove it.
+   anything, keep it commented out or remove it.
 
-There's a handler "debug" that will copy everything DEBUG or higher to a file
+As for logging, there is a handler ``debug`` that will copy everything DEBUG or higher to a file
 ``debug.log``, you might want to use this handler for your code.
 
 The handler ``error`` will likewise put everything WARNING or higher in the
@@ -185,8 +284,10 @@ It is better to control ``[flask] -> SECRET_KEY`` and
 hardcoding them in the config file. It's best to delete them from the config
 file.
 
-``[flask] -> DEBUG`` should be ``false``. You can stil override it via an
+``[flask] -> DEBUG`` should be ``false``. You can still override it via an
 environment variable.
+
+``[howitz] -> devmode`` should be ``false``.
 
 ``[logging]`` will need adjustments. Increase the level of the ``wsgi``-handler
 or only use the ``error`` handler. Change the error-handler to ship its log

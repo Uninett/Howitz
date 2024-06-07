@@ -11,8 +11,9 @@ timezone='LOCAL'
 [zino.connections.default]
 server =
 
-[zino.connections.other]
-server =
+## Comment out and fill out in order to configure another Zino server profile
+#[zino.connections.other]
+#server =
 
 [logging]
 version = 1
@@ -20,6 +21,7 @@ version = 1
 [logging.root]
 level = "DEBUG"
 
+# Tweak in order to configure desired logging level
 [logging.formatters.default]
 format = "%(levelname)s %(name)s in %(funcName)s: %(message)s"
 
