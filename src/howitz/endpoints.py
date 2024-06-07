@@ -20,7 +20,7 @@ from werkzeug.exceptions import BadRequest
 from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError, UpdateHandler
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState, LogEntry, HistoryEntry
 from zinolib.compat import StrEnum
-from zinolib.ritz import NotConnectedError, AuthenticationError
+from zinolib.ritz import AuthenticationError
 
 from howitz.users.utils import authenticate_user
 
@@ -45,20 +45,9 @@ def auth_handler(username, password):
         user = authenticate_user(current_app.database, username, password)
         current_app.logger.debug('User %s', user)
 
-        if not current_app.event_manager.is_connected:
-            current_app.event_manager = Zino1EventManager.configure(current_app.zino_config)
-            current_app.event_manager.connect()
-            current_app.logger.info('Connected to Zino %s', current_app.event_manager.is_connected)
-
-        if not current_app.event_manager.is_authenticated:
-            current_app.event_manager.authenticate(username=user.username, password=user.token)
-            current_app.logger.info('Authenticated in Zino %s', current_app.event_manager.is_authenticated)
+        connect_to_zino(user.username, user.token)
 
         if current_app.event_manager.is_authenticated:  # is zino authenticated
-            current_app.updater = UpdateHandler(current_app.event_manager, autoremove=current_app.zino_config.autoremove)
-            current_app.updater.connect()
-            current_app.logger.debug('UpdateHandler %s', current_app.updater)
-
             current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
             current_app.logger.debug('HOWITZ CONFIG %s', current_app.howitz_config)
             login_user(user, remember=True)
@@ -66,7 +55,6 @@ def auth_handler(username, password):
             session["selected_events"] = []
             session["expanded_events"] = {}
             session["errors"] = {}
-            session["not_connected_counter"] = 0
             session["event_ids"] = []
             return user
 
@@ -83,9 +71,24 @@ def logout_handler():
         session.pop('expanded_events', {})
         session.pop('selected_events', [])
         session.pop('errors', {})
-        session.pop('not_connected_counter', 0)
         session.pop('event_ids', [])
         current_app.logger.info("Logged out successfully.")
+
+
+def connect_to_zino(username, token):
+    if not current_app.event_manager.is_connected:
+        current_app.event_manager = Zino1EventManager.configure(current_app.zino_config)
+        current_app.event_manager.connect()
+        current_app.logger.info('Connected to Zino %s', current_app.event_manager.is_connected)
+
+    if not current_app.event_manager.is_authenticated:
+        current_app.event_manager.authenticate(username=username, password=token)
+        current_app.logger.info('Authenticated in Zino %s', current_app.event_manager.is_authenticated)
+
+    if current_app.event_manager.is_authenticated:  # is zino authenticated
+        current_app.updater = UpdateHandler(current_app.event_manager, autoremove=current_app.zino_config.autoremove)
+        current_app.updater.connect()
+        current_app.logger.debug('UpdateHandler %s', current_app.updater)
 
 
 def clear_ui_state():
@@ -107,17 +110,6 @@ def get_current_events():
         except RetryError as retryErr:  # Intermittent error in Zino
             current_app.logger.exception('RetryError when fetching current events after retry, %s', retryErr)
             raise
-    except NotConnectedError as notConnErr:
-        if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
-            current_app.logger.exception('Recurrent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
-            raise
-        else:  # This error is intermittent - increase counter and retry
-            current_app.logger.exception('Intermittent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
-            current_app.event_manager.get_events()
-            pass
-
     events = current_app.event_manager.events
 
     events_sorted = {k: events[k] for k in sorted(events,
