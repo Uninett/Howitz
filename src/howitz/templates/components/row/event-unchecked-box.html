@@ -9,6 +9,7 @@
                    hx-target="#unchecked-box-{{ id }}"
                    hx-swap="outerHTML"
                    hx-include="#event-{{ id }}-type"
+                   hx-on:click="htmx.addClass(htmx.find('#event-accordion-row-{{ id }}'), 'checked')"
             />
             <label for="select-event-{{ id }}" class="sr-only">checkbox event {{ id }}</label>
         </div>
@@ -26,6 +27,7 @@
                    hx-target="#unchecked-box-{{ id }}"
                    hx-swap="outerHTML"
                    hx-include="#event-{{ id }}-type"
+                   hx-on:click="htmx.addClass(htmx.find('#event-accordion-row-{{ id }}'), 'checked')"
             />
             <label for="select-event-{{ id }}" class="sr-only">checkbox event {{ id }}</label>
         </div>

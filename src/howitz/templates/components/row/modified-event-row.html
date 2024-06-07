@@ -4,7 +4,7 @@
                            event_history=event.event_history, event_msgs=event.event_msgs,
                            is_selected=event.selected %}
         <tr
-                class="bg-gray-800 border-gray-600 hover:bg-gray-600"
+                class="bg-gray-800 border-gray-600 hover:bg-gray-600 {{ 'checked' if is_selected }}"
                 id="event-accordion-row-{{ id }}"
                 hx-get="/events/{{ id }}/collapse_row"
                 hx-trigger="dblclick"
@@ -41,7 +41,7 @@
 {% else %}
     {% with id=event.event.id, event=event.event, is_selected=event.selected %}
         <tr
-                class="border-b bg-gray-900 border-gray-700 hover:bg-gray-600"
+                class="border-b bg-gray-900 border-gray-700 hover:bg-gray-600 {{ 'checked' if is_selected }}"
                 id="event-accordion-row-{{ id }}"
                 hx-get="/events/{{ id }}/expand_row"
                 hx-trigger="dblclick"
