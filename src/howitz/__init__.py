@@ -1,4 +1,4 @@
-__version__ = '0.1-a1'
+__version__ = '0.1-a2'
 
 
 from logging.config import dictConfig
