@@ -89,7 +89,7 @@ def handle_lost_connection(e):
         if current_app.event_manager.is_connected:
             current_app.event_manager.disconnect()
 
-        connect_to_zino(current_user.username, current_user.password, current_user.token)
+        connect_to_zino(current_user.username, current_user.token)
 
         alert_random_id = str(uuid.uuid4())
         try:

@@ -45,7 +45,7 @@ def auth_handler(username, password):
         user = authenticate_user(current_app.database, username, password)
         current_app.logger.debug('User %s', user)
 
-        connect_to_zino(user.username, user.password, user.token)
+        connect_to_zino(user.username, user.token)
 
         if current_app.event_manager.is_authenticated:  # is zino authenticated
             current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
@@ -75,7 +75,7 @@ def logout_handler():
         current_app.logger.info("Logged out successfully.")
 
 
-def connect_to_zino(username, password, token):
+def connect_to_zino(username, token):
     if not current_app.event_manager.is_connected:
         current_app.event_manager = Zino1EventManager.configure(current_app.zino_config)
         current_app.event_manager.connect()
