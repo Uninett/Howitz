@@ -83,7 +83,7 @@ def handle_lost_connection(e):
     if isinstance(e, BrokenPipeError):
         current_app.logger.exception("Lost connection to Zino server: %s", e)
     else:
-        current_app.logger.exception("Lost connection to Zino server: %s", e.args[0])
+        current_app.logger.error("Lost connection to Zino server: %s", e.args[0])
 
     if current_user.is_authenticated:  # Re-connect to Zino with existing credentials and inform user that there was an error via alert pop-up
         if current_app.event_manager.is_connected:
