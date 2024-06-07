@@ -17,7 +17,6 @@ from howitz.users.db import UserDB
 from howitz.users.commands import user_cli
 from zinolib.controllers.zino1 import Zino1EventManager, LostConnectionError, NotConnectedError
 
-
 __all__ = ["create_app"]
 
 

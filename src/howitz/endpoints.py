@@ -17,7 +17,7 @@ from flask_login import login_user, current_user, logout_user
 from datetime import datetime, timezone
 
 from werkzeug.exceptions import BadRequest
-from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError
+from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError, UpdateHandler
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState, LogEntry, HistoryEntry
 from zinolib.compat import StrEnum
 from zinolib.ritz import AuthenticationError
@@ -55,6 +55,7 @@ def auth_handler(username, password):
             session["selected_events"] = []
             session["expanded_events"] = {}
             session["errors"] = {}
+            session["event_ids"] = []
             return user
 
         raise AuthenticationError('Unexpected error on Zino authentication')
@@ -70,6 +71,7 @@ def logout_handler():
         session.pop('expanded_events', {})
         session.pop('selected_events', [])
         session.pop('errors', {})
+        session.pop('event_ids', [])
         current_app.logger.info("Logged out successfully.")
 
 
@@ -83,9 +85,22 @@ def connect_to_zino(username, password, token):
         current_app.event_manager.authenticate(username=username, password=token)
         current_app.logger.info('Authenticated in Zino %s', current_app.event_manager.is_authenticated)
 
+    if current_app.event_manager.is_authenticated:  # is zino authenticated
+        current_app.updater = UpdateHandler(current_app.event_manager, autoremove=current_app.zino_config.autoremove)
+        current_app.updater.connect()
+        current_app.logger.debug('UpdateHandler %s', current_app.updater)
+
 
 def get_current_events():
-    current_app.event_manager.get_events()
+    try:
+        current_app.event_manager.get_events()
+    except RetryError as retryErr:  # Intermittent error in Zino
+        current_app.logger.exception('RetryError when fetching current events %s', retryErr)
+        try:
+            current_app.event_manager.get_events()
+        except RetryError as retryErr:  # Intermittent error in Zino
+            current_app.logger.exception('RetryError when fetching current events after retry, %s', retryErr)
+            raise
     events = current_app.event_manager.events
 
     events_sorted = {k: events[k] for k in sorted(events,
@@ -94,35 +109,71 @@ def get_current_events():
                                                       events[k].updated,
                                                   ), reverse=True)}
 
+    # Save current events' IDs
+    session["event_ids"] = list(events_sorted.keys())
+    session.modified = True
+
     table_events = []
     for c in events_sorted.values():
-        table_events.append(create_table_event(c))
+        table_events.append(create_table_event(c, expanded=str(c.id) in session["expanded_events"],
+                                               selected=str(c.id) in session["selected_events"]))
 
     current_app.logger.debug('TABLE EVENTS %s', table_events[0])
 
     return table_events
 
 
-def poll_current_events():
-    current_app.event_manager.get_events()
-    events = current_app.event_manager.events
+def update_events():
+    updated_ids = set()
 
-    events_sorted = {k: events[k] for k in sorted(events,
-                                                  key=lambda k: (
-                                                      0 if events[k].adm_state == AdmState.IGNORED else 1,
-                                                      events[k].updated,
-                                                  ), reverse=True)}
+    while True:
+        try:
+            updated = current_app.updater.get_event_update()
+        except RetryError as retryErr:  # Intermittent error in Zino
+            current_app.logger.exception('RetryError when NTIE refreshing current events %s', retryErr)
+            try:
+                updated = current_app.updater.get_event_update()
+            except RetryError as retryErr:  # Intermittent error in Zino
+                current_app.logger.exception('RetryError when NTIE refreshing current events after retry, %s', retryErr)
+                raise
+        if not updated:
+            break
+        updated_ids.add(updated)
 
-    poll_events = []
-    for c in events_sorted.values():
-        poll_events.append(create_polled_event(create_table_event(c), expanded=str(c.id) in session["expanded_events"],
-                                               selected=str(c.id) in session["selected_events"]))
+    return updated_ids
 
-    return poll_events
+
+def refresh_current_events():
+    event_ids = update_events()
+    current_app.logger.debug('UPDATED EVENT IDS %s', event_ids)
+
+    removed_events = []
+    modified_events = []
+    added_events = []
+    removed = current_app.event_manager.removed_ids
+    existing = session["event_ids"]
+    for i in event_ids:
+        if i in removed:
+            removed_events.append(i)
+            existing.remove(i)
+        elif i not in existing:
+            c = current_app.event_manager.create_event_from_id(int(i))
+            added_events.append(create_table_event(c, expanded=False, selected=False))
+            existing.insert(0, int(i))
+        else:
+            c = current_app.event_manager.create_event_from_id(int(i))
+            modified_events.append(create_table_event(c,
+                                                      expanded=str(c.id) in session["expanded_events"],
+                                                      selected=str(c.id) in session["selected_events"]))
+
+    session["event_ids"] = existing
+    session.modified = True
+
+    return removed_events, modified_events, added_events
 
 
 # todo remove all use of helpers from curitz
-def create_table_event(event):
+def create_table_event(event, expanded=False, selected=False):
     common = {}
 
     try:
@@ -142,23 +193,18 @@ def create_table_event(event):
         raise
 
     common.update(vars(event))
-
-    return common
-
-
-def create_polled_event(table_event, expanded=False, selected=False):
-    poll_event = {
-        "event": table_event
+    table_event = {
+        "event": common
     }
     if expanded:
-        poll_event["event_attr"], poll_event["event_logs"], poll_event["event_history"], poll_event["event_msgs"] = (
-            get_event_details(int(table_event["id"])))
-        poll_event["expanded"] = expanded
+        table_event["event_attr"], table_event["event_logs"], table_event["event_history"], table_event["event_msgs"] = (
+            get_event_details(int(event.id)))
+        table_event["expanded"] = expanded
 
     if selected:
-        poll_event["selected"] = selected
+        table_event["selected"] = selected
 
-    return poll_event
+    return table_event
 
 
 # fixme implementation copied from curitz
@@ -179,23 +225,6 @@ def color_code_event(event):
             return EventColor.YELLOW
     else:
         return EventColor.DEFAULT
-
-
-def get_event_attributes(id, res_format=dict):
-    try:
-        event = current_app.event_manager.create_event_from_id(int(id))
-    except RetryError as retryErr:  # Intermittent error in Zino
-        current_app.logger.exception('RetryError when fetching event attributes %s', retryErr)
-        raise
-
-    event_dict = vars(event)
-    attr_list = [f"{k}:{v}" for k, v in event_dict.items()]
-
-    # fixme is there a better way to do switch statements in Python?
-    return {
-        list: attr_list,
-        dict: event_dict,
-    }[res_format]
 
 
 def format_dt_event_attrs(event: dict):
@@ -228,7 +257,12 @@ def get_event_details(id):
         format_dt_event_attrs(event_attr)
     except RetryError as retryErr:  # Intermittent error in Zino
         current_app.logger.exception('RetryError when fetching event details %s', retryErr)
-        raise
+        try:
+            event_attr = vars(current_app.event_manager.create_event_from_id(int(id)))
+            format_dt_event_attrs(event_attr)
+        except RetryError as retryErr:  # Intermittent error in Zino
+            current_app.logger.exception('RetryError when fetching event details after retry, %s', retryErr)
+            raise
 
     event_logs = current_app.event_manager.get_log_for_id(int(id))
     event_history = current_app.event_manager.get_history_for_id(int(id))
@@ -253,7 +287,8 @@ def footer():
     elif not tz == DEFAULT_TIMEZONE:  # Fall back to default if invalid value is provided
         tz = f"{DEFAULT_TIMEZONE} (default)"
 
-    return render_template('/components/footer/footer-info.html', poll_interval=current_app.howitz_config["poll_interval"],
+    return render_template('/components/footer/footer-info.html',
+                           refresh_interval=current_app.howitz_config["refresh_interval"],
                            timezone=tz)
 
 
@@ -306,7 +341,7 @@ def auth():
 @main.route('/events-table.html')
 def events_table():
     return render_template('/components/table/events-table.html',
-                           poll_interval=current_app.howitz_config["poll_interval"])
+                           refresh_interval=current_app.howitz_config["refresh_interval"])
 
 
 @main.route('/get_events')
@@ -316,11 +351,12 @@ def get_events():
     return render_template('/components/table/event-rows.html', event_list=table_events)
 
 
-@main.route('/poll_events')
-def poll_events():
-    poll_events_list = poll_current_events()
+@main.route('/refresh_events')
+def refresh_events():
+    removed_events, modified_events, added_events = refresh_current_events()
 
-    return render_template('/components/poll/poll-rows.html', poll_event_list=poll_events_list)
+    return render_template('/responses/updated-rows.html', modified_event_list=modified_events,
+                           removed_event_list=removed_events, added_event_list=added_events)
 
 
 @main.route('/events/<event_id>/expand_row', methods=["GET"])
@@ -345,7 +381,7 @@ def expand_event_row(event_id):
         except RetryError as retryErr:  # Intermittent error in Zino
             current_app.logger.exception('RetryError on row expand after retry, %s', retryErr)
             raise
-    event = create_table_event(eventobj)
+    event = create_table_event(eventobj)["event"]
 
     return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                            event_logs=event_logs,
@@ -374,7 +410,7 @@ def collapse_event_row(event_id):
         except RetryError as retryErr:  # Intermittent error in Zino
             current_app.logger.exception('RetryError on row collapse %s', retryErr)
             raise
-    event = create_table_event(eventobj)
+    event = create_table_event(eventobj)["event"]
 
     return render_template('/responses/collapse-row.html', event=event, id=event_id,
                            is_selected=str(event_id) in selected_events)
@@ -403,7 +439,7 @@ def update_event_status(event_id):
             add_history_res = current_app.event_manager.add_history_entry_for_id(event_id, new_history)
 
         event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
-        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))["event"]
 
         return render_template('/responses/update-event-response.html', event=event, id=event_id, event_attr=event_attr,
                                event_logs=event_logs,
@@ -444,8 +480,8 @@ def bulk_update_events_status():
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
     # Rerender whole events table
-    poll_events_list = poll_current_events()  # Calling poll events method is needed to preserve info about which events are expanded
-    return render_template('/responses/bulk-update-events-status.html', poll_event_list=poll_events_list)
+    event_list = get_current_events()
+    return render_template('/responses/bulk-update-events-status.html', event_list=event_list)
 
 
 @main.route('/show_update_status_modal', methods=['GET'])
