@@ -20,7 +20,7 @@ from werkzeug.exceptions import BadRequest
 from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState, LogEntry, HistoryEntry
 from zinolib.compat import StrEnum
-from zinolib.ritz import NotConnectedError, AuthenticationError
+from zinolib.ritz import AuthenticationError
 
 from howitz.users.utils import authenticate_user
 
@@ -55,7 +55,6 @@ def auth_handler(username, password):
             session["selected_events"] = []
             session["expanded_events"] = {}
             session["errors"] = {}
-            session["not_connected_counter"] = 0
             return user
 
         raise AuthenticationError('Unexpected error on Zino authentication')
@@ -71,7 +70,6 @@ def logout_handler():
         session.pop('expanded_events', {})
         session.pop('selected_events', [])
         session.pop('errors', {})
-        session.pop('not_connected_counter', 0)
         current_app.logger.info("Logged out successfully.")
 
 
@@ -87,19 +85,7 @@ def connect_to_zino(username, password, token):
 
 
 def get_current_events():
-    try:
-        current_app.event_manager.get_events()
-    except NotConnectedError as notConnErr:
-        if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
-            current_app.logger.exception('Recurrent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
-            raise notConnErr
-        else:  # This error is intermittent - increase counter and retry
-            current_app.logger.exception('Intermittent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
-            current_app.event_manager.get_events()
-            pass
-
+    current_app.event_manager.get_events()
     events = current_app.event_manager.events
 
     events_sorted = {k: events[k] for k in sorted(events,
@@ -118,19 +104,7 @@ def get_current_events():
 
 
 def poll_current_events():
-    try:
-        current_app.event_manager.get_events()
-    except NotConnectedError as notConnErr:
-        if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
-            current_app.logger.exception('Recurrent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
-            raise notConnErr
-        else:  # This error is intermittent - increase counter and retry
-            current_app.logger.exception('Intermittent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
-            current_app.event_manager.get_events()
-            pass
-
+    current_app.event_manager.get_events()
     events = current_app.event_manager.events
 
     events_sorted = {k: events[k] for k in sorted(events,
