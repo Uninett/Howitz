@@ -85,10 +85,28 @@ def handle_lost_connection(e):
     else:
         current_app.logger.exception("Lost connection to Zino server: %s", e.args[0])
 
-    if current_app.event_manager.is_connected:
-        current_app.event_manager.disconnect()
+    if current_user.is_authenticated:  # Re-connect to Zino with existing credentials and inform user that there was an error via alert pop-up
+        if current_app.event_manager.is_connected:
+            current_app.event_manager.disconnect()
 
-    connect_to_zino(current_user.username, current_user.password, current_user.token)
+        connect_to_zino(current_user.username, current_user.password, current_user.token)
 
-    # FIXME
-    return "", 200
+        alert_random_id = str(uuid.uuid4())
+        try:
+            short_err_msg = e.args[0]
+        except IndexError:
+            short_err_msg = 'Temporarily lost connection to Zino server'
+
+        if not "errors" in session:
+            session["errors"] = dict()
+        session["errors"][str(alert_random_id)] = serialize_exception(e)
+        session.modified = True
+
+        response = make_response(render_template('/components/popups/alerts/error/error-alert.html',
+                                                 alert_id=alert_random_id, short_err_msg=short_err_msg))
+        response.headers['HX-Reswap'] = 'beforeend'
+        return response, 503
+    else:  # Redirect to /login for complete re-authentication
+        res = make_response()
+        res.headers['HX-Redirect'] = '/login'
+        return res
