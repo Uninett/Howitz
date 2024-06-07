@@ -259,7 +259,7 @@ than ``LOCAL`` and ``UTC`` provided in config will be ignored and fall back to `
 
 
 Example config-file (for development)
------------------------------------
+-------------------------------------
 
 For development, copy the contents of the included file ``howitz.toml.example`` to ``.howitz.toml`` in the same directory.
 
