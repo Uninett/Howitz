@@ -1,6 +1,6 @@
 import pytest
-from datetime import datetime
-from zinolib.event_types import Event, AdmState, Type
+from datetime import datetime, timezone
+from zinolib.event_types import Event, AdmState
 from howitz.endpoints import sort_events, EventSort
 
 
@@ -21,11 +21,12 @@ class TestSortEvents:
 @pytest.fixture()
 def events():
     events_dict = {}
-    for i in range(3)
+    now = datetime.now(timezone.utc)
+    for i in range(3):
         event_id = i+1
         event = Event(
             id=event_id,
-            type=Type.PORTSTATE,
+            type=Event.Type.PORTSTATE,
             adm_state=AdmState.IGNORED,
             router="router1",
             opened=now,
