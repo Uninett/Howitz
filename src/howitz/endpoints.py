@@ -250,9 +250,20 @@ def sort_events(events_dict, sort_by: EventSort = EventSort.DEFAULT):
 
 
 def get_priority(event):
-    if event.adm_state == AdmState.IGNORED:
+    """
+    Priorities are as follows:
+      - `0` = Lowest
+      - `1` = Low
+      - `2` = Medium
+      - `3` = High
+      - `4` = Highest
+    :param event:
+    :return: priority as int, where `0` is lowest, and `4` is the highest priority
+    """
+
+    if event.adm_state == AdmState.IGNORED:  # Low priority
         return 1
-    elif event.adm_state == AdmState.CLOSED:
+    elif event.adm_state == AdmState.CLOSED: # Lowest priority
         return 0
     elif ((event.type == Event.Type.PORTSTATE and event.port_state in [PortState.DOWN,
                                                                        PortState.LOWER_LAYER_DOWN])
@@ -261,13 +272,13 @@ def get_priority(event):
           or (event.type == Event.Type.REACHABILITY and event.reachability == ReachabilityState.NORESPONSE)
           or (event.type == Event.Type.ALARM and event.alarm_count > 0)):
         if event.adm_state == AdmState.OPEN:
-            return 4
+            return 4  # Highest priority
         elif event.adm_state in [AdmState.WORKING, AdmState.WAITING]:
-            return 3
+            return 3  # High priority
     elif event.adm_state in [AdmState.WORKING, AdmState.WAITING]:
-        return 3
+        return 3  # High priority
 
-    return 2
+    return 2  # Medium priority
 
 
 # todo remove all use of helpers from curitz
