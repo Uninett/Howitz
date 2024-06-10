@@ -1,0 +1,17 @@
+[flask]
+SECRET_KEY =
+DEBUG = true
+
+[howitz]
+storage = "./howitz.sqlite3"
+devmode = true
+timezone='LOCAL'
+
+[zino.connections.default]
+server =
+
+[logging]
+version = 1
+
+[logging.root]
+level = "ERROR"

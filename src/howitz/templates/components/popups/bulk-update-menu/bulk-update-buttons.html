@@ -5,7 +5,7 @@
             hx-get="/show_update_status_modal"
             hx-target="body"
             hx-swap="beforeend"
-            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+            class="text-white focus:ring-4 font-medium rounded-lg text-sm px-3 py-2 mr-2 bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-blue-800"
     >
         Update Status
     </button>
@@ -13,16 +13,22 @@
     <button
             disabled
             id="bulk-poll-events"
-            class="text-white bg-blue-400 dark:bg-blue-500 cursor-not-allowed font-medium rounded-lg text-sm px-3 py-2 mr-2 mb-2 text-center"
+            class="text-white bg-blue-500 cursor-not-allowed font-medium rounded-lg text-sm px-3 py-2 mr-2 text-center"
     >
         Poll
     </button>
 
-    <button
-            disabled
-            id="bulk-clear-flapping"
-            class="text-white bg-blue-400 dark:bg-blue-500 cursor-not-allowed font-medium rounded-lg text-sm px-3 py-2 mr-2 mb-2 text-center">
-        Clear Flapping
-    </button>
+    {% if show_clear_flapping %}
+        <button
+                hx-post="/event/bulk_clear_flapping"
+                hx-target="#eventlist-list"
+                hx-swap="innerHTML"
+                hx-trigger="click"
+                id="bulk-clear-flapping"
+                hx-indicator="#bulk-clear-flapping-indicator"
+                class="text-white focus:ring-4 font-medium rounded-lg text-sm px-3 py-2 mr-2 bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-blue-800">
+            Clear Flapping
+        </button>
+    {% endif %}
 
 </div>

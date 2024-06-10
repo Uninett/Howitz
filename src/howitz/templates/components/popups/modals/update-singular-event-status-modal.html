@@ -34,12 +34,12 @@
                                 <div class="text-base w-4/5">
                                     <label
                                             for="event-state"
-                                            class="block mb-2 font-medium text-gray-900 dark:text-white">
+                                            class="block mb-2 font-medium text-white">
                                         Select state
                                     </label>
                                     <select id="event-state"
                                             name="event-state"
-                                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                            class="border text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500">
                                         <option class="px-2" value="open"
                                                 {% if current_state=='open' %}selected{% endif %}>Open
                                         </option>
@@ -61,11 +61,11 @@
                                     </select>
                                 </div>
 
-                                <div class="w-4/5 py-2 px-4 mb-4 bg-white rounded-lg rounded-t-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                                <div class="w-4/5 py-2 px-4 mb-4 rounded-lg rounded-t-lg border bg-gray-800 border-gray-700">
                                     <label for="comment" class="sr-only">Your comment</label>
                                     <textarea id="comment" rows="4"
                                               name="event-history"
-                                              class="px-0 w-full text-base text-gray-900 border-0 focus:ring-0 focus:outline-none dark:text-white dark:placeholder-gray-400 dark:bg-gray-800"
+                                              class="px-0 w-full text-base border-0 focus:ring-0 focus:outline-none text-white placeholder-gray-400 bg-gray-800"
                                               placeholder="Add a message to history..."></textarea>
                                 </div>
 
@@ -76,7 +76,7 @@
                                         hx-swap="outerHTML show:#ol-event-{{ id }}:bottom"
                                         hx-indicator="#bulk-update-indicator"
                                         hx-target-400="#generic-400-error"
-                                        class="mr-1 inline-flex items-center py-2 px-4 font-medium text-center text-white bg-primary-700 rounded-lg focus:ring-4 focus:ring-primary-200 dark:focus:ring-primary-900 hover:bg-primary-800 bg-blue-700 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                                        class="mr-1 inline-flex items-center py-2 px-4 font-medium text-center text-white rounded-lg focus:ring-4 bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-blue-800">
                                     Update event
                                 </button>
 

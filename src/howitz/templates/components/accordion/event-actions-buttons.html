@@ -8,16 +8,20 @@
     <button
             disabled
             id="poll-event-{{ id }}"
-            class="text-white bg-blue-400 dark:bg-blue-500 cursor-not-allowed font-medium rounded-lg text-sm px-3 py-2 mr-2 mb-2 text-center"
+            class="text-white bg-blue-500 cursor-not-allowed font-medium rounded-lg text-sm px-3 py-2 mr-2 mb-2 text-center"
     >
         Poll
     </button>
 
-    <button
-            disabled
-            id="clear-flapping-{{ id }}"
-            class="text-white bg-blue-400 dark:bg-blue-500 cursor-not-allowed font-medium rounded-lg text-sm px-3 py-2 mr-2 mb-2 text-center">
-        Clear Flapping
-    </button>
+    {% if event.type == 'portstate' %}
+        <button id="clear-flapping-{{ id }}"
+                hx-post="/event/{{ id }}/clear-flapping"
+                hx-target="#event-accordion-row-{{ id }}"
+                hx-swap="outerHTML show:#event-msg-feed-{{ id }}:bottom"
+                hx-indicator="#row-{{ id }}-indicator"
+                class="text-white focus:ring-4 font-medium rounded-lg text-sm px-3 py-2 mr-2 mb-2 bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-blue-800">
+            Clear Flapping
+        </button>
+    {% endif %}
 
 </div>

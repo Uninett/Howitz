@@ -27,13 +27,13 @@ class DevStorageConfig(StorageConfig):
 
 class HowitzConfig(ServerConfig, StorageConfig):
     devmode: bool = Literal[False]
-    poll_interval: int = 60
+    refresh_interval: int = 5
     timezone: str = DEFAULT_TIMEZONE
     sort_by: str = EventSorting.DEFAULT
 
 
 class DevHowitzConfig(DevServerConfig, DevStorageConfig):
     devmode: bool = Literal[True]
-    poll_interval: int = 30
+    refresh_interval: int = 5
     timezone: str = DEFAULT_TIMEZONE
     sort_by: str = EventSorting.DEFAULT
