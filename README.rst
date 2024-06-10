@@ -259,7 +259,7 @@ than ``LOCAL`` and ``UTC`` provided in config will be ignored and fall back to `
 
 
 Configuring order in which events are sorted
------------------------------------
+--------------------------------------------
 
 Sorting method can be changed under the ``[howitz]``-section by adding::
 
@@ -268,7 +268,7 @@ Sorting method can be changed under the ``[howitz]``-section by adding::
 Valid sorting methods are:
 
 * *default* - Unchanged order in which Zino server sends events (by ID ascending).
-* *lasttrans* - Newest transaction first, all IGNORED at the bottom. Default sorting in curitz, and the one used in SSC.
+* *lasttrans* - Newest transaction first, all IGNORED at the bottom. Default sorting in curitz.
 
 * *severity* - Events of same color grouped together. The most severe (red) at the top and ignored at the bottom. Existing method in Ritz TK, but it is called 'default' there.
 * *down-rev* - Shortest/none downtime first. Identical to an existing method in Ritz TK.
