@@ -266,8 +266,8 @@ def get_priority(event):
             return 3
     elif event.adm_state in [AdmState.WORKING, AdmState.WAITING]:
         return 3
-    else:
-        return 2
+
+    return 2
 
 
 # todo remove all use of helpers from curitz
