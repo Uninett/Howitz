@@ -2,15 +2,20 @@ import pytest
 from datetime import datetime, timezone
 from zinolib.event_types import Event, AdmState
 from howitz.endpoints import sort_events, EventSort
+from flask import Flask
+
+test_app = Flask("test")
 
 
 class TestSortEvents:
     def test_default_sorting_should_not_change_dict_order(self, events):
-        sorted_events = sort_events(events, sort_by=EventSort.DEFAULT)
+        with test_app.app_context():
+            sorted_events = sort_events(events, sort_by=EventSort.DEFAULT)
         assert sorted_events.keys() == events.keys()
 
     def test_upd_sorting_should_order_by_oldest_updated_value_first(self, events):
-        sorted_events = sort_events(events, sort_by=EventSort.UPD)
+        with test_app.app_context():
+            sorted_events = sort_events(events, sort_by=EventSort.UPD)
         prev_event = None
         for event_id, event in sorted_events.items():
             if prev_event:
