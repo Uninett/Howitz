@@ -41,7 +41,7 @@ class EventColor(StrEnum):
 
 
 # Inspired by https://stackoverflow.com/a/54732120
-class EventSorting(Enum):
+class EventSort(Enum):
     AGE = "age", "opened", True  # Newest events first
     AGE_REV = "age-rev", "opened", False  # Oldest events first
     UPD = "upd", "updated", False  # Events with the oldest update date first
@@ -149,7 +149,7 @@ def get_current_events():
             raise
     events = current_app.event_manager.events
 
-    events_sorted = sort_events(events, sort_by=EventSorting(session["sort_by"]))
+    events_sorted = sort_events(events, sort_by=EventSort(session["sort_by"]))
 
     # Save current events' IDs
     session["event_ids"] = list(events_sorted.keys())
@@ -214,12 +214,12 @@ def refresh_current_events():
     return removed_events, modified_events, added_events
 
 
-def sort_events(events_dict, sort_by: EventSorting = EventSorting.DEFAULT):
+def sort_events(events_dict, sort_by: EventSort = EventSort.DEFAULT):
     current_app.logger.debug("SORTING BY %s", sort_by)
 
-    if sort_by == EventSorting.DEFAULT:
+    if sort_by == EventSort.DEFAULT:
         return events_dict
-    elif sort_by == EventSorting.LASTTRANS:
+    elif sort_by == EventSort.LASTTRANS:
         events_sorted = {k: events_dict[k] for k in
                          reversed(
                              sorted(events_dict,
@@ -228,13 +228,13 @@ def sort_events(events_dict, sort_by: EventSorting = EventSorting.DEFAULT):
                                         getattr(events_dict[k], sort_by.attribute),
                                     ), ))
                          }
-    elif sort_by == EventSorting.SEVERITY:
+    elif sort_by == EventSort.SEVERITY:
         events_sorted = {k: events_dict[k] for k in sorted(events_dict,
                                                            key=lambda k: (
                                                                get_priority(events_dict[k]),
                                                                events_dict[k].type,
                                                            ), reverse=sort_by.reversed)}
-    elif sort_by == EventSorting.DOWN or sort_by == EventSorting.DOWN_REV:
+    elif sort_by == EventSort.DOWN or sort_by == EventSort.DOWN_REV:
         events_sorted = {k: events_dict[k] for k in sorted(events_dict,
                                                            key=lambda k: (
                                                                timedelta() if not hasattr(events_dict[k], sort_by.attribute) else

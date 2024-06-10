@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from pydantic.networks import IPvAnyAddress
 
 from howitz.config.defaults import DEFAULT_TIMEZONE, DEFAULT_STORAGE
-from howitz.endpoints import EventSorting
+from howitz.endpoints import EventSort
 
 
 class ServerConfig(BaseModel):
@@ -29,11 +29,11 @@ class HowitzConfig(ServerConfig, StorageConfig):
     devmode: bool = Literal[False]
     refresh_interval: int = 5
     timezone: str = DEFAULT_TIMEZONE
-    sort_by: str = EventSorting.DEFAULT
+    sort_by: str = EventSort.DEFAULT
 
 
 class DevHowitzConfig(DevServerConfig, DevStorageConfig):
     devmode: bool = Literal[True]
     refresh_interval: int = 5
     timezone: str = DEFAULT_TIMEZONE
-    sort_by: str = EventSorting.DEFAULT
+    sort_by: str = EventSort.DEFAULT

@@ -1,16 +1,16 @@
 import pytest
 from datetime import datetime
 from zinolib.event_types import Event, AdmState, Type
-from howitz.endpoints import sort_events, EventSorting
+from howitz.endpoints import sort_events, EventSort
 
 
 class TestSortEvents:
     def test_default_sorting_should_not_change_dict_order(self, events):
-        sorted_events = sort_events(events, sort_by=EventSorting.DEFAULT)
+        sorted_events = sort_events(events, sort_by=EventSort.DEFAULT)
         assert sorted_events.keys() == events.keys()
 
     def test_upd_sorting_should_order_by_oldest_updated_value_first(self, events):
-        sorted_events = sort_events(events, sort_by=EventSorting.UPD)
+        sorted_events = sort_events(events, sort_by=EventSort.UPD)
         prev_event = None
         for event_id, event in sorted_events.items():
             if prev_event:
