@@ -249,7 +249,7 @@ def sort_events(events_dict, sort_by: EventSort = EventSort.DEFAULT):
     return events_sorted
 
 
-def get_priority(event):
+def get_priority(event: Event):
     """
     Priorities are as follows:
       - `0` = Lowest
