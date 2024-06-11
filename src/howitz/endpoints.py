@@ -260,20 +260,15 @@ def get_priority(event: Event):
     :param event:
     :return: priority as int, where `0` is lowest, and `4` is the highest priority
     """
-
-    if event.adm_state == AdmState.IGNORED:  # Low priority
+    if event.adm_state == AdmState.IGNORED:
         return 1
-    elif event.adm_state == AdmState.CLOSED: # Lowest priority
+    if event.adm_state == AdmState.CLOSED:
         return 0
-    elif event.is_down():
-        if event.adm_state == AdmState.OPEN:
-            return 4  # Highest priority
-        elif event.adm_state in [AdmState.WORKING, AdmState.WAITING]:
-            return 3  # High priority
-    elif event.adm_state in [AdmState.WORKING, AdmState.WAITING]:
-        return 3  # High priority
-
-    return 2  # Medium priority
+    if event.is_down() and event.adm_state == AdmState.OPEN:
+        return 4
+    if event.adm_state in [AdmState.WORKING, AdmState.WAITING]:
+        return 3
+    return 2
 
 
 # todo remove all use of helpers from curitz
