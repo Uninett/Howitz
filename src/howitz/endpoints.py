@@ -265,12 +265,7 @@ def get_priority(event: Event):
         return 1
     elif event.adm_state == AdmState.CLOSED: # Lowest priority
         return 0
-    elif ((event.type == Event.Type.PORTSTATE and event.port_state in [PortState.DOWN,
-                                                                       PortState.LOWER_LAYER_DOWN])
-          or (event.type == Event.Type.BGP and event.bgp_OS == "down")
-          or (event.type == Event.Type.BFD and event.bfd_state == BFDState.DOWN)
-          or (event.type == Event.Type.REACHABILITY and event.reachability == ReachabilityState.NORESPONSE)
-          or (event.type == Event.Type.ALARM and event.alarm_count > 0)):
+    elif event.is_down():
         if event.adm_state == AdmState.OPEN:
             return 4  # Highest priority
         elif event.adm_state in [AdmState.WORKING, AdmState.WAITING]:
