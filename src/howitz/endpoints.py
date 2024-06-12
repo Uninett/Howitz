@@ -51,7 +51,7 @@ class EventSort(Enum):
 
     LASTTRANS = "lasttrans", "updated", True  # Newest transaction first, all IGNORED at the bottom. Default sorting at SSC
     SEVERITY = "severity", "", True  # Events of same color grouped together. The most severe (red) at the top and ignored at the bottom
-    DEFAULT = "default", "", None  # Unchanged order in which Zino server sends events (by ID ascending)
+    DEFAULT = "raw", "", None  # Unchanged order in which Zino server sends events (by ID ascending)
 
     def __new__(cls, *args, **kwds):
         obj = object.__new__(cls)
@@ -108,7 +108,7 @@ def logout_handler():
         session.pop('selected_events', {})
         session.pop('errors', {})
         session.pop('event_ids', [])
-        session.pop('sort_by', "default")
+        session.pop('sort_by', "raw")
         current_app.cache.clear()
         current_app.logger.info("Logged out successfully.")
 

@@ -267,7 +267,7 @@ Sorting method can be changed under the ``[howitz]``-section by adding::
 
 Valid sorting methods are:
 
-* *default* - Unchanged order in which Zino server sends events (by ID ascending).
+* *raw* - Unchanged order in which Zino server sends events (by ID ascending).
 * *lasttrans* - Newest transaction first, all IGNORED at the bottom. Default sorting in curitz.
 
 * *severity* - Events of same color grouped together. The most severe (red) at the top and ignored at the bottom. Existing method in Ritz TK, but it is called 'default' there.
