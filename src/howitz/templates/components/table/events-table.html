@@ -1,5 +1,5 @@
 <table
-        class="border-collapse border border-slate-500 w-full text-sm text-left text-gray-600 dark:text-gray-400 table-auto"
+        class="border-collapse border border-slate-500 w-full text-sm text-left text-gray-400 table-auto"
         hx-get="/get_events"
         hx-swap="innerHTML"
         hx-target="#eventlist-list"
@@ -21,11 +21,10 @@
     </thead>
     <tbody
             id="eventlist-list"
-            hx-get="/poll_events"
-            hx-swap="innerHTML"
+            hx-get="/refresh_events"
+            hx-swap="afterbegin"
             hx-target="#eventlist-list"
-            hx-trigger="every {{ poll_interval }}s"
-
+            hx-trigger="every {{ refresh_interval }}s"
     >
     {% for n in range(30) %}
         {% include "/components/row/table-row-skeleton.html" %}

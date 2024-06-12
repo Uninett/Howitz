@@ -16,11 +16,11 @@ from flask_login import login_user, current_user, logout_user
 
 from datetime import datetime, timezone
 
-from werkzeug.exceptions import BadRequest, InternalServerError
-from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError
+from werkzeug.exceptions import BadRequest, InternalServerError, MethodNotAllowed
+from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError, UpdateHandler
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState, LogEntry, HistoryEntry
 from zinolib.compat import StrEnum
-from zinolib.ritz import NotConnectedError, AuthenticationError
+from zinolib.ritz import AuthenticationError
 
 from howitz.users.utils import authenticate_user
 
@@ -45,24 +45,17 @@ def auth_handler(username, password):
         user = authenticate_user(current_app.database, username, password)
         current_app.logger.debug('User %s', user)
 
-        if not current_app.event_manager.is_connected:
-            current_app.event_manager = Zino1EventManager.configure(current_app.zino_config)
-            current_app.event_manager.connect()
-            current_app.logger.info('Connected to Zino %s', current_app.event_manager.is_connected)
-
-        if not current_app.event_manager.is_authenticated:
-            current_app.event_manager.authenticate(username=user.username, password=user.token)
-            current_app.logger.info('Authenticated in Zino %s', current_app.event_manager.is_authenticated)
+        connect_to_zino(user.username, user.token)
 
         if current_app.event_manager.is_authenticated:  # is zino authenticated
             current_app.logger.debug('User is Zino authenticated %s', current_app.event_manager.is_authenticated)
             current_app.logger.debug('HOWITZ CONFIG %s', current_app.howitz_config)
             login_user(user, remember=True)
             flash('Logged in successfully.')
-            session["selected_events"] = []
+            session["selected_events"] = {}
             session["expanded_events"] = {}
             session["errors"] = {}
-            session["not_connected_counter"] = 0
+            session["event_ids"] = []
             return user
 
         raise AuthenticationError('Unexpected error on Zino authentication')
@@ -76,26 +69,47 @@ def logout_handler():
         current_app.logger.debug("Zino session was disconnected")
         flash('Logged out successfully.')
         session.pop('expanded_events', {})
-        session.pop('selected_events', [])
+        session.pop('selected_events', {})
         session.pop('errors', {})
-        session.pop('not_connected_counter', 0)
+        session.pop('event_ids', [])
         current_app.logger.info("Logged out successfully.")
+
+
+def connect_to_zino(username, token):
+    if not current_app.event_manager.is_connected:
+        current_app.event_manager = Zino1EventManager.configure(current_app.zino_config)
+        current_app.event_manager.connect()
+        current_app.logger.info('Connected to Zino %s', current_app.event_manager.is_connected)
+
+    if not current_app.event_manager.is_authenticated:
+        current_app.event_manager.authenticate(username=username, password=token)
+        current_app.logger.info('Authenticated in Zino %s', current_app.event_manager.is_authenticated)
+
+    if current_app.event_manager.is_authenticated:  # is zino authenticated
+        current_app.updater = UpdateHandler(current_app.event_manager, autoremove=current_app.zino_config.autoremove)
+        current_app.updater.connect()
+        current_app.logger.debug('UpdateHandler %s', current_app.updater)
+
+
+def clear_ui_state():
+    session["selected_events"] = {}
+    session["expanded_events"] = {}
+    session["errors"] = {}
+    session["event_ids"] = []
+
+    session.modified = True
 
 
 def get_current_events():
     try:
         current_app.event_manager.get_events()
-    except NotConnectedError as notConnErr:
-        if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
-            current_app.logger.exception('Recurrent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
-            raise
-        else:  # This error is intermittent - increase counter and retry
-            current_app.logger.exception('Intermittent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
+    except RetryError as retryErr:  # Intermittent error in Zino
+        current_app.logger.exception('RetryError when fetching current events %s', retryErr)
+        try:
             current_app.event_manager.get_events()
-            pass
-
+        except RetryError as retryErr:  # Intermittent error in Zino
+            current_app.logger.exception('RetryError when fetching current events after retry, %s', retryErr)
+            raise
     events = current_app.event_manager.events
 
     events_sorted = {k: events[k] for k in sorted(events,
@@ -104,47 +118,71 @@ def get_current_events():
                                                       events[k].updated,
                                                   ), reverse=True)}
 
+    # Save current events' IDs
+    session["event_ids"] = list(events_sorted.keys())
+    session.modified = True
+
     table_events = []
     for c in events_sorted.values():
-        table_events.append(create_table_event(c))
+        table_events.append(create_table_event(c, expanded=str(c.id) in session["expanded_events"],
+                                               selected=str(c.id) in session["selected_events"]))
 
     current_app.logger.debug('TABLE EVENTS %s', table_events[0])
 
     return table_events
 
 
-def poll_current_events():
-    try:
-        current_app.event_manager.get_events()
-    except NotConnectedError as notConnErr:
-        if session["not_connected_counter"] > 1:  # This error is not intermittent - increase counter and handle
-            current_app.logger.exception('Recurrent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
-            raise
-        else:  # This error is intermittent - increase counter and retry
-            current_app.logger.exception('Intermittent NotConnectedError %s', notConnErr)
-            session["not_connected_counter"] += 1
-            current_app.event_manager.get_events()
-            pass
+def update_events():
+    updated_ids = set()
 
-    events = current_app.event_manager.events
+    while True:
+        try:
+            updated = current_app.updater.get_event_update()
+        except RetryError as retryErr:  # Intermittent error in Zino
+            current_app.logger.exception('RetryError when NTIE refreshing current events %s', retryErr)
+            try:
+                updated = current_app.updater.get_event_update()
+            except RetryError as retryErr:  # Intermittent error in Zino
+                current_app.logger.exception('RetryError when NTIE refreshing current events after retry, %s', retryErr)
+                raise
+        if not updated:
+            break
+        updated_ids.add(updated)
 
-    events_sorted = {k: events[k] for k in sorted(events,
-                                                  key=lambda k: (
-                                                      0 if events[k].adm_state == AdmState.IGNORED else 1,
-                                                      events[k].updated,
-                                                  ), reverse=True)}
+    return updated_ids
 
-    poll_events = []
-    for c in events_sorted.values():
-        poll_events.append(create_polled_event(create_table_event(c), expanded=str(c.id) in session["expanded_events"],
-                                               selected=str(c.id) in session["selected_events"]))
 
-    return poll_events
+def refresh_current_events():
+    event_ids = update_events()
+    current_app.logger.debug('UPDATED EVENT IDS %s', event_ids)
+
+    removed_events = []
+    modified_events = []
+    added_events = []
+    removed = current_app.event_manager.removed_ids
+    existing = session["event_ids"]
+    for i in event_ids:
+        if i in removed:
+            removed_events.append(i)
+            existing.remove(i)
+        elif i not in existing:
+            c = current_app.event_manager.create_event_from_id(int(i))
+            added_events.append(create_table_event(c, expanded=False, selected=False))
+            existing.insert(0, int(i))
+        else:
+            c = current_app.event_manager.create_event_from_id(int(i))
+            modified_events.append(create_table_event(c,
+                                                      expanded=str(c.id) in session["expanded_events"],
+                                                      selected=str(c.id) in session["selected_events"]))
+
+    session["event_ids"] = existing
+    session.modified = True
+
+    return removed_events, modified_events, added_events
 
 
 # todo remove all use of helpers from curitz
-def create_table_event(event):
+def create_table_event(event, expanded=False, selected=False):
     common = {}
 
     try:
@@ -164,23 +202,18 @@ def create_table_event(event):
         raise
 
     common.update(vars(event))
-
-    return common
-
-
-def create_polled_event(table_event, expanded=False, selected=False):
-    poll_event = {
-        "event": table_event
+    table_event = {
+        "event": common
     }
     if expanded:
-        poll_event["event_attr"], poll_event["event_logs"], poll_event["event_history"], poll_event["event_msgs"] = (
-            get_event_details(int(table_event["id"])))
-        poll_event["expanded"] = expanded
+        table_event["event_attr"], table_event["event_logs"], table_event["event_history"], table_event["event_msgs"] = (
+            get_event_details(int(event.id)))
+        table_event["expanded"] = expanded
 
     if selected:
-        poll_event["selected"] = selected
+        table_event["selected"] = selected
 
-    return poll_event
+    return table_event
 
 
 # fixme implementation copied from curitz
@@ -201,23 +234,6 @@ def color_code_event(event):
             return EventColor.YELLOW
     else:
         return EventColor.DEFAULT
-
-
-def get_event_attributes(id, res_format=dict):
-    try:
-        event = current_app.event_manager.create_event_from_id(int(id))
-    except RetryError as retryErr:  # Intermittent error in Zino
-        current_app.logger.exception('RetryError when fetching event attributes %s', retryErr)
-        raise
-
-    event_dict = vars(event)
-    attr_list = [f"{k}:{v}" for k, v in event_dict.items()]
-
-    # fixme is there a better way to do switch statements in Python?
-    return {
-        list: attr_list,
-        dict: event_dict,
-    }[res_format]
 
 
 def format_dt_event_attrs(event: dict):
@@ -250,7 +266,12 @@ def get_event_details(id):
         format_dt_event_attrs(event_attr)
     except RetryError as retryErr:  # Intermittent error in Zino
         current_app.logger.exception('RetryError when fetching event details %s', retryErr)
-        raise
+        try:
+            event_attr = vars(current_app.event_manager.create_event_from_id(int(id)))
+            format_dt_event_attrs(event_attr)
+        except RetryError as retryErr:  # Intermittent error in Zino
+            current_app.logger.exception('RetryError when fetching event details after retry, %s', retryErr)
+            raise
 
     event_logs = current_app.event_manager.get_log_for_id(int(id))
     event_history = current_app.event_manager.get_history_for_id(int(id))
@@ -264,6 +285,7 @@ def get_event_details(id):
 @main.route('/events')
 @login_check()
 def index():
+    clear_ui_state()
     return render_template('/views/events.html')
 
 
@@ -275,7 +297,8 @@ def footer():
     elif not tz == DEFAULT_TIMEZONE:  # Fall back to default if invalid value is provided
         tz = f"{DEFAULT_TIMEZONE} (default)"
 
-    return render_template('/components/footer/footer-info.html', poll_interval=current_app.howitz_config["poll_interval"],
+    return render_template('/components/footer/footer-info.html',
+                           refresh_interval=current_app.howitz_config["refresh_interval"],
                            timezone=tz)
 
 
@@ -328,7 +351,7 @@ def auth():
 @main.route('/events-table.html')
 def events_table():
     return render_template('/components/table/events-table.html',
-                           poll_interval=current_app.howitz_config["poll_interval"])
+                           refresh_interval=current_app.howitz_config["refresh_interval"])
 
 
 @main.route('/get_events')
@@ -338,11 +361,12 @@ def get_events():
     return render_template('/components/table/event-rows.html', event_list=table_events)
 
 
-@main.route('/poll_events')
-def poll_events():
-    poll_events_list = poll_current_events()
+@main.route('/refresh_events')
+def refresh_events():
+    removed_events, modified_events, added_events = refresh_current_events()
 
-    return render_template('/components/poll/poll-rows.html', poll_event_list=poll_events_list)
+    return render_template('/responses/updated-rows.html', modified_event_list=modified_events,
+                           removed_event_list=removed_events, added_event_list=added_events)
 
 
 @main.route('/events/<event_id>/expand_row', methods=["GET"])
@@ -355,7 +379,7 @@ def expand_event_row(event_id):
         pass
 
     event_id = int(event_id)
-    selected_events = session.get("selected_events") or []
+    selected_events = session.get("selected_events", {})
 
     event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
     try:
@@ -367,7 +391,7 @@ def expand_event_row(event_id):
         except RetryError as retryErr:  # Intermittent error in Zino
             current_app.logger.exception('RetryError on row expand after retry, %s', retryErr)
             raise
-    event = create_table_event(eventobj)
+    event = create_table_event(eventobj)["event"]
 
     return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                            event_logs=event_logs,
@@ -385,7 +409,7 @@ def collapse_event_row(event_id):
         pass
 
     event_id = int(event_id)
-    selected_events = session.get("selected_events") or []
+    selected_events = session.get("selected_events", {})
 
     try:
         eventobj = current_app.event_manager.create_event_from_id(event_id)
@@ -396,7 +420,7 @@ def collapse_event_row(event_id):
         except RetryError as retryErr:  # Intermittent error in Zino
             current_app.logger.exception('RetryError on row collapse %s', retryErr)
             raise
-    event = create_table_event(eventobj)
+    event = create_table_event(eventobj)["event"]
 
     return render_template('/responses/collapse-row.html', event=event, id=event_id,
                            is_selected=str(event_id) in selected_events)
@@ -409,7 +433,7 @@ def update_event_status(event_id):
     current_state = event.adm_state
 
     if request.method == 'POST':
-        selected_events = session.get("selected_events", [])
+        selected_events = session.get("selected_events", {})
 
         new_state = request.form['event-state']
         new_history = request.form['event-history']
@@ -425,7 +449,7 @@ def update_event_status(event_id):
             add_history_res = current_app.event_manager.add_history_entry_for_id(event_id, new_history)
 
         event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
-        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))["event"]
 
         return render_template('/responses/update-event-response.html', event=event, id=event_id, event_attr=event_attr,
                                event_logs=event_logs,
@@ -439,8 +463,8 @@ def update_event_status(event_id):
 
 @main.route('/event/bulk_update_status', methods=['POST'])
 def bulk_update_events_status():
-    selected_events = session.get("selected_events", [])
-    expanded_events = session.get("expanded_events", [])
+    selected_events = session.get("selected_events", {})
+    expanded_events = session.get("expanded_events", {})
     current_app.logger.debug('SELECTED EVENTS %s', selected_events)
     current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
@@ -461,13 +485,13 @@ def bulk_update_events_status():
             add_history_res = current_app.event_manager.add_history_entry_for_id(int(event_id), new_history)
 
     # Clear selected events
-    session["selected_events"] = []
+    session["selected_events"] = {}
     session.modified = True  # Necessary when modifying arrays/dicts/etc in flask session
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
     # Rerender whole events table
-    poll_events_list = poll_current_events()  # Calling poll events method is needed to preserve info about which events are expanded
-    return render_template('/responses/bulk-update-events-status.html', poll_event_list=poll_events_list)
+    event_list = get_current_events()
+    return render_template('/responses/bulk-update-events-status.html', event_list=event_list)
 
 
 @main.route('/show_update_status_modal', methods=['GET'])
@@ -477,14 +501,14 @@ def show_update_events_status_modal():
 
 @main.route('/event/<i>/poll', methods=["POST"])
 def poll(i):
-    selected_events = session.get("selected_events", [])
+    selected_events = session.get("selected_events", {})
     event_id = int(i)
 
     poll_res = current_app.event_manager.poll(event_id)
 
     if poll_res:
         event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
-        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))
+        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))["event"]
 
         return render_template('/responses/update-event-response.html', event=event, id=event_id, event_attr=event_attr,
                                event_logs=event_logs,
@@ -496,8 +520,8 @@ def poll(i):
 
 @main.route('/event/bulk_poll', methods=['POST'])
 def bulk_poll():
-    selected_events = session.get("selected_events", [])
-    expanded_events = session.get("expanded_events", [])
+    selected_events = session.get("selected_events", {})
+    expanded_events = session.get("expanded_events", {})
     current_app.logger.debug('SELECTED EVENTS %s', selected_events)
     current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
 
@@ -509,39 +533,92 @@ def bulk_poll():
             raise InternalServerError(description=f"Unexpected error when polling event #{event_id}")
 
     # Clear selected events
-    session["selected_events"] = []
+    session["selected_events"] = {}
     session.modified = True  # Necessary when modifying arrays/dicts/etc in flask session
     current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
     # Rerender whole events table
-    poll_events_list = poll_current_events()  # Calling poll events method is needed to preserve info about which events are expanded
-    return render_template('/responses/bulk-update-events-status.html', poll_event_list=poll_events_list)
+    event_list = get_current_events()
+    return render_template('/responses/bulk-update-events-status.html', event_list=event_list)
 
 
-@main.route('/event/<i>/unselect', methods=["GET"])
-def unselect_event(i):
-    try:
-        session["selected_events"].remove(i)
-        session.modified = True
-        current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
-    except ValueError:
-        pass
+@main.route('/event/<event_id>/unselect', methods=["POST"])
+def unselect_event(event_id):
+    session["selected_events"].pop(event_id, None)
+    session.modified = True
+    current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
 
-    return render_template('/responses/toggle-select.html', id=i, is_checked=False,
-                           is_menu=len(session["selected_events"]) > 0)
+    show_clear_flapping = False
+    selected_event_types = session["selected_events"].values()
+    if selected_event_types:  # selected events dict contains event types
+        # Allow bulk clear flapping only if all of selected events are confirmed portstate events
+        show_clear_flapping = all(event_type == 'portstate' for event_type in selected_event_types)
+
+    return render_template('/responses/toggle-select.html', id=event_id, is_checked=False,
+                           is_menu=len(session["selected_events"]) > 0, show_clear_flapping=show_clear_flapping)
 
 
-@main.route('/event/<i>/select', methods=["GET"])
-def select_event(i):
-    try:
-        session["selected_events"].append(i)
-        session.modified = True
-        current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
-    except ValueError:
-        pass
+@main.route('/event/<event_id>/select', methods=["POST"])
+def select_event(event_id):
+    event_type = request.form.get('eventtype')
 
-    return render_template('/responses/toggle-select.html', id=i, is_checked=True,
-                           is_menu=len(session["selected_events"]) > 0)
+    # Store selected event id and its type in session
+    session["selected_events"][event_id] = event_type
+    session.modified = True
+    current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
+
+    selected_event_types = session["selected_events"].values()
+    if not selected_event_types:  # selected events dict is empty, should not happen
+        raise RuntimeError(f"Event {event_id} was not selected. Please try again.")
+
+    # Allow bulk clear flapping only if all of selected events are confirmed portstate events
+    show_clear_flapping = all(event_type == 'portstate' for event_type in selected_event_types)
+
+    return render_template('/responses/toggle-select.html', id=event_id, is_checked=True,
+                           is_menu=len(session["selected_events"]) > 0, show_clear_flapping=show_clear_flapping)
+
+
+@main.route('/event/bulk_clear_flapping', methods=['POST'])
+def bulk_clear_flapping():
+    selected_events = session.get("selected_events", {})
+    expanded_events = session.get("expanded_events", {})
+    current_app.logger.debug('SELECTED EVENTS %s', selected_events)
+    current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
+
+    # Update each selected event with new values
+    for event_id in selected_events:
+        flapping_res = current_app.event_manager.clear_flapping(int(event_id))
+
+        if not flapping_res:
+            raise MethodNotAllowed(description='Cant clear flapping on a non-port event.')
+
+    # Clear selected events
+    session["selected_events"] = {}
+    session.modified = True  # Necessary when modifying arrays/dicts/etc in flask session
+    current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
+
+    # Rerender whole events table
+    event_list = get_current_events()
+    return render_template('/responses/bulk-update-events-status.html', event_list=event_list)
+
+
+@main.route('/event/<i>/clear-flapping', methods=["POST"])
+def clear_flapping(i):
+    selected_events = session.get("selected_events", {})
+    event_id = int(i)
+
+    flapping_res = current_app.event_manager.clear_flapping(event_id)
+
+    if flapping_res:
+        event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
+        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))["event"]
+
+        return render_template('/responses/update-event-response.html', event=event, id=event_id, event_attr=event_attr,
+                               event_logs=event_logs,
+                               event_history=event_history, event_msgs=event_msgs,
+                               is_selected=str(event_id) in selected_events)
+    else:
+        raise MethodNotAllowed(description='Cant clear flapping on a non-port event.')
 
 
 @main.route('/navbar/show-user-menu', methods=["GET"])
