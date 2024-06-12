@@ -257,6 +257,10 @@ The default timezone for timestamps is ``UTC``. Timezone information can be chan
 the ``[howitz]``-section or setting the environment variable ``HOWITZ_TIMEZONE`` to ``LOCAL``. Timezone values other
 than ``LOCAL`` and ``UTC`` provided in config will be ignored and fall back to ``UTC``.
 
+Howitz uses caching. You can configure preferred caching type under the ``[caching]``-section.
+See `Flask-Caching's configuration docs <https://flask-caching.readthedocs.io/en/latest/#configuring-flask-caching>`_ for available configuration options.
+Default cache type is `SimpleCache <https://flask-caching.readthedocs.io/en/latest/#simplecache>`_
+
 
 Configuring order in which events are sorted
 --------------------------------------------

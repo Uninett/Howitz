@@ -16,6 +16,10 @@ server =
 #[zino.connections.other]
 #server =
 
+[caching]
+CACHE_TYPE = 'FileSystemCache'
+CACHE_DIR = './.howitz_cache'
+
 [logging]
 version = 1
 
