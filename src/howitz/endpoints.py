@@ -238,7 +238,7 @@ def sort_events(events_dict, sort_by: EventSort = EventSort.DEFAULT):
 
     if sort_by == EventSort.DEFAULT:
         return events_dict
-    elif sort_by == EventSort.LASTTRANS:
+    if sort_by == EventSort.LASTTRANS:
         events_sorted = {k: events_dict[k] for k in
                          reversed(
                              sorted(events_dict,
@@ -279,14 +279,14 @@ def get_priority(event: Event):
     :param event:
     :return: priority as int, where `0` is lowest, and `4` is the highest priority
     """
-    if event.adm_state == AdmState.IGNORED:
-        return 1
-    if event.adm_state == AdmState.CLOSED:
-        return 0
     if event.is_down() and event.adm_state == AdmState.OPEN:
         return 4
     if event.adm_state in [AdmState.WORKING, AdmState.WAITING]:
         return 3
+    if event.adm_state == AdmState.IGNORED:
+        return 1
+    if event.adm_state == AdmState.CLOSED:
+        return 0
     return 2
 
 
