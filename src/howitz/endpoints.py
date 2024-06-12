@@ -236,36 +236,53 @@ def refresh_current_events():
 def sort_events(events_dict, sort_by: EventSort = EventSort.DEFAULT):
     current_app.logger.debug("SORTING BY %s", sort_by)
 
+    sortmap = {
+        EventSort.LASTTRANS: sort_on_lasttrans,
+        EventSort.SEVERITY: sort_on_severity,
+        EventSort.DOWN: sort_on_downtime,
+        EventSort.DOWN_REV: sort_on_downtime,
+    }
+
     if sort_by == EventSort.DEFAULT:
         return events_dict
-    if sort_by == EventSort.LASTTRANS:
-        events_sorted = {k: events_dict[k] for k in
-                         reversed(
-                             sorted(events_dict,
-                                    key=lambda k: (
-                                        0 if events_dict[k].adm_state == AdmState.IGNORED else 1,
-                                        getattr(events_dict[k], sort_by.attribute),
-                                    ), ))
-                         }
-    elif sort_by == EventSort.SEVERITY:
-        events_sorted = {k: events_dict[k] for k in sorted(events_dict,
-                                                           key=lambda k: (
-                                                               get_priority(events_dict[k]),
-                                                               events_dict[k].type,
-                                                           ), reverse=sort_by.reversed)}
-    elif sort_by == EventSort.DOWN or sort_by == EventSort.DOWN_REV:
-        events_sorted = {k: events_dict[k] for k in sorted(events_dict,
-                                                           key=lambda k: (
-                                                               timedelta() if not hasattr(events_dict[k], sort_by.attribute) else
-                                                               events_dict[k].get_downtime(),
-                                                           ), reverse=sort_by.reversed)}
+    if (sort := sort_by) in sortmap:
+        return sortmap.get(sort)(events_dict=events_dict, sort_by=sort)
     else:
-        events_sorted = {k: events_dict[k] for k in sorted(events_dict,
-                                                           key=lambda k: (
-                                                               getattr(events_dict[k], sort_by.attribute),
-                                                           ), reverse=sort_by.reversed)}
+        return general_sort_on(events_dict, sort_by)
 
-    return events_sorted
+
+def sort_on_lasttrans(events_dict, sort_by: EventSort.LASTTRANS):
+    return {k: events_dict[k] for k in
+            reversed(
+                sorted(events_dict,
+                       key=lambda k: (
+                           0 if events_dict[k].adm_state == AdmState.IGNORED else 1,
+                           getattr(events_dict[k], sort_by.attribute),
+                       ), ))
+            }
+
+
+def sort_on_severity(events_dict, sort_by: EventSort.SEVERITY):
+    return {k: events_dict[k] for k in sorted(events_dict,
+                                              key=lambda k: (
+                                                  get_priority(events_dict[k]),
+                                                  events_dict[k].type,
+                                              ), reverse=sort_by.reversed)}
+
+
+def sort_on_downtime(events_dict, sort_by: EventSort in [EventSort.DOWN, EventSort.DOWN_REV]):
+    return {k: events_dict[k] for k in sorted(events_dict,
+                                              key=lambda k: (
+                                                  timedelta() if not hasattr(events_dict[k], sort_by.attribute) else
+                                                  events_dict[k].get_downtime(),
+                                              ), reverse=sort_by.reversed)}
+
+
+def general_sort_on(events_dict, sort_by: EventSort):
+    return {k: events_dict[k] for k in sorted(events_dict,
+                                              key=lambda k: (
+                                                  getattr(events_dict[k], sort_by.attribute),
+                                              ), reverse=sort_by.reversed)}
 
 
 def get_priority(event: Event):
