@@ -109,6 +109,7 @@ def logout_handler():
         session.pop('errors', {})
         session.pop('event_ids', [])
         session.pop('sort_by', "default")
+        current_app.cache.clear()
         current_app.logger.info("Logged out successfully.")
 
 
@@ -129,12 +130,14 @@ def connect_to_zino(username, token):
 
 
 def clear_ui_state():
-    session["selected_events"] = {}
-    session["expanded_events"] = {}
-    session["errors"] = {}
-    session["event_ids"] = []
+    with current_app.app_context():
+        session["selected_events"] = {}
+        session["expanded_events"] = {}
+        session["errors"] = {}
+        session["event_ids"] = []
+        session.modified = True
 
-    session.modified = True
+        current_app.cache.clear()
 
 
 def get_current_events():
@@ -149,19 +152,22 @@ def get_current_events():
             raise
     events = current_app.event_manager.events
 
-    events_sorted = sort_events(events, sort_by=EventSort(session["sort_by"]))
-
+    # Cache current events
+    current_app.cache.set("events", events)
     # Save current events' IDs
-    session["event_ids"] = list(events_sorted.keys())
+    session["event_ids"] = list(events.keys())
     session.modified = True
 
+    table_events = get_sorted_table_event_list(events)
+    return table_events
+
+
+def get_sorted_table_event_list(events: dict):
+    events_sorted = sort_events(events, sort_by=EventSort(session["sort_by"]))
     table_events = []
     for c in events_sorted.values():
         table_events.append(create_table_event(c, expanded=str(c.id) in session["expanded_events"],
                                                selected=str(c.id) in session["selected_events"]))
-
-    current_app.logger.debug('TABLE EVENTS %s', table_events[0])
-
     return table_events
 
 
@@ -194,24 +200,37 @@ def refresh_current_events():
     added_events = []
     removed = current_app.event_manager.removed_ids
     existing = session["event_ids"]
+    current_events = current_app.cache.get("events")
+    is_resort = None  # Re-sort cached events list if any new events added, or any modified
     for i in event_ids:
         if i in removed:
             removed_events.append(i)
             existing.remove(i)
+            current_events.pop(i, None)
         elif i not in existing:
             c = current_app.event_manager.create_event_from_id(int(i))
-            added_events.append(create_table_event(c, expanded=False, selected=False))
+            added_event = create_table_event(c, expanded=False, selected=False)
+            added_events.append(added_event)
             existing.insert(0, int(i))
+            current_events.update({i: c})
+            is_resort = True
         else:
             c = current_app.event_manager.create_event_from_id(int(i))
             modified_events.append(create_table_event(c,
                                                       expanded=str(c.id) in session["expanded_events"],
                                                       selected=str(c.id) in session["selected_events"]))
+            current_events.update({i: c})
+            is_resort = True
 
     session["event_ids"] = existing
     session.modified = True
+    current_app.cache.set("events", current_events)
 
-    return removed_events, modified_events, added_events
+    table_events = []
+    if is_resort:
+        table_events = get_sorted_table_event_list(current_events)
+
+    return removed_events, modified_events, added_events, table_events
 
 
 def sort_events(events_dict, sort_by: EventSort = EventSort.DEFAULT):
@@ -453,9 +472,14 @@ def get_events():
 
 @main.route('/refresh_events')
 def refresh_events():
-    removed_events, modified_events, added_events = refresh_current_events()
+    removed_events, modified_events, added_events, event_list = refresh_current_events()
 
-    return render_template('/responses/updated-rows.html', modified_event_list=modified_events,
+    if event_list:
+        response = make_response(render_template('/components/table/event-rows.html', event_list=event_list))
+        response.headers['HX-Reswap'] = 'innerHTML'
+        return response
+    else:
+        return render_template('/responses/updated-rows.html', modified_event_list=modified_events,
                            removed_event_list=removed_events, added_event_list=added_events)
 
 
