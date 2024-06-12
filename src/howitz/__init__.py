@@ -2,6 +2,7 @@ __version__ = '0.1-a2'
 
 
 from logging.config import dictConfig
+from flask_caching import Cache
 
 from flask import Flask, g, redirect, url_for, current_app
 from flask.logging import default_handler
@@ -100,6 +101,10 @@ def create_app(test_config=None):
 
     assets.register("css", css)
     css.build()
+
+    cache = Cache(config={"DEBUG": True, "CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT": 300})
+    cache.init_app(app)
+    app.cache = cache
 
     # import endpoints/urls
     from . import endpoints
