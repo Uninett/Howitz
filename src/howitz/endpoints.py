@@ -16,7 +16,7 @@ from flask_login import login_user, current_user, logout_user
 
 from datetime import datetime, timezone
 
-from werkzeug.exceptions import BadRequest, MethodNotAllowed
+from werkzeug.exceptions import BadRequest, InternalServerError, MethodNotAllowed
 from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError, UpdateHandler
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState, LogEntry, HistoryEntry
 from zinolib.compat import StrEnum
@@ -497,6 +497,49 @@ def bulk_update_events_status():
 @main.route('/show_update_status_modal', methods=['GET'])
 def show_update_events_status_modal():
     return render_template('/components/popups/modals/update-event-status-modal.html', current_state='open')
+
+
+@main.route('/event/<i>/poll', methods=["POST"])
+def poll(i):
+    selected_events = session.get("selected_events", {})
+    event_id = int(i)
+
+    poll_res = current_app.event_manager.poll(event_id)
+
+    if poll_res:
+        event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
+        event = create_table_event(current_app.event_manager.create_event_from_id(event_id))["event"]
+
+        return render_template('/responses/update-event-response.html', event=event, id=event_id, event_attr=event_attr,
+                               event_logs=event_logs,
+                               event_history=event_history, event_msgs=event_msgs,
+                               is_selected=str(event_id) in selected_events)
+    else:
+        raise InternalServerError(description=f"Unexpected error when polling event #{event_id}")
+
+
+@main.route('/event/bulk_poll', methods=['POST'])
+def bulk_poll():
+    selected_events = session.get("selected_events", {})
+    expanded_events = session.get("expanded_events", {})
+    current_app.logger.debug('SELECTED EVENTS %s', selected_events)
+    current_app.logger.debug('EXPANDED EVENTS %s', expanded_events)
+
+    # Update each selected event with new values
+    for event_id in selected_events:
+        poll_res = current_app.event_manager.poll(int(event_id))
+
+        if not poll_res:
+            raise InternalServerError(description=f"Unexpected error when polling event #{event_id}")
+
+    # Clear selected events
+    session["selected_events"] = {}
+    session.modified = True  # Necessary when modifying arrays/dicts/etc in flask session
+    current_app.logger.debug("SELECTED EVENTS %s", session["selected_events"])
+
+    # Rerender whole events table
+    event_list = get_current_events()
+    return render_template('/responses/bulk-update-events-status.html', event_list=event_list)
 
 
 @main.route('/event/<event_id>/unselect', methods=["POST"])
