@@ -8,14 +8,19 @@ annotated-types==0.6.0
     # via pydantic
 blinker==1.7.0
     # via flask
+cachelib==0.9.0
+    # via flask-caching
 click==8.1.7
     # via flask
 flask==2.3.3
     # via
     #   flask-assets
+    #   flask-caching
     #   flask-login
     #   howitz (pyproject.toml)
 flask-assets==2.1.0
+    # via howitz (pyproject.toml)
+flask-caching==2.3.0
     # via howitz (pyproject.toml)
 flask-login==0.6.3
     # via howitz (pyproject.toml)

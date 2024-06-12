@@ -17,6 +17,7 @@ requires-python = ">=3.8"
 dynamic = ["version"]
 dependencies = [
     "flask",
+    "flask-caching",
     "flask_assets",
     "flask-login",
     "jinja2",
