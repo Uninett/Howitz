@@ -1,0 +1,3 @@
+
+DEFAULT_STORAGE = "./howitz.sqlite3"
+DEFAULT_TIMEZONE = 'UTC'

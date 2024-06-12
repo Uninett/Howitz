@@ -1,4 +1,5 @@
 import os
+from enum import Enum
 
 from flask import (
     Blueprint,
@@ -14,7 +15,7 @@ from flask import (
 )
 from flask_login import login_user, current_user, logout_user
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from werkzeug.exceptions import BadRequest, InternalServerError, MethodNotAllowed
 from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError, UpdateHandler
@@ -24,7 +25,7 @@ from zinolib.ritz import AuthenticationError
 
 from howitz.users.utils import authenticate_user
 
-from .config.models import DEFAULT_TIMEZONE
+from .config.defaults import DEFAULT_TIMEZONE
 from .utils import login_check, date_str_without_timezone
 
 main = Blueprint('main', __name__)
@@ -37,6 +38,40 @@ class EventColor(StrEnum):
     GREEN = "green"
     YELLOW = "yellow"
     DEFAULT = ""
+
+
+# Inspired by https://stackoverflow.com/a/54732120
+class EventSort(Enum):
+    AGE = "age", "opened", True  # Newest events first
+    AGE_REV = "age-rev", "opened", False  # Oldest events first
+    UPD = "upd", "updated", False  # Events with the oldest update date first
+    UPD_REV = "upd-rev", "updated", True  # Events with the most recent update date first
+    DOWN = "down", "get_downtime", True  # Longest downtime first
+    DOWN_REV = "down-rev", "get_downtime", False  # Shortest/none downtime first
+
+    LASTTRANS = "lasttrans", "updated", True  # Newest transaction first, all IGNORED at the bottom. Default sorting at SSC
+    SEVERITY = "severity", "", True  # Events of same color grouped together. The most severe (red) at the top and ignored at the bottom
+    DEFAULT = "raw", "", None  # Unchanged order in which Zino server sends events (by ID ascending)
+
+    def __new__(cls, *args, **kwds):
+        obj = object.__new__(cls)
+        obj._value_ = args[0]
+        return obj
+
+    def __init__(self, _: str, attribute: str = None, reversed: bool = None):
+        self._attribute = attribute
+        self._reversed = reversed
+
+    def __str__(self):
+        return self.value
+
+    @property
+    def attribute(self):
+        return self._attribute
+
+    @property
+    def reversed(self):
+        return self._reversed
 
 
 def auth_handler(username, password):
@@ -56,10 +91,11 @@ def auth_handler(username, password):
             session["expanded_events"] = {}
             session["errors"] = {}
             session["event_ids"] = []
+            session["sort_by"] = current_app.howitz_config.get("sort_by", "default")
             return user
 
         raise AuthenticationError('Unexpected error on Zino authentication')
-    
+
 
 def logout_handler():
     with current_app.app_context():
@@ -72,6 +108,8 @@ def logout_handler():
         session.pop('selected_events', {})
         session.pop('errors', {})
         session.pop('event_ids', [])
+        session.pop('sort_by', "raw")
+        current_app.cache.clear()
         current_app.logger.info("Logged out successfully.")
 
 
@@ -92,12 +130,14 @@ def connect_to_zino(username, token):
 
 
 def clear_ui_state():
-    session["selected_events"] = {}
-    session["expanded_events"] = {}
-    session["errors"] = {}
-    session["event_ids"] = []
+    with current_app.app_context():
+        session["selected_events"] = {}
+        session["expanded_events"] = {}
+        session["errors"] = {}
+        session["event_ids"] = []
+        session.modified = True
 
-    session.modified = True
+        current_app.cache.clear()
 
 
 def get_current_events():
@@ -112,23 +152,22 @@ def get_current_events():
             raise
     events = current_app.event_manager.events
 
-    events_sorted = {k: events[k] for k in sorted(events,
-                                                  key=lambda k: (
-                                                      0 if events[k].adm_state == AdmState.IGNORED else 1,
-                                                      events[k].updated,
-                                                  ), reverse=True)}
-
+    # Cache current events
+    current_app.cache.set("events", events)
     # Save current events' IDs
-    session["event_ids"] = list(events_sorted.keys())
+    session["event_ids"] = list(events.keys())
     session.modified = True
 
+    table_events = get_sorted_table_event_list(events)
+    return table_events
+
+
+def get_sorted_table_event_list(events: dict):
+    events_sorted = sort_events(events, sort_by=EventSort(session["sort_by"]))
     table_events = []
     for c in events_sorted.values():
         table_events.append(create_table_event(c, expanded=str(c.id) in session["expanded_events"],
                                                selected=str(c.id) in session["selected_events"]))
-
-    current_app.logger.debug('TABLE EVENTS %s', table_events[0])
-
     return table_events
 
 
@@ -161,24 +200,111 @@ def refresh_current_events():
     added_events = []
     removed = current_app.event_manager.removed_ids
     existing = session["event_ids"]
+    current_events = current_app.cache.get("events")
+    is_resort = None  # Re-sort cached events list if any new events added, or any modified
     for i in event_ids:
         if i in removed:
             removed_events.append(i)
             existing.remove(i)
+            current_events.pop(i, None)
         elif i not in existing:
             c = current_app.event_manager.create_event_from_id(int(i))
-            added_events.append(create_table_event(c, expanded=False, selected=False))
+            added_event = create_table_event(c, expanded=False, selected=False)
+            added_events.append(added_event)
             existing.insert(0, int(i))
+            current_events.update({i: c})
+            is_resort = True
         else:
             c = current_app.event_manager.create_event_from_id(int(i))
             modified_events.append(create_table_event(c,
                                                       expanded=str(c.id) in session["expanded_events"],
                                                       selected=str(c.id) in session["selected_events"]))
+            current_events.update({i: c})
+            is_resort = True
 
     session["event_ids"] = existing
     session.modified = True
+    current_app.cache.set("events", current_events)
 
-    return removed_events, modified_events, added_events
+    table_events = []
+    if is_resort:
+        table_events = get_sorted_table_event_list(current_events)
+
+    return removed_events, modified_events, added_events, table_events
+
+
+def sort_events(events_dict, sort_by: EventSort = EventSort.DEFAULT):
+    current_app.logger.debug("SORTING BY %s", sort_by)
+
+    sortmap = {
+        EventSort.LASTTRANS: sort_on_lasttrans,
+        EventSort.SEVERITY: sort_on_severity,
+        EventSort.DOWN: sort_on_downtime,
+        EventSort.DOWN_REV: sort_on_downtime,
+    }
+
+    if sort_by == EventSort.DEFAULT:
+        return events_dict
+    if (sort := sort_by) in sortmap:
+        return sortmap.get(sort)(events_dict=events_dict, sort_by=sort)
+    else:
+        return general_sort_on(events_dict, sort_by)
+
+
+def sort_on_lasttrans(events_dict, sort_by: EventSort.LASTTRANS):
+    return {k: events_dict[k] for k in
+            reversed(
+                sorted(events_dict,
+                       key=lambda k: (
+                           0 if events_dict[k].adm_state == AdmState.IGNORED else 1,
+                           getattr(events_dict[k], sort_by.attribute),
+                       ), ))
+            }
+
+
+def sort_on_severity(events_dict, sort_by: EventSort.SEVERITY):
+    return {k: events_dict[k] for k in sorted(events_dict,
+                                              key=lambda k: (
+                                                  get_priority(events_dict[k]),
+                                                  events_dict[k].type,
+                                              ), reverse=sort_by.reversed)}
+
+
+def sort_on_downtime(events_dict, sort_by: EventSort in [EventSort.DOWN, EventSort.DOWN_REV]):
+    return {k: events_dict[k] for k in sorted(events_dict,
+                                              key=lambda k: (
+                                                  timedelta() if not hasattr(events_dict[k], sort_by.attribute) else
+                                                  events_dict[k].get_downtime(),
+                                              ), reverse=sort_by.reversed)}
+
+
+def general_sort_on(events_dict, sort_by: EventSort):
+    return {k: events_dict[k] for k in sorted(events_dict,
+                                              key=lambda k: (
+                                                  getattr(events_dict[k], sort_by.attribute),
+                                              ), reverse=sort_by.reversed)}
+
+
+def get_priority(event: Event):
+    """
+    Priorities are as follows:
+      - `0` = Lowest
+      - `1` = Low
+      - `2` = Medium
+      - `3` = High
+      - `4` = Highest
+    :param event:
+    :return: priority as int, where `0` is lowest, and `4` is the highest priority
+    """
+    if event.is_down() and event.adm_state == AdmState.OPEN:
+        return 4
+    if event.adm_state in [AdmState.WORKING, AdmState.WAITING]:
+        return 3
+    if event.adm_state == AdmState.IGNORED:
+        return 1
+    if event.adm_state == AdmState.CLOSED:
+        return 0
+    return 2
 
 
 # todo remove all use of helpers from curitz
@@ -363,9 +489,14 @@ def get_events():
 
 @main.route('/refresh_events')
 def refresh_events():
-    removed_events, modified_events, added_events = refresh_current_events()
+    removed_events, modified_events, added_events, event_list = refresh_current_events()
 
-    return render_template('/responses/updated-rows.html', modified_event_list=modified_events,
+    if event_list:
+        response = make_response(render_template('/components/table/event-rows.html', event_list=event_list))
+        response.headers['HX-Reswap'] = 'innerHTML'
+        return response
+    else:
+        return render_template('/responses/updated-rows.html', modified_event_list=modified_events,
                            removed_event_list=removed_events, added_event_list=added_events)
 
 

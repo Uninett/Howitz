@@ -257,6 +257,31 @@ The default timezone for timestamps is ``UTC``. Timezone information can be chan
 the ``[howitz]``-section or setting the environment variable ``HOWITZ_TIMEZONE`` to ``LOCAL``. Timezone values other
 than ``LOCAL`` and ``UTC`` provided in config will be ignored and fall back to ``UTC``.
 
+Howitz uses caching. You can configure preferred caching type under the ``[flask]``-section.
+See `Flask-Caching's configuration docs <https://flask-caching.readthedocs.io/en/latest/#configuring-flask-caching>`_ for available configuration options.
+Default cache type is `SimpleCache <https://flask-caching.readthedocs.io/en/latest/#simplecache>`_.
+
+
+Configuring order in which events are sorted
+--------------------------------------------
+
+Sorting method can be changed under the ``[howitz]``-section by adding::
+
+    sort_by = "<valid sorting method>"
+
+Valid sorting methods are:
+
+* *raw* - Unchanged order in which Zino server sends events (by ID ascending).
+* *lasttrans* - Newest transaction first, all IGNORED at the bottom. Default sorting in curitz.
+
+* *severity* - Events of same color grouped together. The most severe (red) at the top and ignored at the bottom. Existing method in Ritz TK, but it is called 'default' there.
+* *down-rev* - Shortest/none downtime first. Identical to an existing method in Ritz TK.
+* *down* - Longest downtime first. Identical to an existing method in Ritz TK.
+* *upd-rev* - Events with the most recent update date first. Identical to an existing method in Ritz TK.
+* *upd* - Events with the oldest update date first. Identical to an existing method in Ritz TK.
+* *age-rev* - Oldest events first. Identical to an existing method in Ritz TK.
+* *age* - Newest events first. Identical to an existing method in Ritz TK.
+
 
 Example config-file (for development)
 -------------------------------------

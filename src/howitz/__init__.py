@@ -2,6 +2,7 @@ __version__ = '0.1-a2'
 
 
 from logging.config import dictConfig
+from flask_caching import Cache
 
 from flask import Flask, g, redirect, url_for, current_app
 from flask.logging import default_handler
@@ -100,6 +101,17 @@ def create_app(test_config=None):
 
     assets.register("css", css)
     css.build()
+
+    cache_type = app.config.get("CACHE_TYPE")
+    if not cache_type:
+        cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
+        cache.init_app(app)
+        app.logger.warn('Caching config not found, setting up simple caching')
+    else:
+        cache = Cache(app)
+        app.logger.debug('Cache type -> %s', cache_type)
+    app.cache = cache
+
 
     # import endpoints/urls
     from . import endpoints

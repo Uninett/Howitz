@@ -3,9 +3,8 @@ from typing import Literal
 from pydantic import BaseModel
 from pydantic.networks import IPvAnyAddress
 
-
-DEFAULT_STORAGE = "./howitz.sqlite3"
-DEFAULT_TIMEZONE = 'UTC'
+from howitz.config.defaults import DEFAULT_TIMEZONE, DEFAULT_STORAGE
+from howitz.endpoints import EventSort
 
 
 class ServerConfig(BaseModel):
@@ -30,9 +29,11 @@ class HowitzConfig(ServerConfig, StorageConfig):
     devmode: bool = Literal[False]
     refresh_interval: int = 5
     timezone: str = DEFAULT_TIMEZONE
+    sort_by: str = EventSort.DEFAULT
 
 
 class DevHowitzConfig(DevServerConfig, DevStorageConfig):
     devmode: bool = Literal[True]
     refresh_interval: int = 5
     timezone: str = DEFAULT_TIMEZONE
+    sort_by: str = EventSort.DEFAULT
