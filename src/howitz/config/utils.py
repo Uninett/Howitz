@@ -1,4 +1,4 @@
-from howitz.config import flask, howitz, log, zino1, cache
+from howitz.config import flask, howitz, log, zino1
 from zinolib.config.toml import parse_toml_config
 
 
@@ -13,9 +13,6 @@ def make_flask_config_dict(raw_config_dict):
 
     log_dict = log.get_config_dict(raw_config_dict)
     config_dict['LOGGING'] = log_dict
-
-    cache_dict = cache.get_config_dict(raw_config_dict)
-    config_dict['CACHING'] = cache_dict
 
     zino_dict = zino1.get_config_dict(raw_config_dict)
     zino_dict.pop("username", None)

@@ -102,17 +102,16 @@ def create_app(test_config=None):
     assets.register("css", css)
     css.build()
 
-    caching_dict = app.config.get("CACHING", {})
-    if caching_dict:
-        cache = Cache(config=caching_dict)
-        cache.init_app(app)
-        app.cache = cache
-        app.logger.debug('Caching config -> %s', caching_dict)
-    else:
+    cache_type = app.config.get("CACHE_TYPE")
+    if not cache_type:
         cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
         cache.init_app(app)
-        app.cache = cache
         app.logger.warn('Caching config not found, setting up simple caching')
+    else:
+        cache = Cache(app)
+        app.logger.debug('Cache type -> %s', cache_type)
+    app.cache = cache
+
 
     # import endpoints/urls
     from . import endpoints
