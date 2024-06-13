@@ -31,3 +31,9 @@ jobs:
           commit: ${{ github.event.workflow_run.head_sha }}
           check_name: "Test results"
           files: artifacts/**/results.xml
+
+      - name: "Upload coverage to Codecov"
+        uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }} # not required for forks of public repos
