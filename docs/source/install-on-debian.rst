@@ -284,17 +284,21 @@ Gunicorn
         .. output ..
         $
 
-#. Make the necessary systemd service file to run gunicorn:
+#. Make the necessary systemd files to run gunicorn and hook it up with nginx:
 
    .. literalinclude:: howitz-gunicorn.service
        :caption: /etc/systemd/system/howitz-gunicorn.service :download:`Download <howitz-gunicorn.service>`
+
+   .. literalinclude:: howitz-gunicorn.socket
+       :caption: /etc/systemd/system/howitz-gunicorn.socket :download:`Download <howitz-gunicorn.socket>`
 
 #. Start and enable the systemd service:
 
     .. code-block:: console
 
+        $ sudo systemctl enable howitz-gunicorn.service
+        $ sudo systemctl enable howitz-gunicorn.socket
         $ sudo systemctl start howitz-gunicorn
-        $ sudo systemctl enable howitz-gunicorn
         .. output ..
         $
 
@@ -379,7 +383,7 @@ Configure nginx
 
         location / {
             include proxy_params;
-            proxy_pass http://unix:/home/howitz/.venv/howitz.sock;
+            proxy_pass http://unix:/run/howitz.sock;
         }
 
     Save and exit the file.
