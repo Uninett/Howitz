@@ -318,7 +318,7 @@ and port to listen on::
 
     [howitz]
     devmode = false
-    listen = 127.0.0.1
+    listen = "127.0.0.1"
     port = 5000
 
 (127.0.0.1 and 5000 are the flask defaults.)
