@@ -321,7 +321,7 @@ and port to listen on::
     listen = "127.0.0.1"
     port = 5000
 
-(127.0.0.1 and 5000 are the flask defaults.)
+(127.0.0.1 and 5000 are the Flask defaults.)
 
 ``[logging]`` will need adjustments. Increase the level of the ``wsgi``-handler
 or only use the ``error`` handler. Change the error-handler to ship its log
