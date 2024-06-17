@@ -312,7 +312,16 @@ file.
 ``[flask] -> DEBUG`` should be ``false``. You can still override it via an
 environment variable.
 
-``[howitz] -> devmode`` should be ``false``.
+``[howitz] -> devmode`` should be ``false``. When ``devmode`` is ``false`` it
+is necessary to explicitly write in the ``[howitz]`` section what ip-address
+and port to listen on::
+
+    [howitz]
+    devmode = false
+    listen = 127.0.0.1
+    port = 5000
+
+(127.0.0.1 and 5000 are the flask defaults.)
 
 ``[logging]`` will need adjustments. Increase the level of the ``wsgi``-handler
 or only use the ``error`` handler. Change the error-handler to ship its log
