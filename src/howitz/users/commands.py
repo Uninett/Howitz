@@ -37,7 +37,7 @@ def create_user(username, password, token):
 def update_user(username, password, token):
     with current_app.app_context():
         if not (password or token):
-            click.echo(f'Neither token nor password given, aborting', err=True)
+            click.echo('Neither token nor password given, aborting', err=True)
             sys.exit(1)
         user = current_app.database.get(username)
         if not user:
@@ -75,7 +75,7 @@ def list_users():
     with current_app.app_context():
         users = current_app.database.get_all()
         if not users:
-            click.echo(f'No users found, aborting', err=True)
+            click.echo('No users found, aborting', err=True)
             sys.exit(1)
         for user in users:
             click.echo(user.username)
