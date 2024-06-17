@@ -1,11 +1,9 @@
-import os
 from enum import Enum
 
 from flask import (
     Blueprint,
     current_app,
     flash,
-    g,
     make_response,
     redirect,
     render_template,

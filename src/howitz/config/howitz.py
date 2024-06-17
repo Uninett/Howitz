@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from zinolib.config.toml import parse_toml_config
 from .models import HowitzConfig, DevHowitzConfig
 
