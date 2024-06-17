@@ -2,6 +2,11 @@
 Howitz - Zino web client with HTMx and Flask
 ============================================
 
+Howitz is an HTTP client interface to Zino, an snmp network monitor.
+
+Howitz currently works with the original Zino protocol. Where "Zino server" is
+mentioned, we mean a Zino server using the original protocol.
+
 
 Running Howitz step-by-step overview
 ====================================
@@ -131,14 +136,14 @@ details.
 User management
 ===============
 
-Due to how Zino protocol 1 does logins, the password (here called token) needs
+Due to how Zino protocol does logins, the password (here called token) needs
 to be stored in plain text in every client. For security reasons it is not
 desirable to ever store this token in a cookie or otherwise in a browser, so
 instead the token is stored where the browser cannot get to it, in a user
 database local to the frontend server.
 
 When logging in to Howitz a user uses a normal password (not the token) which
-is used to safely fetch the token for connecting to the Zino protocol 1 server.
+is used to safely fetch the token for connecting to the protocol server.
 This password can be treated like any other password and be put in a vault or
 a password manager.
 
@@ -303,11 +308,11 @@ Example config-file (for development)
 For development, copy the contents of the included file ``howitz.toml.example`` to ``.howitz.toml`` in the same directory.
 
 1. Set ``[flask] -> SECRET_KEY`` to some long string.
-2. Set ``[zino.connections.default] -> server`` to the address of a Zino 1 server.
-3. Optionally set ``[zino.connections.other] -> server`` to the address of a fallback Zino
-   1 server. If the default server stops working you can swap "other" with
-   "default" in the config-file and keep on working. If you don't set it to
-   anything, keep it commented out or remove it.
+2. Set ``[zino.connections.default] -> server`` to the address of a Zino server.
+3. Optionally set ``[zino.connections.other] -> server`` to the address of
+   a fallback Zino server. If the default server stops working you can swap
+   "other" with "default" in the config-file and keep on working. If you don't
+   set it to anything, keep it commented out or remove it.
 
 As for logging, there is a handler ``debug`` that will copy everything DEBUG or higher to a file
 ``debug.log``, you might want to use this handler for your code.
@@ -348,3 +353,7 @@ Future plans
 
 We hope to be able to automatically failover to other servers in
 ``zino.connections``.
+
+There are plans for an HTTP REST-based protocol in the python-based zino
+server. When this protocol is finalized, we plan that howitz will also
+understand this new protocol.
