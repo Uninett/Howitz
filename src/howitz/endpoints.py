@@ -569,13 +569,13 @@ def update_event_status(event_id):
 
         try:
             if not current_state == new_state:
-                set_state_res = current_app.event_manager.change_admin_state_for_id(event_id, AdmState(new_state))
+                current_app.event_manager.change_admin_state_for_id(event_id, AdmState(new_state))
         except EventClosedError as closedErr:
             current_app.logger.exception('EventClosedError %s', closedErr)
             raise BadRequest(description=closedErr.args[0]) from closedErr
 
         if new_history:
-            add_history_res = current_app.event_manager.add_history_entry_for_id(event_id, new_history)
+            current_app.event_manager.add_history_entry_for_id(event_id, new_history)
 
         event_attr, event_logs, event_history, event_msgs = get_event_details(event_id)
         event = create_table_event(current_app.event_manager.create_event_from_id(event_id))["event"]
@@ -605,13 +605,13 @@ def bulk_update_events_status():
     for event_id in selected_events:
         try:
             if new_state:
-                set_state_res = current_app.event_manager.change_admin_state_for_id(int(event_id), AdmState(new_state))
+                current_app.event_manager.change_admin_state_for_id(int(event_id), AdmState(new_state))
         except EventClosedError as closedErr:
             current_app.logger.exception('EventClosedError %s', closedErr)
             raise BadRequest(description=closedErr.args[0]) from closedErr
 
         if new_history:
-            add_history_res = current_app.event_manager.add_history_entry_for_id(int(event_id), new_history)
+            current_app.event_manager.add_history_entry_for_id(int(event_id), new_history)
 
     # Clear selected events
     session["selected_events"] = {}
