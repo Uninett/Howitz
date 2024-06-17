@@ -313,7 +313,7 @@ file.
 environment variable.
 
 ``[howitz] -> devmode`` should be ``false``. When ``devmode`` is ``false`` it
-is necessary to explicitly write in the ``[howitz]`` section what ip-address
+is necessary to explicitly write in the ``[howitz]`` section which IP-address
 and port to listen on::
 
     [howitz]
