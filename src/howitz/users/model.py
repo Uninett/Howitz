@@ -10,9 +10,8 @@ class User(UserMixin, BaseModel):
     token: str
 
     def __str__(self):
-        token = "'SET'" if self.token else "'NOT SET'"
-        password = "'SET'" if self.password.startswith(('scrypt:', 'pdkbdf2:')) else "'NOT SET'"
-        return f'username={self.username} password={password} token={token}'
+        token = "SET" if self.token else "NOT SET"
+        return f'username={self.username} *** token="{token}"'
 
     def get_id(self):
         return self.username
