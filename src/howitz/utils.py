@@ -1,6 +1,6 @@
 import functools
 import traceback
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from flask import current_app
 from flask_login import current_user
@@ -52,3 +52,20 @@ def set_correct_timezone(dt: datetime):
 def date_str_without_timezone(dt: datetime):
     dt_aware = set_correct_timezone(dt)
     return dt_aware.strftime("%Y-%m-%d %H:%M:%S")
+
+
+# Implementation copied from curitz
+def shorten_downtime(td: timedelta):
+    """
+    Shortens downtime to single greatest applicable timedelta unit (days, hours, minutes, seconds).
+    :param td: downtime as `datetime.timedelta`
+    :return: formatted downtime as string
+    """
+    if td.days > 0:
+        return "{:2d}d".format(td.days)
+    if td.seconds < 60:
+        return "{:2d}s".format(td.seconds)
+    if td.seconds / 60 < 60:
+        return "{:2.0f}m".format(td.seconds / 60)
+    if td.seconds / 60 / 60 < 60:
+        return "{:2.0f}h".format(td.seconds / 60 / 60)

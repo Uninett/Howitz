@@ -26,7 +26,7 @@ from zinolib.ritz import AuthenticationError
 from howitz.users.utils import authenticate_user
 
 from .config.defaults import DEFAULT_TIMEZONE
-from .utils import login_check, date_str_without_timezone
+from .utils import login_check, date_str_without_timezone, shorten_downtime
 
 main = Blueprint('main', __name__)
 
@@ -321,7 +321,7 @@ def create_table_event(event, expanded=False, selected=False):
         common["age"] = str(age)[:-10]
 
         if event.type == Event.Type.PORTSTATE:
-            common["downtime"] = ":".join(str(event.get_downtime()).split(":")[:-1])  # some values have only seconds, some both seconds and microseconds
+            common["downtime"] = shorten_downtime(event.get_downtime())
         else:
             common["downtime"] = ""
     except Exception:
