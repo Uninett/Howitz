@@ -92,6 +92,7 @@ def auth_handler(username, password):
             session["errors"] = {}
             session["event_ids"] = []
             session["sort_by"] = current_app.howitz_config.get("sort_by", "default")
+            session["events_last_refreshed"] = None
             return user
 
         raise AuthenticationError('Unexpected error on Zino authentication')
@@ -109,6 +110,7 @@ def logout_handler():
         session.pop('errors', {})
         session.pop('event_ids', [])
         session.pop('sort_by', "raw")
+        session.pop('events_last_refreshed', None)
         current_app.cache.clear()
         current_app.logger.info("Logged out successfully.")
 
@@ -135,6 +137,7 @@ def clear_ui_state():
         session["expanded_events"] = {}
         session["errors"] = {}
         session["event_ids"] = []
+        session["events_last_refreshed"] = None
         session.modified = True
 
         current_app.cache.clear()
@@ -168,6 +171,8 @@ def get_sorted_table_event_list(events: dict):
     for c in events_sorted.values():
         table_events.append(create_table_event(c, expanded=str(c.id) in session["expanded_events"],
                                                selected=str(c.id) in session["selected_events"]))
+
+    session["events_last_refreshed"] = datetime.now(timezone.utc)
     return table_events
 
 
