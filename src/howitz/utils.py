@@ -69,3 +69,14 @@ def shorten_downtime(td: timedelta):
         return "{:2.0f}m".format(td.seconds / 60)
     if td.seconds / 60 / 60 < 60:
         return "{:2.0f}h".format(td.seconds / 60 / 60)
+
+
+def calculate_event_age_no_seconds(opened: datetime):
+    """
+    Calculate event age and remove seconds.
+    :param opened: event opened time as `datetime.datetime`
+    :return: event age without seconds as string
+    """
+    age = datetime.now(timezone.utc) - opened
+    age_formatted = str(age)[:-10]
+    return age_formatted
