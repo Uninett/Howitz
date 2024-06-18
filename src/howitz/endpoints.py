@@ -232,7 +232,9 @@ def refresh_current_events():
     current_app.cache.set("events", current_events)
 
     table_events = []
-    if is_resort:
+    has_stale_data = session["events_last_refreshed"] is None or (
+            datetime.now(timezone.utc) - session["events_last_refreshed"]).total_seconds() > 60
+    if is_resort or has_stale_data:
         table_events = get_sorted_table_event_list(current_events)
 
     return removed_events, modified_events, added_events, table_events
