@@ -26,7 +26,7 @@ from zinolib.ritz import AuthenticationError
 from howitz.users.utils import authenticate_user
 
 from .config.defaults import DEFAULT_TIMEZONE
-from .utils import login_check, date_str_without_timezone
+from .utils import login_check, date_str_without_timezone, shorten_downtime, calculate_event_age_no_seconds
 
 main = Blueprint('main', __name__)
 
@@ -104,6 +104,7 @@ def auth_handler(username, password):
             session["errors"] = {}
             session["event_ids"] = []
             session["sort_by"] = current_app.howitz_config.get("sort_by", "raw")
+            session["events_last_refreshed"] = None
             return user
 
         raise AuthenticationError('Unexpected error on Zino authentication')
@@ -121,6 +122,7 @@ def logout_handler():
         session.pop('errors', {})
         session.pop('event_ids', [])
         session.pop('sort_by', "raw")
+        session.pop('events_last_refreshed', None)
         current_app.cache.clear()
         current_app.logger.info("Logged out successfully.")
 
@@ -147,6 +149,7 @@ def clear_ui_state():
         session["expanded_events"] = {}
         session["errors"] = {}
         session["event_ids"] = []
+        session["events_last_refreshed"] = None
         session.modified = True
 
         current_app.cache.clear()
@@ -180,6 +183,8 @@ def get_sorted_table_event_list(events: dict):
     for c in events_sorted.values():
         table_events.append(create_table_event(c, expanded=str(c.id) in session["expanded_events"],
                                                selected=str(c.id) in session["selected_events"]))
+
+    session["events_last_refreshed"] = datetime.now(timezone.utc)
     return table_events
 
 
@@ -239,7 +244,9 @@ def refresh_current_events():
     current_app.cache.set("events", current_events)
 
     table_events = []
-    if is_resort:
+    has_stale_data = session["events_last_refreshed"] is None or (
+            datetime.now(timezone.utc) - session["events_last_refreshed"]).total_seconds() > 60
+    if is_resort or has_stale_data:
         table_events = get_sorted_table_event_list(current_events)
 
     return removed_events, modified_events, added_events, table_events
@@ -329,11 +336,10 @@ def create_table_event(event, expanded=False, selected=False):
         common["description"] = event.description
         common["port"] = event.port
 
-        age = datetime.now(timezone.utc) - event.opened
-        common["age"] = str(age)[:-10]
+        common["age"] = calculate_event_age_no_seconds(event.opened)
 
         if event.type == Event.Type.PORTSTATE:
-            common["downtime"] = ":".join(str(event.get_downtime()).split(":")[:-1])  # some values have only seconds, some both seconds and microseconds
+            common["downtime"] = shorten_downtime(event.get_downtime())
         else:
             common["downtime"] = ""
     except Exception:
