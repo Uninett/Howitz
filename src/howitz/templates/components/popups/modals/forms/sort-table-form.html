@@ -10,7 +10,7 @@
                     {% for sort in sort_methods %}
                         <div class="relative flex gap-x-3">
                             <div class="flex h-6 items-center">
-                                <input id="{{ sort }}" value="{{ sort }}" type="radio" name="sort_events_by"
+                                <input id="{{ sort }}" value="{{ sort }}" type="radio" name="sort-method"
                                        {% if sort == current_sort %}checked{% endif %}
                                        class="h-4 w-4 bg-sky-100/40 border-white text-sky-600 focus:ring-sky-600">
                             </div>
@@ -29,9 +29,9 @@
     <div class="mt-2 flex items-center justify-start gap-x-6">
         <button
                 type="submit"
-                hx-post="/event/{{ id }}/update_status"
-                hx-target="#event-accordion-row-{{ id }}"
-                hx-swap="outerHTML show:#ol-event-{{ id }}:bottom"
+                hx-post="/events/table/change_sort_by"
+                hx-target="#eventlist-list"
+                hx-swap="innerHTML"
                 hx-indicator="#bulk-update-indicator"
                 class="mr-1 inline-flex items-center py-2 px-4 font-medium text-center text-white rounded-lg focus:ring-4 bg-sky-700 hover:bg-sky-800 focus:outline-none focus:ring-sky-900">
             Save

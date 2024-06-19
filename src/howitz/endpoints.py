@@ -764,10 +764,24 @@ def clear_flapping(i):
         raise MethodNotAllowed(description='Cant clear flapping on a non-port event.')
 
 
-
 @main.route('/events/table/change_sort_by', methods=['GET', 'POST'])
 def change_events_order():
-    if request.method == 'GET':
+    if request.method == 'POST':
+        # Get new sort method from the request
+        new_sort = request.form['sort-method']
+        session["sort_by"] = new_sort
+        session.modified = True
+
+        # Rerender whole events table
+        events = current_app.cache.get("events")
+        if events:
+            table_events = get_sorted_table_event_list(events)
+        else:
+            table_events = get_current_events()
+
+        return render_template('/responses/resort-events.html', event_list=table_events)
+
+    elif request.method == 'GET':
         return render_template('/components/popups/modals/forms/sort-table-form.html', sort_methods=EventSort,
                                current_sort=EventSort(session["sort_by"]))
 

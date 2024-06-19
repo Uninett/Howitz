@@ -1,0 +1,7 @@
+{% with event_list=event_list %}
+    {% include "/components/table/event-rows.html" %}
+{% endwith %}
+
+{% with modal_id='sort-menu-dropdown', modal_title='Sort events' %}
+    {% include "/components/popups/modals/table-operation-modal.html" %}
+{% endwith %}
