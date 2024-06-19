@@ -42,25 +42,29 @@ class EventColor(StrEnum):
 
 # Inspired by https://stackoverflow.com/a/54732120
 class EventSort(Enum):
-    AGE = "age", "opened", True  # Newest events first
-    AGE_REV = "age-rev", "opened", False  # Oldest events first
-    UPD = "upd", "updated", False  # Events with the oldest update date first
-    UPD_REV = "upd-rev", "updated", True  # Events with the most recent update date first
-    DOWN = "down", "get_downtime", True  # Longest downtime first
-    DOWN_REV = "down-rev", "get_downtime", False  # Shortest/none downtime first
+    # Name, relevant event attribute, is_reversed, displayed name, description
+    AGE = "age", "opened", True, "Age", "Newest events first"
+    AGE_REV = "age-rev", "opened", False, "Age reversed", "Oldest events first"
+    UPD = "upd", "updated", False, "Activity", "Events with the oldest update date first"
+    UPD_REV = "upd-rev", "updated", True, "Activity reversed", "Events with the most recent update date first"
+    DOWN = "down", "get_downtime", True, "Downtime", "Events with longest downtime first"
+    DOWN_REV = "down-rev", "get_downtime", False, "Downtime reversed", "Events with shortest/none downtime first"
 
-    LASTTRANS = "lasttrans", "updated", True  # Newest transaction first, all IGNORED at the bottom. Default sorting at SSC
-    SEVERITY = "severity", "", True  # Events of same color grouped together. The most severe (red) at the top and ignored at the bottom
-    DEFAULT = "raw", "", None  # Unchanged order in which Zino server sends events (by ID ascending)
+    LASTTRANS = ("lasttrans", "updated", True, "Last transaction",
+                 "Events with the most recent update date first, all IGNORED events are at the bottom")
+    SEVERITY = "severity", "", True, "Severity", "Events with highest priority first, grouped by event type"
+    DEFAULT = "raw", "", None, "Raw", "Unchanged order in which Zino server sends events (by ID ascending)"
 
     def __new__(cls, *args, **kwds):
         obj = object.__new__(cls)
         obj._value_ = args[0]
         return obj
 
-    def __init__(self, _: str, attribute: str = None, reversed: bool = None):
+    def __init__(self, _: str, attribute: str = None, reversed: bool = None, display_name: str = None, description: str = None):
         self._attribute = attribute
         self._reversed = reversed
+        self._display_name = display_name
+        self._description = description
 
     def __str__(self):
         return self.value
@@ -72,6 +76,14 @@ class EventSort(Enum):
     @property
     def reversed(self):
         return self._reversed
+
+    @property
+    def display_name(self):
+        return self._display_name
+
+    @property
+    def description(self):
+        return self._description
 
 
 def auth_handler(username, password):
