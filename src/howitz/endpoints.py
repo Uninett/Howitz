@@ -103,7 +103,7 @@ def auth_handler(username, password):
             session["expanded_events"] = {}
             session["errors"] = {}
             session["event_ids"] = []
-            session["sort_by"] = current_app.howitz_config.get("sort_by", "default")
+            session["sort_by"] = current_app.howitz_config.get("sort_by", "raw")
             return user
 
         raise AuthenticationError('Unexpected error on Zino authentication')
