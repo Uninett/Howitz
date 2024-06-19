@@ -262,6 +262,20 @@ See `Flask-Caching's configuration docs <https://flask-caching.readthedocs.io/en
 Default cache type is `SimpleCache <https://flask-caching.readthedocs.io/en/latest/#simplecache>`_.
 
 
+Configuring which Zino servers to use
+-------------------------------------
+
+Howitz will use the configuration in ``[zino.connections.default]``. There may
+be other sections starting with ``zino.connections``, these are a holdover from
+CLI clients being able to choose a specific server with a CLI flag on startup.
+See `future plans`_.
+
+In addition to ``server``, you can also set an explicit ``port``, as an
+integer. The default is port ``8001``. In addition to this port there is
+a hardcoded usage of port ``8002`` for the push update service. (You might find
+mentions of NTIE, this is an internal name for the update service.)
+
+
 Configuring order in which events are sorted
 --------------------------------------------
 
@@ -325,3 +339,12 @@ Run tests
 Linting: ``tox -e lint``
 
 Tests: ``tox``
+
+
+.. _future plans:
+
+Future plans
+============
+
+We hope to be able to automatically failover to other servers in
+``zino.connections``.
