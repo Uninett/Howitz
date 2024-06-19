@@ -764,6 +764,14 @@ def clear_flapping(i):
         raise MethodNotAllowed(description='Cant clear flapping on a non-port event.')
 
 
+
+@main.route('/events/table/change_sort_by', methods=['GET', 'POST'])
+def change_events_order():
+    if request.method == 'GET':
+        return render_template('/components/popups/modals/forms/sort-table-form.html', sort_methods=EventSort,
+                               current_sort=EventSort(session["sort_by"]))
+
+
 @main.route('/navbar/show-user-menu', methods=["GET"])
 def show_user_menu():
     return render_template('/responses/show-user-menu.html')
