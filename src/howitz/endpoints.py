@@ -200,15 +200,7 @@ def update_events():
         return updated_ids
 
     while True:
-        try:
-            updated = current_app.updater.get_event_update()
-        except RetryError as retryErr:  # Intermittent error in Zino
-            current_app.logger.exception('RetryError when NTIE refreshing current events %s', retryErr)
-            try:
-                updated = current_app.updater.get_event_update()
-            except RetryError as retryErr:  # Intermittent error in Zino
-                current_app.logger.exception('RetryError when NTIE refreshing current events after retry, %s', retryErr)
-                raise
+        updated = current_app.updater.get_event_update()
         if not updated:
             break
         updated_ids.add(updated)
