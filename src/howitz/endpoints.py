@@ -148,6 +148,12 @@ def connect_to_zino(username, token):
 
     connect_to_updatehandler()
 
+    return all((
+        current_app.event_manager.is_connected,
+        current_app.event_manager.is_authenticated,
+        current_app.updater
+    ))
+
 
 def clear_ui_state():
     with current_app.app_context():
@@ -212,7 +218,9 @@ def refresh_current_events():
     if current_app.updater is None:
         updates_ok = connect_to_updatehandler()
         if not updates_ok:
-            raise LostConnectionError("Could not establish connection to UpdateHandler")
+            all_ready = connect_to_zino(current_user.username, current_user.token)
+            if not all_ready:
+                raise LostConnectionError("Could not reestablish connection to server!")
 
     event_ids = update_events()
     current_app.logger.debug('UPDATED EVENT IDS %s', event_ids)
@@ -222,27 +230,35 @@ def refresh_current_events():
     added_events = []
     removed = current_app.event_manager.removed_ids
     existing = session["event_ids"]
-    current_events = current_app.cache.get("events")
+    current_events = current_app.cache.get("events") or {}
     is_resort = None  # Re-sort cached events list if any new events added, or any modified
     for i in event_ids:
         if i in removed:
             removed_events.append(i)
             existing.remove(i)
             current_events.pop(i, None)
-        elif i not in existing:
+            continue
+        if i not in existing:
             c = current_app.event_manager.create_event_from_id(int(i))
             added_event = create_table_event(c, expanded=False, selected=False)
             added_events.append(added_event)
             existing.insert(0, int(i))
-            current_events.update({i: c})
+            current_events[i] = c
             is_resort = True
-        else:
+            continue
+        if i not in current_events:
             c = current_app.event_manager.create_event_from_id(int(i))
-            modified_events.append(create_table_event(c,
-                                                      expanded=str(c.id) in session["expanded_events"],
-                                                      selected=str(c.id) in session["selected_events"]))
-            current_events.update({i: c})
+            event = create_table_event(c, expanded=False, selected=False)
+            current_events.append(event)
+            existing.insert(0, int(i))
             is_resort = True
+            continue
+        c = current_app.event_manager.create_event_from_id(int(i))
+        modified_events.append(create_table_event(c,
+                                                  expanded=str(c.id) in session["expanded_events"],
+                                                  selected=str(c.id) in session["selected_events"]))
+        current_events.update({i: c})
+        is_resort = True
 
     session["event_ids"] = existing
     session.modified = True
