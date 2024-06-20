@@ -52,7 +52,7 @@ class EventSort(Enum):
 
     LASTTRANS = ("lasttrans", "updated", True, "Last transaction",
                  "Events with the most recent update date first, all IGNORED events are at the bottom")
-    SEVERITY = "severity", "", True, "Severity", "Events with highest priority first, grouped by event type. Priority takes into account both whether event signifies any disturbance, event's administartive phase and event's type, so there might not be continuous blocks of color"
+    SEVERITY = "severity", "", True, "Severity", "Events with highest priority first, grouped by event type. Priority takes into account both whether event signifies any disturbance, event's administrative phase and event's type, so there might not be continuous blocks of color"
     DEFAULT = "raw", "", None, "Raw", "The same order in which Zino server sends events (by ID, ascending)"
 
     def __new__(cls, *args, **kwds):
