@@ -1,0 +1,45 @@
+<form>
+    <div class="space-y-1">
+        <div class="space-y-0.5 leading-normal">
+            <fieldset class="">
+                <legend class="font-semibold">Change the order in which events are displayed in the
+                    table
+                </legend>
+                <p class="mt-2">Sort events by:</p>
+                <div class="mt-2 space-y-1 px-4">
+                    {% for sort in sort_methods %}
+                        <div class="relative flex gap-x-3">
+                            <div class="flex h-6 items-center">
+                                <input id="{{ sort }}" value="{{ sort }}" type="radio" name="sort-method"
+                                       {% if sort == current_sort %}checked{% endif %}
+                                       class="h-4 w-4 bg-sky-100/40 border-white text-sky-600 focus:ring-sky-600">
+                            </div>
+                            <div class="text-sm">
+                                <label for="{{ sort }}"
+                                       class="block font-medium">{{ sort.display_name }}</label>
+                                <p class="text-xs text-sky-100/40">{{ sort.description }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+    <div class="mt-2 flex items-center justify-start gap-x-6">
+        <button
+                type="submit"
+                hx-post="/events/table/change_sort_by"
+                hx-target="#eventlist-list"
+                hx-swap="innerHTML"
+                hx-indicator="#bulk-update-indicator"
+                class="mr-1 inline-flex items-center py-2 px-4 font-medium text-center text-white rounded-lg focus:ring-4 bg-sky-700 hover:bg-sky-800 focus:outline-none focus:ring-sky-900">
+            Save
+        </button>
+
+        <p id="bulk-update-indicator"
+           class="flex-inline mt-2 animate-pulse text-white bulk-update-htmx-indicator">
+            Updating events order...
+        </p>
+    </div>
+</form>

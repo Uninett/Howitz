@@ -3,6 +3,10 @@
             hx-on:mouseenter="htmx.removeClass(htmx.find('#sort-popover'), 'invisible')"
             hx-on:mouseleave="htmx.addClass(htmx.find('#sort-popover'), 'invisible')"
             hx-on:click="htmx.removeClass(htmx.find('#sort-menu-dropdown'), 'invisible')"
+            hx-get="/events/table/change_sort_by"
+            hx-target="#sort-menu-dropdown-content"
+            hx-swap="innerHTML"
+            hx-trigger="click"
             aria-describedby="sort-popover"
     >
         <svg class="fill-teal-300/90 hover:fill-teal-300 p-1.5 size-full"

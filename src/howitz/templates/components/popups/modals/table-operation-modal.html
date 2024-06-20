@@ -4,6 +4,7 @@
      role="dialog"
      aria-modal="true"
      hx-target-error="body"
+     hx-swap-oob="true"
 >
     <div
             class="modal-underlay inset-0 bg-gray-500 bg-opacity-70 transition-opacity"
@@ -19,15 +20,20 @@
                     id="modal-title">{{ modal_title }}</h3>
             </div>
 
-            <div class="bg-slate-700 p-4 text-white">
-                {% if path_to_content %}
-                    {% include path_to_content %}
-                {% else %}
-                    <p class="py-6 text-center">
-                        Nothing to display
-                    </p>
-                {% endif %}
-
+            <div class="bg-slate-700 px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="w-full mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                        <div id="{{ modal_id }}-content" class="text-white">
+                            {% if path_to_content %}
+                                {% include path_to_content %}
+                            {% else %}
+                                <p class="py-6 text-center">
+                                    Nothing to display
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="bg-slate-800 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">

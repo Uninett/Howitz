@@ -42,25 +42,29 @@ class EventColor(StrEnum):
 
 # Inspired by https://stackoverflow.com/a/54732120
 class EventSort(Enum):
-    AGE = "age", "opened", True  # Newest events first
-    AGE_REV = "age-rev", "opened", False  # Oldest events first
-    UPD = "upd", "updated", False  # Events with the oldest update date first
-    UPD_REV = "upd-rev", "updated", True  # Events with the most recent update date first
-    DOWN = "down", "get_downtime", True  # Longest downtime first
-    DOWN_REV = "down-rev", "get_downtime", False  # Shortest/none downtime first
+    # Name, relevant event attribute, is_reversed, displayed name, description
+    AGE = "age", "opened", True, "Age", "Newest events first"
+    AGE_REV = "age-rev", "opened", False, "Age reversed", "Oldest events first"
+    UPD = "upd", "updated", False, "Activity", "Events with the oldest update date first"
+    UPD_REV = "upd-rev", "updated", True, "Activity reversed", "Events with the most recent update date first"
+    DOWN = "down", "get_downtime", True, "Downtime", "Events with longest downtime first"
+    DOWN_REV = "down-rev", "get_downtime", False, "Downtime reversed", "Events with shortest/none downtime first"
 
-    LASTTRANS = "lasttrans", "updated", True  # Newest transaction first, all IGNORED at the bottom. Default sorting at SSC
-    SEVERITY = "severity", "", True  # Events of same color grouped together. The most severe (red) at the top and ignored at the bottom
-    DEFAULT = "raw", "", None  # Unchanged order in which Zino server sends events (by ID ascending)
+    LASTTRANS = ("lasttrans", "updated", True, "Last transaction",
+                 "Events with the most recent update date first, all IGNORED events are at the bottom")
+    SEVERITY = "severity", "", True, "Severity", "Events with highest priority first, grouped by event type. Priority takes into account both whether event signifies any disturbance, event's administrative phase and event's type, so there might not be continuous blocks of color"
+    DEFAULT = "raw", "", None, "Raw", "The same order in which Zino server sends events (by ID, ascending)"
 
     def __new__(cls, *args, **kwds):
         obj = object.__new__(cls)
         obj._value_ = args[0]
         return obj
 
-    def __init__(self, _: str, attribute: str = None, reversed: bool = None):
+    def __init__(self, _: str, attribute: str = None, reversed: bool = None, display_name: str = None, description: str = None):
         self._attribute = attribute
         self._reversed = reversed
+        self._display_name = display_name
+        self._description = description
 
     def __str__(self):
         return self.value
@@ -72,6 +76,14 @@ class EventSort(Enum):
     @property
     def reversed(self):
         return self._reversed
+
+    @property
+    def display_name(self):
+        return self._display_name
+
+    @property
+    def description(self):
+        return self._description
 
 
 def auth_handler(username, password):
@@ -91,7 +103,7 @@ def auth_handler(username, password):
             session["expanded_events"] = {}
             session["errors"] = {}
             session["event_ids"] = []
-            session["sort_by"] = current_app.howitz_config.get("sort_by", "default")
+            session["sort_by"] = current_app.howitz_config.get("sort_by", "raw")
             session["events_last_refreshed"] = None
             return user
 
@@ -750,6 +762,28 @@ def clear_flapping(i):
                                is_selected=str(event_id) in selected_events)
     else:
         raise MethodNotAllowed(description='Cant clear flapping on a non-port event.')
+
+
+@main.route('/events/table/change_sort_by', methods=['GET', 'POST'])
+def change_events_order():
+    if request.method == 'POST':
+        # Get new sort method from the request
+        new_sort = request.form['sort-method']
+        session["sort_by"] = new_sort
+        session.modified = True
+
+        # Rerender whole events table
+        events = current_app.cache.get("events")
+        if events:
+            table_events = get_sorted_table_event_list(events)
+        else:
+            table_events = get_current_events()
+
+        return render_template('/responses/resort-events.html', event_list=table_events)
+
+    elif request.method == 'GET':
+        return render_template('/components/popups/modals/forms/sort-table-form.html', sort_methods=EventSort,
+                               current_sort=EventSort(session["sort_by"]))
 
 
 @main.route('/navbar/show-user-menu', methods=["GET"])
