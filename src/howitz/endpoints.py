@@ -508,13 +508,6 @@ def refresh_events():
 
 @main.route('/events/<event_id>/expand_row', methods=["GET"])
 def expand_event_row(event_id):
-    try:
-        session["expanded_events"][str(event_id)] = ""
-        session.modified = True
-        current_app.logger.debug('EXPANDED EVENTS %s', session["expanded_events"])
-    except ValueError:
-        pass
-
     event_id = int(event_id)
     selected_events = session.get("selected_events", {})
 
@@ -530,6 +523,10 @@ def expand_event_row(event_id):
             raise
     event = create_table_event(eventobj)["event"]
 
+    session["expanded_events"][str(event_id)] = ""
+    session.modified = True
+    current_app.logger.debug('EXPANDED EVENTS %s', session["expanded_events"])
+
     return render_template('/components/row/expanded-row.html', event=event, id=event_id, event_attr=event_attr,
                            event_logs=event_logs,
                            event_history=event_history, event_msgs=event_msgs,
@@ -538,13 +535,6 @@ def expand_event_row(event_id):
 
 @main.route('/events/<event_id>/collapse_row', methods=["GET"])
 def collapse_event_row(event_id):
-    try:
-        session["expanded_events"].pop(str(event_id), None)
-        session.modified = True
-        current_app.logger.debug('EXPANDED EVENTS %s', session["expanded_events"])
-    except ValueError:
-        pass
-
     event_id = int(event_id)
     selected_events = session.get("selected_events", {})
 
@@ -558,6 +548,10 @@ def collapse_event_row(event_id):
             current_app.logger.exception('RetryError on row collapse %s', retryErr)
             raise
     event = create_table_event(eventobj)["event"]
+
+    session["expanded_events"].pop(str(event_id), None)
+    session.modified = True
+    current_app.logger.debug('EXPANDED EVENTS %s', session["expanded_events"])
 
     return render_template('/responses/collapse-row.html', event=event, id=event_id,
                            is_selected=str(event_id) in selected_events)
