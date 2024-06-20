@@ -309,12 +309,12 @@ It is better to control ``[flask] -> SECRET_KEY`` and
 hardcoding them in the config file. It's best to delete them from the config
 file.
 
-``[flask] -> DEBUG`` should be ``false``. You can still override it via an
-environment variable.
+``[flask] -> DEBUG`` must be ``false``. Keeping it as ``true`` may lead to
+surprising bugs.
 
-``[howitz] -> devmode`` should be ``false``. When ``devmode`` is ``false`` it
-is necessary to explicitly write in the ``[howitz]`` section which IP-address
-and port to listen on::
+``[howitz] -> devmode`` must be ``false``. Due to ``devmode`` being ``false``
+it becomes necessary to explicitly write in the ``[howitz]`` section which
+IP-address and port to listen on::
 
     [howitz]
     devmode = false
