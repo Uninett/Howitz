@@ -91,6 +91,9 @@ def handle_lost_connection(e):
 
         connect_to_zino(current_user.username, current_user.token)
 
+        # Make sure that EventManager is populated with data after re-connect
+        current_app.event_manager.get_events()
+
         alert_random_id = str(uuid.uuid4())
         try:
             short_err_msg = e.args[0]
