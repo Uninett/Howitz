@@ -323,10 +323,19 @@ It is better to control ``[flask] -> SECRET_KEY`` and
 hardcoding them in the config file. It's best to delete them from the config
 file.
 
-``[flask] -> DEBUG`` should be ``false``. You can still override it via an
-environment variable.
+``[flask] -> DEBUG`` must be ``false``. Keeping it as ``true`` may lead to
+surprising bugs.
 
-``[howitz] -> devmode`` should be ``false``.
+``[howitz] -> devmode`` must be ``false``. Due to ``devmode`` being ``false``
+it becomes necessary to explicitly write in the ``[howitz]`` section which
+IP-address and port to listen on::
+
+    [howitz]
+    devmode = false
+    listen = "127.0.0.1"
+    port = 5000
+
+(127.0.0.1 and 5000 are the Flask defaults.)
 
 ``[logging]`` will need adjustments. Increase the level of the ``wsgi``-handler
 or only use the ``error`` handler. Change the error-handler to ship its log
