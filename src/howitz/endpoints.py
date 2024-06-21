@@ -222,7 +222,7 @@ def refresh_current_events():
     added_events = []
     removed = current_app.event_manager.removed_ids
     existing = session["event_ids"]
-    current_events = current_app.cache.get("events")
+    current_events = current_app.cache.get("events") or {}
     is_resort = None  # Re-sort cached events list if any new events added, or any modified
     for i in event_ids:
         if i in removed:
