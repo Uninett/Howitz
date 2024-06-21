@@ -121,3 +121,14 @@ def handle_lost_connection(e):
         res = make_response()
         res.headers['HX-Redirect'] = '/login'
         return res
+
+
+def handle_timeout(e):
+    current_app.logger.error("Timeout har occurred: %s", e)
+
+    response = make_response(render_template('/responses/error-banner.html',
+                                             error_message="Timeout has occurred."))
+
+    response.headers['HX-Reswap'] = 'beforebegin'
+
+    return response, 500

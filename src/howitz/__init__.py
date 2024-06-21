@@ -13,7 +13,8 @@ from werkzeug.exceptions import HTTPException, BadRequest, NotFound, Forbidden
 from howitz.config.utils import load_config
 from howitz.config.zino1 import make_zino1_config
 from howitz.config.howitz import make_howitz_config
-from howitz.error_handlers import handle_generic_exception, handle_generic_http_exception, handle_400, handle_404, handle_403, handle_lost_connection
+from howitz.error_handlers import handle_generic_exception, handle_generic_http_exception, handle_400, handle_404, \
+    handle_403, handle_lost_connection, handle_timeout
 from howitz.users.db import UserDB
 from howitz.users.commands import user_cli
 from zinolib.controllers.zino1 import Zino1EventManager, LostConnectionError, NotConnectedError
@@ -33,6 +34,7 @@ def create_app(test_config=None):
     app.register_error_handler(LostConnectionError, handle_lost_connection)
     app.register_error_handler(BrokenPipeError, handle_lost_connection)
     app.register_error_handler(NotConnectedError, handle_lost_connection)
+    app.register_error_handler(TimeoutError, handle_timeout)
 
     # load config
     app = load_config(app, test_config)
