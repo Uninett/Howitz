@@ -498,17 +498,11 @@ def auth():
     return res
 
 
-@main.route('/events-table.html')
-def events_table():
-    return render_template('/components/table/events-table.html',
-                           refresh_interval=current_app.howitz_config["refresh_interval"])
-
-
 @main.route('/get_events')
 def get_events():
     table_events = get_current_events()
 
-    return render_template('/components/table/event-rows.html', event_list=table_events)
+    return render_template('components/table/dynamic-table-body.html', event_list=table_events, refresh_interval=current_app.howitz_config["refresh_interval"])
 
 
 @main.route('/refresh_events')
