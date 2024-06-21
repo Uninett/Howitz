@@ -91,6 +91,17 @@ def handle_lost_connection(e):
 
         connect_to_zino(current_user.username, current_user.token)
 
+        # Make sure that EventManager is populated with data after re-connect
+        current_app.event_manager.get_events()
+
+        # Re-fetch the event list and update event data in cache and session
+        # This is needed in case there were NTIE updates that occurred while connection was down, so that they are not lost until manual page refresh
+        events = current_app.event_manager.events
+        current_app.cache.set("events", events)  # Update cache
+        session["event_ids"] = list(events.keys())  # Update session
+        session["events_last_refreshed"] = None  # Mark current event table in UI as outdated
+        session.modified = True
+
         alert_random_id = str(uuid.uuid4())
         try:
             short_err_msg = e.args[0]
