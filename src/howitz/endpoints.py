@@ -227,7 +227,8 @@ def refresh_current_events():
     for i in event_ids:
         if i in removed:
             removed_events.append(i)
-            existing.remove(i)
+            if i in existing:
+                existing.remove(i)
             current_events.pop(i, None)
         elif i not in existing:
             c = current_app.event_manager.create_event_from_id(int(i))
