@@ -8,6 +8,7 @@
            hx-trigger='click from:#unselect-event-{{ id }}, dblclick from:#unselect-event-{{ id }} consume'
            hx-target="closest div"
            hx-swap="outerHTML"
+           hx-on:click="htmx.removeClass(htmx.find('#event-accordion-row-{{ id }}'), 'checked')"
     />
     <label for="unselect-event-{{ id }}" class="sr-only">checkbox event {{ id }}</label>
 </div>
