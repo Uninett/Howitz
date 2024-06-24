@@ -14,19 +14,7 @@
 
     {% include "/components/toolbar/table-toolbar.html"%}
 
-        <div
-                hx-get="events-table.html"
-                hx-swap="outerHTML"
-                hx-trigger="load"
-                role="status"
-                class="htmx-indicator animate-pulse"
-        >
-
-            <span class="sr-only">Loading Table...</span>
-
-
-        </div>
-
+    {% include "/components/table/events-table.html"%}
 
     </main>
 

@@ -227,7 +227,8 @@ def refresh_current_events():
     for i in event_ids:
         if i in removed:
             removed_events.append(i)
-            existing.remove(i)
+            if i in existing:
+                existing.remove(i)
             current_events.pop(i, None)
         elif i not in existing:
             c = current_app.event_manager.create_event_from_id(int(i))
@@ -497,17 +498,11 @@ def auth():
     return res
 
 
-@main.route('/events-table.html')
-def events_table():
-    return render_template('/components/table/events-table.html',
-                           refresh_interval=current_app.howitz_config["refresh_interval"])
-
-
 @main.route('/get_events')
 def get_events():
     table_events = get_current_events()
 
-    return render_template('/components/table/event-rows.html', event_list=table_events)
+    return render_template('components/table/events-table-body.html', event_list=table_events, refresh_interval=current_app.howitz_config["refresh_interval"])
 
 
 @main.route('/refresh_events')

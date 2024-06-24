@@ -1,0 +1,11 @@
+<tbody
+        id="eventlist-list"
+        hx-get="/refresh_events"
+        hx-swap="afterbegin"
+        hx-target="#eventlist-list"
+        hx-trigger="every {{ refresh_interval }}s"
+>
+{% with event_list=event_list %}
+    {% include "/components/table/event-rows.html" %}
+{% endwith %}
+</tbody>
