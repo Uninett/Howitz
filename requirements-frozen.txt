@@ -54,5 +54,5 @@ werkzeug==2.3.8
     #   flask
     #   flask-login
     #   howitz (pyproject.toml)
-zinolib==1.2.0
+zinolib==1.3.0
     # via howitz (pyproject.toml)
