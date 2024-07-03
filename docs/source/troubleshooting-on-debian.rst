@@ -15,7 +15,7 @@ there is red text, Howitz didn't start properly or has crashed. Go to
 Check journalctl
 ================
 
-Run `journalctl -since="-1h" howitz-gunicorn.service`. This will show the
+Run `journalctl --since="-1h" -u howitz-gunicorn.service`. This will show the
 gunicorn log for the last hour.
 
 If there is an exception mentioning "pydantic", you might have forgotten to
