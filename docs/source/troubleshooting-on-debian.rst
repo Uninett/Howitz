@@ -9,7 +9,7 @@ Check systemctl status
 ======================
 
 Run ``sudo systemctl status howitz-gunicorn.service``. If it says "disabled" or
-there is red text, howitz didn' start properly or has crashed. Go to
+there is red text, Howitz didn't start properly or has crashed. Go to
 `Check journalctl`_
 
 Check journalctl
