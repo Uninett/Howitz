@@ -20,5 +20,5 @@ gunicorn log for the last hour.
 
 If there is an exception mentioning "pydantic", you might have forgotten to
 configure everything. Remember that if ``devmode`` is ``false``, then
-``listen`` must be set to an ip-address and ``port`` must be set to a port
+``listen`` must be set to an IP address and ``port`` must be set to a port
 number.
