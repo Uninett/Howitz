@@ -133,7 +133,7 @@ def connect_to_updatehandler():
         current_app.updater.connect()
         current_app.logger.debug('Connected to UpdateHandler: %s', current_app.updater)
         return
-    raise AuthenticationError('Session not authenticated, cannot connect to UpdateHandler')
+    raise NotConnectedError('Session not authenticated, cannot connect to UpdateHandler')
 
 
 def connect_to_zino(username, token):
