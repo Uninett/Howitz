@@ -2,7 +2,7 @@ import uuid
 
 from flask import render_template, session, current_app, make_response, request
 from flask_login import current_user
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException, BadGateway
 
 from howitz.endpoints import connect_to_zino
 from howitz.utils import serialize_exception
@@ -77,6 +77,20 @@ def handle_403(e):
     response.headers['HX-Trigger'] = 'htmx:responseError'
 
     return response, 403
+
+
+def handle_bad_gateway(e):
+    current_app.logger.exception("502 Bad Gateway has occurred %s", e)
+    description = BadGateway.description
+    try:
+        description = e.description
+    except AttributeError:
+        pass
+
+    response = make_response(render_template('responses/502.html', err_msg=description))
+    response.headers['HX-Retarget'] = 'body'
+    response.headers['HX-Reswap'] = 'innerHTML'
+    return response, 502
 
 
 def handle_lost_connection(e):
