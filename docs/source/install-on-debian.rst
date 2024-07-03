@@ -166,6 +166,9 @@ Set up the configuration file
    it.
 #. In the config-file, set ``devmode`` in the ``[howitz]`` section to
    ``false``, no quotes.
+#. Because of ``devmode`` being ``false`` you also need to set ``listen`` to
+   ``"127.0.0.1"`` and ``port`` to ``5000`` in the same section as ``devmode``,
+   so that gunicorn can find Howitz.
 #. Eventually you will probably wish to lower the log-level. In the
    config-file, set ``level`` in the ``[logging.root]`` section to ``"INFO"``,
    note the quotes.
