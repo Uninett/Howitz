@@ -21,7 +21,7 @@ from werkzeug.exceptions import BadRequest, InternalServerError, MethodNotAllowe
 from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError, UpdateHandler, LostConnectionError
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState, LogEntry, HistoryEntry
 from zinolib.compat import StrEnum
-from zinolib.ritz import AuthenticationError
+from zinolib.ritz import AuthenticationError, ProtocolError
 
 from howitz.users.utils import authenticate_user
 
@@ -147,6 +147,17 @@ def connect_to_zino(username, token):
         current_app.logger.info('Authenticated in Zino %s', current_app.event_manager.is_authenticated)
 
     connect_to_updatehandler()
+
+
+def test_zino_connection():
+    try:
+        current_app.event_manager.test_connection()  # Fetches event with fake id
+    except ProtocolError:  # Event ID unknown, but connection is OK
+        session["last_zino_keepalive"] = datetime.now(timezone.utc)
+        session.modified = True
+    except TimeoutError as e:
+        current_app.logger.exception('Error when testing Zino connection %s', e)
+        raise LostConnectionError("Zino server connection test failed") from e
 
 
 def clear_ui_state():
