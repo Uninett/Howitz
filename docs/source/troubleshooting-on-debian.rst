@@ -2,7 +2,7 @@
 Troubleshooting on Debian
 =========================
 
-Visit the url of the site. If there is a "50x"-error, and the logs are not
+Visit the URL of the site. If there is a "50x"-error, and the logs are not
 exported to an external log tool you need to log in to the console of the site.
 
 Check systemctl status
