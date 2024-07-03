@@ -18,7 +18,7 @@ Check journalctl
 Run `journalctl -since="-1h" howitz-gunicorn.service`. This will show the
 gunicorn log for the last hour.
 
-If there is an exception mentioning "pydantic" you might have forgotten to
+If there is an exception mentioning "pydantic", you might have forgotten to
 configure everything. Remember that if ``devmode`` is ``false``, then
 ``listen`` must be set to an ip-address and ``port`` must be set to a port
 number.
