@@ -1,5 +1,5 @@
 =========================
-Troubleshooting on debian
+Troubleshooting on Debian
 =========================
 
 Visit the url of the site. If there is a "50x"-error, and the logs are not
