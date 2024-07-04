@@ -111,10 +111,10 @@ def handle_lost_connection(e):
         session["errors"][str(alert_random_id)] = serialize_exception(e)
         session.modified = True
 
-        # Check if connection is still lost
-        is_connection_ok = test_zino_connection()
-        if is_connection_ok is not False:  # Both True or None are OK
-            reconnect_to_zino()
+        # Check if connection is still down
+        should_attempt_reconnect = test_zino_connection()
+        if should_attempt_reconnect is not False:  # Both True or None options are acceptable
+            reconnect_to_zino()  # Ensure a clean reconnect to Zino server and re-populate the events data
             short_err_msg = 'Temporarily lost connection to Zino server, please retry your action'
 
         response = make_response(render_template('/components/popups/alerts/error/error-alert.html',
