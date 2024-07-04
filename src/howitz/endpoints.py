@@ -18,7 +18,8 @@ from flask_login import login_user, current_user, logout_user
 from datetime import datetime, timezone, timedelta
 
 from werkzeug.exceptions import BadRequest, InternalServerError, MethodNotAllowed
-from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError, UpdateHandler, LostConnectionError
+from zinolib.controllers.zino1 import Zino1EventManager, UpdateHandler
+from zinolib.controllers.zino1 import RetryError, EventClosedError, LostConnectionError, NotConnectedError
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState, LogEntry, HistoryEntry
 from zinolib.compat import StrEnum
 from zinolib.ritz import AuthenticationError
@@ -131,9 +132,9 @@ def connect_to_updatehandler():
     if current_app.event_manager.is_authenticated:  # is zino authenticated
         current_app.updater = UpdateHandler(current_app.event_manager, autoremove=current_app.zino_config.autoremove)
         current_app.updater.connect()
-        current_app.logger.debug('UpdateHandler %s', current_app.updater)
-        return True
-    return False
+        current_app.logger.debug('Connected to UpdateHandler: %s', current_app.updater)
+        return
+    raise NotConnectedError('Session not authenticated, cannot connect to UpdateHandler')
 
 
 def connect_to_zino(username, token):
@@ -196,10 +197,13 @@ def get_sorted_table_event_list(events: dict):
 
 def update_events():
     updated_ids = set()
-    if current_app.updater is None:
-        return updated_ids
 
     while True:
+        if current_app.updater is None:
+            try:
+                connect_to_updatehandler()
+            except NotConnectedError as e:
+                raise LostConnectionError("Could not establish connection to UpdateHandler") from e
         updated = current_app.updater.get_event_update()
         if not updated:
             break
@@ -210,9 +214,10 @@ def update_events():
 
 def refresh_current_events():
     if current_app.updater is None:
-        updates_ok = connect_to_updatehandler()
-        if not updates_ok:
-            raise LostConnectionError("Could not establish connection to UpdateHandler")
+        try:
+            connect_to_updatehandler()
+        except NotConnectedError as e:
+            raise LostConnectionError("Could not establish connection to UpdateHandler") from e
 
     event_ids = update_events()
     current_app.logger.debug('UPDATED EVENT IDS %s', event_ids)
