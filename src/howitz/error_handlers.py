@@ -4,7 +4,7 @@ from flask import render_template, session, current_app, make_response, request
 from flask_login import current_user
 from werkzeug.exceptions import HTTPException, BadGateway
 
-from howitz.endpoints import connect_to_zino
+from howitz.endpoints import reconnect_to_zino, test_zino_connection
 from howitz.utils import serialize_exception
 
 
@@ -100,38 +100,29 @@ def handle_lost_connection(e):
         current_app.logger.error("Lost connection to Zino server: %s", e.args[0])
 
     if current_user.is_authenticated:  # Re-connect to Zino with existing credentials and inform user that there was an error via alert pop-up
-        if current_app.event_manager.is_connected:
-            current_app.event_manager.disconnect()
-
-        connect_to_zino(current_user.username, current_user.token)
-
-        # Make sure that EventManager is populated with data after re-connect
-        current_app.event_manager.get_events()
-
-        # Re-fetch the event list and update event data in cache and session
-        # This is needed in case there were NTIE updates that occurred while connection was down, so that they are not lost until manual page refresh
-        events = current_app.event_manager.events
-        current_app.cache.set("events", events)  # Update cache
-        session["event_ids"] = list(events.keys())  # Update session
-        session["events_last_refreshed"] = None  # Mark current event table in UI as outdated
-        session.modified = True
-
         alert_random_id = str(uuid.uuid4())
         try:
             short_err_msg = e.args[0]
         except IndexError:
-            short_err_msg = 'Temporarily lost connection to Zino server'
+            short_err_msg = 'Lost connection to Zino server'
 
         if not "errors" in session:
             session["errors"] = dict()
         session["errors"][str(alert_random_id)] = serialize_exception(e)
         session.modified = True
 
+        # Check if connection is still down
+        should_attempt_reconnect = test_zino_connection()
+        if should_attempt_reconnect is not False:  # Both True or None options are acceptable
+            reconnect_to_zino()  # Ensure a clean reconnect to Zino server and re-populate the events data
+            short_err_msg = 'Temporarily lost connection to Zino server, please retry your action'
+
         response = make_response(render_template('/components/popups/alerts/error/error-alert.html',
                                                  alert_id=alert_random_id, short_err_msg=short_err_msg))
         response.headers['HX-Reswap'] = 'beforeend'
         return response, 503
     else:  # Redirect to /login for complete re-authentication
+        current_app.event_manager.disconnect()
         res = make_response()
         res.headers['HX-Redirect'] = '/login'
-        return res
+        return res, 401

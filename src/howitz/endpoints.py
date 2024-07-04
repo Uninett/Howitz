@@ -22,7 +22,7 @@ from zinolib.controllers.zino1 import Zino1EventManager, UpdateHandler
 from zinolib.controllers.zino1 import RetryError, EventClosedError, LostConnectionError, NotConnectedError
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState, LogEntry, HistoryEntry
 from zinolib.compat import StrEnum
-from zinolib.ritz import AuthenticationError
+from zinolib.ritz import AuthenticationError, ProtocolError
 
 from howitz.users.utils import authenticate_user
 
@@ -148,6 +148,41 @@ def connect_to_zino(username, token):
         current_app.logger.info('Authenticated in Zino %s', current_app.event_manager.is_authenticated)
 
     connect_to_updatehandler()
+
+
+def reconnect_to_zino():
+    current_app.logger.info('Attempting reconnect to Zino')
+
+    # Disconnect completely from Zino in case of any dangling connection state
+    current_app.event_manager.disconnect()
+
+    # Reconnect to Zino with existing credentials
+    connect_to_zino(current_user.username, current_user.token)
+
+    # Make sure that EventManager is populated with data after re-connect
+    current_app.event_manager.get_events()
+
+    # Re-fetch the event list and update event data in cache and session
+    # This is needed in case there were NTIE updates that occurred while connection was down, so that they are not lost until manual page refresh
+    events = current_app.event_manager.events
+    current_app.cache.set("events", events)  # Update cache
+    session["event_ids"] = list(events.keys())  # Update session
+    session["events_last_refreshed"] = None  # Mark current event table in UI as outdated
+    session.modified = True
+
+
+def test_zino_connection():
+    try:
+        current_app.event_manager.test_connection()  # Fetches event with fake id
+        return True
+    except ProtocolError:  # Event ID unknown, but connection is OK
+        return True
+    except TimeoutError as e:
+        current_app.logger.exception('TimeoutError when testing Zino connection %s', e)
+        return False
+    except Exception as e:
+        current_app.logger.exception('Unexpected error when testing Zino connection %s', e)
+        return None  # Uncertain connection state, let the caller decide how to interpret it
 
 
 def clear_ui_state():
@@ -507,7 +542,7 @@ def auth():
 def get_events():
     table_events = get_current_events()
 
-    return render_template('components/table/events-table-body.html', event_list=table_events, refresh_interval=current_app.howitz_config["refresh_interval"])
+    return render_template('responses/get-events-table.html', event_list=table_events, refresh_interval=current_app.howitz_config["refresh_interval"])
 
 
 @main.route('/refresh_events')
@@ -521,6 +556,30 @@ def refresh_events():
     else:
         return render_template('/responses/updated-rows.html', modified_event_list=modified_events,
                            removed_event_list=removed_events, added_event_list=added_events)
+
+
+@main.route('/test_connection')
+def test_conn():
+    is_connection_ok = test_zino_connection()
+    caller_id = request.headers.get('HX-Target', None)
+    if is_connection_ok is False:
+        current_app.logger.debug('Connection test failed showing error appbar')
+        return render_template('components/feedback/connection-status-bar/error-appbar-content.html',
+                               error_message="Connection to Zino server is lost")
+
+    if is_connection_ok is None:  # Uncertain connection state
+        try:  # Attempt a quiet reconnect
+            reconnect_to_zino()
+        except:
+            pass
+        response = make_response()
+        response.headers['HX-Reswap'] = 'none'
+        return response
+
+    if caller_id == 'connection-error-content':  # If connection should be restored after error
+        reconnect_to_zino()
+    current_app.logger.debug('Connection test OK, caller ID %s', caller_id)
+    return render_template('components/feedback/connection-status-bar/success-appbar-content.html')
 
 
 @main.route('/events/<event_id>/expand_row', methods=["GET"])
