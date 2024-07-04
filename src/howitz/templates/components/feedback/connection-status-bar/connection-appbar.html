@@ -1,0 +1,10 @@
+<div
+        id="connection-state-appbar"
+        hx-swap-oob="true"
+        hx-get="/test_connection"
+        hx-trigger="every 15s"
+        hx-swap="outerHTML"
+        hx-target="find div"
+>
+    {% include "components/feedback/connection-status-bar/success-appbar-content.html" %}
+</div>
