@@ -537,7 +537,7 @@ def auth():
 def get_events():
     table_events = get_current_events()
 
-    return render_template('components/table/events-table-body.html', event_list=table_events, refresh_interval=current_app.howitz_config["refresh_interval"])
+    return render_template('responses/get-events-table.html', event_list=table_events, refresh_interval=current_app.howitz_config["refresh_interval"])
 
 
 @main.route('/refresh_events')
