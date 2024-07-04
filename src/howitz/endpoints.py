@@ -18,7 +18,8 @@ from flask_login import login_user, current_user, logout_user
 from datetime import datetime, timezone, timedelta
 
 from werkzeug.exceptions import BadRequest, InternalServerError, MethodNotAllowed
-from zinolib.controllers.zino1 import Zino1EventManager, RetryError, EventClosedError, UpdateHandler, LostConnectionError
+from zinolib.controllers.zino1 import Zino1EventManager, UpdateHandler
+from zinolib.controllers.zino1 import RetryError, EventClosedError, LostConnectionError, NotConnectedError
 from zinolib.event_types import Event, AdmState, PortState, BFDState, ReachabilityState, LogEntry, HistoryEntry
 from zinolib.compat import StrEnum
 from zinolib.ritz import AuthenticationError
@@ -201,7 +202,7 @@ def update_events():
         if current_app.updater is None:
             try:
                 connect_to_updatehandler()
-            except AuthenticationError as e:
+            except NotConnectedError as e:
                 raise LostConnectionError("Could not establish connection to UpdateHandler") from e
         updated = current_app.updater.get_event_update()
         if not updated:
@@ -215,7 +216,7 @@ def refresh_current_events():
     if current_app.updater is None:
         try:
             connect_to_updatehandler()
-        except AuthenticationError as e:
+        except NotConnectedError as e:
             raise LostConnectionError("Could not establish connection to UpdateHandler") from e
 
     event_ids = update_events()
