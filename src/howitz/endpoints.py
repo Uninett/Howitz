@@ -26,6 +26,7 @@ from zinolib.ritz import AuthenticationError, ProtocolError
 
 from howitz.users.utils import authenticate_user
 
+from . import __version__
 from .config.defaults import DEFAULT_TIMEZONE
 from .utils import login_check, date_str_without_timezone, shorten_downtime, calculate_event_age_no_seconds
 
@@ -195,6 +196,29 @@ def clear_ui_state():
         session.modified = True
 
         current_app.cache.clear()
+
+
+def get_timezone():
+    tz = current_app.howitz_config["timezone"]  # Get raw string from config. Accepted values are 'UTC' or 'LOCAL'.
+    if tz == 'LOCAL':  # Change to a specific timezone name if 'LOCAL'
+        tz = datetime.now(timezone.utc).astimezone().tzinfo
+    elif not tz == DEFAULT_TIMEZONE:  # Fall back to default if invalid value is provided
+        tz = f"{DEFAULT_TIMEZONE} (default)"
+    return tz
+
+
+def get_info_dict():
+    with current_app.app_context():
+        events = current_app.cache.get("events") or ()
+        info_dict = {
+            'event_count': len(events),
+            'howitz_version': __version__,
+            'sort_by': session.get('sort_by') or 'raw',
+            'timezone': get_timezone(),
+            'zino_server': current_app.zino_config.server,
+            'protocol': 'TCP v1',
+        }
+        return info_dict
 
 
 def get_current_events():
@@ -481,15 +505,10 @@ def index():
 
 @main.get('/footer')
 def footer():
-    tz = current_app.howitz_config["timezone"]  # Get raw string from config. Accepted values are 'UTC' or 'LOCAL'.
-    if tz == 'LOCAL':  # Change to a specific timezone name if 'LOCAL'
-        tz = datetime.now(timezone.utc).astimezone().tzinfo
-    elif not tz == DEFAULT_TIMEZONE:  # Fall back to default if invalid value is provided
-        tz = f"{DEFAULT_TIMEZONE} (default)"
-
+    info_dict = get_info_dict()
     return render_template('/components/footer/footer-info.html',
                            refresh_interval=current_app.howitz_config["refresh_interval"],
-                           timezone=tz)
+                           **info_dict)
 
 
 @main.route('/login')
@@ -552,6 +571,7 @@ def refresh_events():
     if event_list:
         response = make_response(render_template('/components/table/event-rows.html', event_list=event_list))
         response.headers['HX-Reswap'] = 'innerHTML'
+        response.headers['HX-Trigger'] = 'footerIsOutdated'
         return response
     else:
         return render_template('/responses/updated-rows.html', modified_event_list=modified_events,
@@ -843,7 +863,9 @@ def change_events_order():
         else:
             table_events = get_current_events()
 
-        return render_template('/responses/resort-events.html', event_list=table_events)
+        response = make_response(render_template('/responses/resort-events.html', event_list=table_events))
+        response.headers['HX-Trigger'] = 'footerIsOutdated'
+        return response
 
     elif request.method == 'GET':
         return render_template('/components/popups/modals/forms/sort-table-form.html', sort_methods=EventSort,
