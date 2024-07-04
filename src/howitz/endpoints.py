@@ -152,12 +152,15 @@ def connect_to_zino(username, token):
 def test_zino_connection():
     try:
         current_app.event_manager.test_connection()  # Fetches event with fake id
+        return True
     except ProtocolError:  # Event ID unknown, but connection is OK
-        session["last_zino_keepalive"] = datetime.now(timezone.utc)
-        session.modified = True
+        return True
     except TimeoutError as e:
-        current_app.logger.exception('Error when testing Zino connection %s', e)
-        raise LostConnectionError("Zino server connection test failed") from e
+        current_app.logger.exception('TimeoutError when testing Zino connection %s', e)
+        return False
+    except Exception as e:
+        current_app.logger.exception('Unexpected error when testing Zino connection %s', e)
+        return None  # Uncertain connection state, let the caller decide how to interpret it
 
 
 def clear_ui_state():
