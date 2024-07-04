@@ -149,6 +149,27 @@ def connect_to_zino(username, token):
     connect_to_updatehandler()
 
 
+def reconnect_to_zino():
+    current_app.logger.info('Attempting reconnect to Zino')
+
+    # Disconnect completely from Zino in case of any dangling connection state
+    current_app.event_manager.disconnect()
+
+    # Reconnect to Zino with existing credentials
+    connect_to_zino(current_user.username, current_user.token)
+
+    # Make sure that EventManager is populated with data after re-connect
+    current_app.event_manager.get_events()
+
+    # Re-fetch the event list and update event data in cache and session
+    # This is needed in case there were NTIE updates that occurred while connection was down, so that they are not lost until manual page refresh
+    events = current_app.event_manager.events
+    current_app.cache.set("events", events)  # Update cache
+    session["event_ids"] = list(events.keys())  # Update session
+    session["events_last_refreshed"] = None  # Mark current event table in UI as outdated
+    session.modified = True
+
+
 def test_zino_connection():
     try:
         current_app.event_manager.test_connection()  # Fetches event with fake id
