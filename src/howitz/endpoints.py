@@ -561,13 +561,11 @@ def test_conn():
         current_app.logger.debug('Connection test failed showing error appbar')
         return render_template('components/feedback/connection-status-bar/error-appbar-content.html',
                                error_message="Connection to Zino server is lost")
+
     if caller_id == 'connection-error-content':  # If connection should be restored after error
-        current_app.logger.debug('Connection test OK, caller ID %s', caller_id)
         reconnect_to_zino()
-        return render_template('components/feedback/connection-status-bar/success-appbar-content.html')
-    else:
-        current_app.logger.debug('Connection test OK, caller ID %s', caller_id)
-        return render_template('components/feedback/connection-status-bar/success-appbar-content.html')
+    current_app.logger.debug('Connection test OK, caller ID %s', caller_id)
+    return render_template('components/feedback/connection-status-bar/success-appbar-content.html')
 
 
 @main.route('/events/<event_id>/expand_row', methods=["GET"])
