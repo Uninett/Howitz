@@ -531,6 +531,7 @@ def refresh_events():
     if event_list:
         response = make_response(render_template('/components/table/event-rows.html', event_list=event_list))
         response.headers['HX-Reswap'] = 'innerHTML'
+        response.headers['HX-Trigger'] = 'footerIsOutdated'
         return response
     else:
         return render_template('/responses/updated-rows.html', modified_event_list=modified_events,
@@ -798,7 +799,9 @@ def change_events_order():
         else:
             table_events = get_current_events()
 
-        return render_template('/responses/resort-events.html', event_list=table_events)
+        response = make_response(render_template('/responses/resort-events.html', event_list=table_events))
+        response.headers['HX-Trigger'] = 'footerIsOutdated'
+        return response
 
     elif request.method == 'GET':
         return render_template('/components/popups/modals/forms/sort-table-form.html', sort_methods=EventSort,
