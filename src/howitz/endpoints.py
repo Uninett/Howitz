@@ -582,19 +582,15 @@ def refresh_events():
 def test_conn():
     is_connection_ok = test_zino_connection()
     caller_id = request.headers.get('HX-Target', None)
-    if is_connection_ok is False:
+    if not is_connection_ok:
         current_app.logger.debug('Connection test failed showing error appbar')
+        if is_connection_ok is None:  # Uncertain connection state
+            try:  # Attempt a quiet reconnect
+                reconnect_to_zino()
+            except:
+                pass
         return render_template('components/feedback/connection-status-bar/error-appbar-content.html',
                                error_message="Connection to Zino server is lost")
-
-    if is_connection_ok is None:  # Uncertain connection state
-        try:  # Attempt a quiet reconnect
-            reconnect_to_zino()
-        except:
-            pass
-        response = make_response()
-        response.headers['HX-Reswap'] = 'none'
-        return response
 
     if caller_id == 'connection-error-content':  # If connection should be restored after error
         reconnect_to_zino()
