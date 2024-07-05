@@ -244,7 +244,7 @@ def get_current_events():
 
 
 def get_sorted_table_event_list(events: dict):
-    events_sorted = sort_events(events, sort_by=EventSort(session["sort_by"]))
+    events_sorted = sort_events(events, sort_by=EventSort(session.get("sort_by") or "raw"))
     table_events = []
     for c in events_sorted.values():
         table_events.append(create_table_event(c, expanded=str(c.id) in session["expanded_events"],
@@ -864,8 +864,10 @@ def change_events_order():
         return response
 
     elif request.method == 'GET':
-        return render_template('/components/popups/modals/forms/sort-table-form.html', sort_methods=EventSort,
-                               current_sort=EventSort(session["sort_by"]))
+        return render_template(
+            '/components/popups/modals/forms/sort-table-form.html', sort_methods=EventSort,
+            current_sort=EventSort(session.get("sort_by") or "raw")
+        )
 
 
 @main.route('/navbar/show-user-menu', methods=["GET"])
