@@ -3,9 +3,11 @@
         <a
                 href="/"
                 hx-push-url="/"
-                class="hover:bg-gray-700 p-2 rounded-md justify-self-start"
+                class="justify-self-start"
                 aria-current="page">
-            {% include "/includes/zino-logo.svg" %}
+            {% with height='16' %}
+                {% include "/includes/zino-logo.svg" %}
+            {% endwith %}
 
         </a>
         <div class="flex space-x-1 md:space-x-4 items-center justify-self-center">
