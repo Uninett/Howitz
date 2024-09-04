@@ -10,12 +10,14 @@
 <h1 class="sr-only">Login page</h1>
 <main>
 
-    <div class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8 shadow-2xl shadow-sky-400/50">
+    <div class="flex min-h-full flex-col justify-center px-6 py-4 lg:px-8 shadow-2xl shadow-sky-400/50">
         <div class="sm:mx-auto sm:w-full sm:max-w-sm ">
 
-            {% include "/includes/zino-logo.svg"%}
+            {% with height='40' %}
+                {% include "/includes/zino-logo.svg" %}
+            {% endwith %}
 
-            <h2 class="mt-8 text-center text-2xl font-bold leading-9 tracking-tight text-sky-50">Sign in to Zino</h2>
+            <h2 class="text-center text-2xl font-bold leading-9 tracking-tight text-sky-50">Sign in to Zino</h2>
         </div>
 
 
