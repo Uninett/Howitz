@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 570.99 278.1">
+<svg class="mx-auto h-{{ height if (height != '' and height is not none) else 'auto' }} w-auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 570.99 278.1">
   <defs>
     <style>
       .cls-1 {
