@@ -1,5 +1,5 @@
 <div class="relative flex flex-col items-center">
-    <button class="block bg-zinc-600/90 hover:bg-zinc-500 rounded-md m-1.5 size-9 focus:ring-2 focus:outline-none focus:ring-teal-300"
+    <button class="block bg-zinc-600/90 hover:bg-zinc-500 rounded-md m-1.5 size-9 focus:ring-2 focus:outline-none focus:ring-zinogreen-300"
             hx-on:mouseenter="htmx.removeClass(htmx.find('#sort-popover'), 'invisible')"
             hx-on:mouseleave="htmx.addClass(htmx.find('#sort-popover'), 'invisible')"
             hx-on:click="htmx.removeClass(htmx.find('#sort-menu-dropdown'), 'invisible')"
@@ -9,7 +9,7 @@
             hx-trigger="click"
             aria-describedby="sort-popover"
     >
-        <svg class="fill-teal-300/90 hover:fill-teal-300 p-1.5 size-full"
+        <svg class="fill-zinogreen-300/90 hover:fill-zinogreen-300 p-1.5 size-full"
              xmlns="http://www.w3.org/2000/svg"
              viewBox="0 0 576 512">
             <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
@@ -18,7 +18,7 @@
     </button>
 
     <p id="sort-popover" role="tooltip"
-       class="absolute -top-4 h-fit z-40 invisible flow-root w-fit text-xs font-semibold text-nowrap text-teal-900 transition-opacity duration-300 bg-teal-300 rounded-md px-1 py-0.5"
+       class="absolute -top-4 h-fit z-40 invisible flow-root w-fit text-xs font-semibold text-nowrap text-zinogreen-900 transition-opacity duration-300 bg-zinogreen-300 rounded-md px-1 py-0.5"
     >
         Sort events
     </p>
