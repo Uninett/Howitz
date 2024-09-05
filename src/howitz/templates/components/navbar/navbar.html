@@ -1,18 +1,20 @@
-<nav class="bg-slate-950">
+<nav class="bg-black">
     <div class="max-w-full h-16 grid grid-cols-3 items-center px-2 lg:px-4">
         <a
                 href="/"
                 hx-push-url="/"
-                class="hover:bg-gray-700 p-2 rounded-md justify-self-start"
+                class="justify-self-start"
                 aria-current="page">
-            {% include "/includes/zino-logo.svg" %}
+            {% with height='16' %}
+                {% include "/includes/zino-logo.svg" %}
+            {% endwith %}
 
         </a>
         <div class="flex space-x-1 md:space-x-4 items-center justify-self-center">
             <a
                     href="/events"
                     hx-push-url="/events"
-                    class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-4 py-2 text-lg font-normal"
+                    class="text-zinc-300 hover:bg-zinogray/20 hover:text-white block rounded-md px-4 py-2 text-lg font-normal"
                     aria-current="page">
                 Dashboard
             </a>

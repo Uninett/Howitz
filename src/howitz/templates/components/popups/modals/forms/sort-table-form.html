@@ -12,12 +12,12 @@
                             <div class="flex h-6 items-center">
                                 <input id="{{ sort }}" value="{{ sort }}" type="radio" name="sort-method"
                                        {% if sort == current_sort %}checked{% endif %}
-                                       class="h-4 w-4 bg-sky-100/40 border-white text-sky-600 focus:ring-sky-600">
+                                       class="h-4 w-4 bg-zinogreen-100/40 border-white text-zinogreen-600 focus:ring-zinogreen-600">
                             </div>
                             <div class="text-sm">
                                 <label for="{{ sort }}"
                                        class="block font-medium">{{ sort.display_name }}</label>
-                                <p class="text-xs text-sky-100/40">{{ sort.description }}</p>
+                                <p class="text-xs text-white/60">{{ sort.description }}</p>
                             </div>
                         </div>
                     {% endfor %}
@@ -33,7 +33,7 @@
                 hx-target="#eventlist-list"
                 hx-swap="innerHTML"
                 hx-indicator="#bulk-update-indicator"
-                class="mr-1 inline-flex items-center py-2 px-4 font-medium text-center text-white rounded-lg focus:ring-4 bg-sky-700 hover:bg-sky-800 focus:outline-none focus:ring-sky-900">
+                class="mr-1 inline-flex items-center py-2 px-4 font-medium text-center text-white rounded-lg focus:ring-4 bg-zinogreen-700 hover:bg-zinogreen-800 focus:outline-none focus:ring-zinogreen-900">
             Save
         </button>
 

@@ -1,16 +1,16 @@
-<td class="{{ padding }} text-center border border-slate-700">{{ event.id }}</td>
+<td class="{{ padding }} text-center border border-zinc-700">{{ event.id }}</td>
 {% if event.color != "" and event.color is not none %}
 {% with color=event.color %}
 {% include "/components/row/colored-data-cells.html" %}
 {% endwith %}
 {% else %}
-<td class="{{ padding }} text-center font-medium  whitespace-nowrap text-white border border-slate-700">{{
+<td class="{{ padding }} text-center font-medium  whitespace-nowrap text-white border border-zinc-700">{{
     event.op_state }}
 </td>
-<td class="{{ padding }} text-center font-medium text-white border border-slate-700">{{ event.adm_state }}</td>
+<td class="{{ padding }} text-center font-medium text-white border border-zinc-700">{{ event.adm_state }}</td>
 {% endif %}
-<td class="{{ padding }} text-right border border-slate-700">{{ event.age }}</td>
-<td class="{{ padding }} text-right border border-slate-700">{{ event.downtime }}</td>
-<td class="{{ padding }} border border-slate-700">{{ event.router }}</td>
-<td class="{{ padding }} border border-slate-700">{{ event.port }}</td>
-<td class="{{ padding }} border border-slate-700">{{ event.description }}</td>
+<td class="{{ padding }} text-right border border-zinc-700">{{ event.age }}</td>
+<td class="{{ padding }} text-right border border-zinc-700">{{ event.downtime }}</td>
+<td class="{{ padding }} border border-zinc-700">{{ event.router }}</td>
+<td class="{{ padding }} border border-zinc-700">{{ event.port }}</td>
+<td class="{{ padding }} border border-zinc-700">{{ event.description }}</td>
