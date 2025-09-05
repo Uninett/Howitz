@@ -14,7 +14,7 @@ def handle_generic_http_exception(e):
     alert_random_id = str(uuid.uuid4())
     short_err_msg = f"{e.code} {e.name}: {e.description}"
 
-    if not "errors" in session:
+    if "errors" not in session:
         session["errors"] = dict()
     session["errors"][str(alert_random_id)] = serialize_exception(e)
     session.modified = True
@@ -39,7 +39,7 @@ def handle_generic_exception(e):
     except IndexError:
         short_err_msg = 'An unexpected error has occurred'
 
-    if not "errors" in session:
+    if "errors" not in session:
         session["errors"] = dict()
     session["errors"][str(alert_random_id)] = serialize_exception(e)
     session.modified = True
@@ -106,7 +106,7 @@ def handle_lost_connection(e):
         except IndexError:
             short_err_msg = 'Lost connection to Zino server'
 
-        if not "errors" in session:
+        if "errors" not in session:
             session["errors"] = dict()
         session["errors"][str(alert_random_id)] = serialize_exception(e)
         session.modified = True

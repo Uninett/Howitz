@@ -10,7 +10,7 @@ class UserTest(unittest.TestCase):
 
     def test_print_user_return_username(self):
         user = User(**{'username': 'foo', 'password': 'bar', 'token': 'xux'})
-        self.assertEqual(str(user), 'username=foo password=XXX token=XXX')
+        self.assertEqual(str(user), 'username=foo *** token="SET"')
 
     def test_autenticater_with_correct_password_returns_true(self):
         user = User(**{'username': 'foo', 'password': 'bar', 'token': 'xux'})

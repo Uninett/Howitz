@@ -3,7 +3,7 @@ from zinolib.config.zino1 import ZinoV1Config
 
 def get_config_dict(config_dict, section="default"):
     zino_dict = config_dict.get('zino', {})
-    if not zino_dict or not 'connections' in zino_dict:
+    if not zino_dict or 'connections' not in zino_dict:
         return {}
     if zino_dict["connections"][section]:
         connection = zino_dict["connections"][section]

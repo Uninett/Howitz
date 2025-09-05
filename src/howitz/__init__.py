@@ -4,7 +4,7 @@ __version__ = '0.1-b1'
 from logging.config import dictConfig
 from flask_caching import Cache
 
-from flask import Flask, g, redirect, url_for, current_app
+from flask import Flask, redirect, url_for, current_app
 from flask.logging import default_handler
 from flask_assets import Bundle, Environment
 from flask_login import LoginManager, logout_user
