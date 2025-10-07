@@ -2,6 +2,9 @@
 Howitz - Zino web client with HTMx and Flask
 ============================================
 
+This client is mothballed and will see no furher development from us. Feel free
+to fork.
+
 
 Running Howitz step-by-step overview
 ====================================

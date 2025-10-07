@@ -6,6 +6,9 @@
 Welcome to Howitz's documentation!
 ==================================
 
+This client is mothballed and will see no furher development from us. Feel free
+to fork.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
